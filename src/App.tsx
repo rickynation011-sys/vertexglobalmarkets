@@ -81,6 +81,10 @@ const App = () => (
             <Route path="/compliance" element={<Compliance />} />
             <Route path="/security" element={<Security />} />
             <Route path="/press" element={<Press />} />
+            <Route path="/trading" element={<Trading />} />
+            <Route path="/investments" element={<Investments />} />
+            <Route path="/signals" element={<Signals />} />
+            <Route path="/plans" element={<Plans />} />
 
             {/* User dashboard - protected */}
             <Route element={<ProtectedRoute />}>
