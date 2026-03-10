@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { useMemo } from "react";
 import { useLivePrices } from "@/hooks/useLivePrices";
+import MarketChart from "@/components/MarketChart";
 
 const indexConfigs = [
   { displayName: "S&P 500", symbol: "SPX", basePrice: 5425.80, region: "US" },
