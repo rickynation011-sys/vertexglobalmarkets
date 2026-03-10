@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { TrendingUp, TrendingDown, PieChart } from "lucide-react";
+import MarketChart from "@/components/MarketChart";
 
 const funds = [
   { name: "SPDR S&P 500", symbol: "SPY", price: "$528.45", change: "+0.72%", aum: "$520B", category: "Index ETF", up: true },
