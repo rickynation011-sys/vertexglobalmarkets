@@ -229,6 +229,36 @@ export type Database = {
           },
         ]
       }
+      profit_processing_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          processed_count: number
+          status: string
+          total_profit: number
+          triggered_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          processed_count?: number
+          status?: string
+          total_profit?: number
+          triggered_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          processed_count?: number
+          status?: string
+          total_profit?: number
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
       trades: {
         Row: {
           amount: number
