@@ -25,6 +25,10 @@ import RiskDisclosure from "./pages/RiskDisclosure.tsx";
 import Compliance from "./pages/Compliance.tsx";
 import Security from "./pages/Security.tsx";
 import Press from "./pages/Press.tsx";
+import Trading from "./pages/Trading.tsx";
+import Investments from "./pages/Investments.tsx";
+import Signals from "./pages/Signals.tsx";
+import Plans from "./pages/Plans.tsx";
 
 // Dashboard
 import DashboardLayout from "./layouts/DashboardLayout.tsx";
