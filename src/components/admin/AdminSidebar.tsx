@@ -36,7 +36,10 @@ export function AdminSidebar() {
           {!collapsed && (
             <div className="flex items-center gap-1.5">
               <Shield className="h-4 w-4 text-destructive" />
-              <span className="font-display font-bold text-sm text-foreground">Admin</span>
+              <span className="font-display font-bold text-sm">
+                <span style={{ color: 'hsl(145, 60%, 45%)' }}>Vertex</span>{' '}
+                <span style={{ color: 'hsl(225, 65%, 45%)' }}>Admin</span>
+              </span>
             </div>
           )}
         </NavLink>

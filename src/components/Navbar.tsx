@@ -20,8 +20,10 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
         <Link to="/" className="flex items-center gap-2">
           <img src={logo} alt="Vertex Global Markets" className="h-10 w-10 rounded" />
-          <span className="font-display font-bold text-lg text-foreground hidden sm:block">
-            Vertex <span className="text-gradient-brand">Global Markets</span>
+          <span className="font-display font-bold text-lg">
+            <span style={{ color: 'hsl(145, 60%, 45%)' }}>Vertex</span>{' '}
+            <span style={{ color: 'hsl(195, 70%, 45%)' }}>Global</span>{' '}
+            <span style={{ color: 'hsl(225, 65%, 45%)' }}>Markets</span>
           </span>
         </Link>
 

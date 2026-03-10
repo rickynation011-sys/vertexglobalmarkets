@@ -52,7 +52,11 @@ const AdminLogin = () => {
         <CardHeader className="text-center space-y-3">
           <div className="flex items-center justify-center gap-2 mb-2">
             <img src={logo} alt="Vertex" className="h-10 w-10 rounded" />
-            <Shield className="h-6 w-6 text-primary" />
+            <span className="font-display font-bold text-lg">
+              <span style={{ color: 'hsl(145, 60%, 45%)' }}>Vertex</span>{' '}
+              <span style={{ color: 'hsl(225, 65%, 45%)' }}>Admin</span>
+            </span>
+            <Shield className="h-5 w-5 text-primary" />
           </div>
           <CardTitle className="text-xl font-display">Admin Portal</CardTitle>
           <CardDescription>Secure administrator access only</CardDescription>
