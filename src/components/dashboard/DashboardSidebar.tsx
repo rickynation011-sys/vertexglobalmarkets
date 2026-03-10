@@ -60,8 +60,10 @@ export function DashboardSidebar() {
         <NavLink to="/" className="flex items-center gap-2">
           <img src={logo} alt="Vertex" className="h-8 w-8 rounded" />
           {!collapsed && (
-            <span className="font-display font-bold text-sm text-foreground">
-              Vertex <span className="text-gradient-brand">Global</span>
+            <span className="font-display font-bold text-sm">
+              <span style={{ color: 'hsl(145, 60%, 45%)' }}>Vertex</span>{' '}
+              <span style={{ color: 'hsl(195, 70%, 45%)' }}>Global</span>{' '}
+              <span style={{ color: 'hsl(225, 65%, 45%)' }}>Markets</span>
             </span>
           )}
         </NavLink>

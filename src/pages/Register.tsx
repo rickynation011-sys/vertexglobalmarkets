@@ -57,8 +57,10 @@ const Register = () => {
         <CardHeader className="text-center space-y-3">
           <Link to="/" className="flex items-center justify-center gap-2 mb-2">
             <img src={logo} alt="Vertex" className="h-10 w-10 rounded" />
-            <span className="font-display font-bold text-lg text-foreground">
-              Vertex <span className="text-gradient-brand">Global Markets</span>
+            <span className="font-display font-bold text-lg">
+              <span style={{ color: 'hsl(145, 60%, 45%)' }}>Vertex</span>{' '}
+              <span style={{ color: 'hsl(195, 70%, 45%)' }}>Global</span>{' '}
+              <span style={{ color: 'hsl(225, 65%, 45%)' }}>Markets</span>
             </span>
           </Link>
           <CardTitle className="text-xl font-display">Create Account</CardTitle>
