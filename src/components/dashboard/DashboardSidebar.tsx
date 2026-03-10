@@ -13,7 +13,7 @@ import {
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import logo from "@/assets/logo.jpg";
+import logo from "@/assets/logo-symbol.png";
 import {
   Sidebar,
   SidebarContent,

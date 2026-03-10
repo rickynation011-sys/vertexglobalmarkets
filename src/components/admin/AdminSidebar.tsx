@@ -3,7 +3,7 @@ import {
   FileText, Bell, LogOut, Shield, TrendingUp
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import logo from "@/assets/logo.jpg";
+import logo from "@/assets/logo-symbol.png";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
