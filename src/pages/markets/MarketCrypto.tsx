@@ -6,6 +6,7 @@ import { TrendingUp, TrendingDown, Clock } from "lucide-react";
 import { useMemo } from "react";
 import { useLivePrices } from "@/hooks/useLivePrices";
 import MarketChart from "@/components/MarketChart";
+import Sparkline from "@/components/Sparkline";
 
 const cryptoConfigs = [
   { displayName: "Bitcoin (BTC)", binanceSymbol: "BTCUSDT", basePrice: 67432 },
