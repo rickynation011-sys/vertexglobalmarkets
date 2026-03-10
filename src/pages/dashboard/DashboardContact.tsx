@@ -4,8 +4,25 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Mail, MessageSquare, Phone, Clock } from "lucide-react";
+import { toast } from "sonner";
+import { useState } from "react";
 
 const DashboardContact = () => {
+  const [subject, setSubject] = useState("");
+  const [category, setCategory] = useState("");
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = () => {
+    if (!subject || !message) {
+      toast.error("Please fill in subject and message.");
+      return;
+    }
+    toast.success("Support ticket submitted. We'll respond within 2 hours.");
+    setSubject("");
+    setCategory("");
+    setMessage("");
+  };
+
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
@@ -44,11 +61,11 @@ const DashboardContact = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-sm text-muted-foreground">Subject</label>
-              <Input placeholder="Brief description of your issue" className="mt-1" />
+              <Input placeholder="Brief description" className="mt-1" value={subject} onChange={(e) => setSubject(e.target.value)} />
             </div>
             <div>
               <label className="text-sm text-muted-foreground">Category</label>
-              <Select>
+              <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger className="mt-1"><SelectValue placeholder="Select category" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="account">Account Issues</SelectItem>
@@ -63,9 +80,9 @@ const DashboardContact = () => {
           </div>
           <div>
             <label className="text-sm text-muted-foreground">Message</label>
-            <Textarea placeholder="Describe your issue in detail..." className="mt-1 min-h-[120px]" />
+            <Textarea placeholder="Describe your issue in detail..." className="mt-1 min-h-[120px]" value={message} onChange={(e) => setMessage(e.target.value)} />
           </div>
-          <Button className="bg-gradient-brand text-primary-foreground font-semibold">Submit Ticket</Button>
+          <Button className="bg-gradient-brand text-primary-foreground font-semibold" onClick={handleSubmit}>Submit Ticket</Button>
         </CardContent>
       </Card>
     </div>

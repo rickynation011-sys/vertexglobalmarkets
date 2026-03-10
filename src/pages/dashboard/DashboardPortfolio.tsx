@@ -1,27 +1,86 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowUp, ArrowDown } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
-
-const performanceData = [
-  { month: "Jan", profit: 1200, loss: -400 },
-  { month: "Feb", profit: 1800, loss: -200 },
-  { month: "Mar", profit: 900, loss: -600 },
-  { month: "Apr", profit: 2200, loss: -100 },
-  { month: "May", profit: 1500, loss: -300 },
-  { month: "Jun", profit: 2800, loss: -150 },
-];
-
-const holdings = [
-  { asset: "Bitcoin (BTC)", qty: "0.45 BTC", value: "$27,450.00", pnl: "+$4,200.00", change: "+18.1%", up: true },
-  { asset: "EUR/USD", qty: "50,000 units", value: "$52,300.00", pnl: "+$1,840.00", change: "+3.6%", up: true },
-  { asset: "Apple (AAPL)", qty: "85 shares", value: "$14,875.00", pnl: "-$320.00", change: "-2.1%", up: false },
-  { asset: "Gold (XAU)", qty: "2.5 oz", value: "$4,875.00", pnl: "+$625.00", change: "+14.7%", up: true },
-  { asset: "Ethereum (ETH)", qty: "5.2 ETH", value: "$9,620.00", pnl: "+$1,120.00", change: "+13.2%", up: true },
-  { asset: "Tesla (TSLA)", qty: "40 shares", value: "$10,200.00", pnl: "+$800.00", change: "+8.5%", up: true },
-];
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 const DashboardPortfolio = () => {
+  const { user } = useAuth();
+
+  const { data: trades } = useQuery({
+    queryKey: ["trades", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("trades").select("*").eq("user_id", user!.id).order("created_at", { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: transactions } = useQuery({
+    queryKey: ["transactions", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("transactions").select("*").eq("user_id", user!.id);
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: investments } = useQuery({
+    queryKey: ["investments", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("investments").select("*").eq("user_id", user!.id);
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
+  const completedDeposits = (transactions ?? []).filter(t => t.type === "deposit" && t.status === "completed");
+  const completedWithdrawals = (transactions ?? []).filter(t => t.type === "withdrawal" && t.status === "completed");
+  const totalDeposited = completedDeposits.reduce((s, t) => s + Number(t.amount), 0);
+  const totalWithdrawn = completedWithdrawals.reduce((s, t) => s + Number(t.amount), 0);
+  const tradePnl = (trades ?? []).reduce((s, t) => s + Number(t.pnl ?? 0), 0);
+  const investmentValue = (investments ?? []).filter(i => i.status === "active").reduce((s, i) => s + Number(i.current_value), 0);
+  const totalValue = totalDeposited - totalWithdrawn + tradePnl + investmentValue;
+
+  // Monthly P&L from closed trades
+  const performanceData = useMemo(() => {
+    const closedTrades = (trades ?? []).filter(t => t.status === "closed");
+    const monthly = new Map<string, { profit: number; loss: number }>();
+    closedTrades.forEach(t => {
+      const m = new Date(t.closed_at ?? t.created_at).toLocaleString("en-US", { month: "short" });
+      const existing = monthly.get(m) ?? { profit: 0, loss: 0 };
+      const pnl = Number(t.pnl ?? 0);
+      if (pnl >= 0) existing.profit += pnl;
+      else existing.loss += pnl;
+      monthly.set(m, existing);
+    });
+    if (monthly.size === 0) return [{ month: "No data", profit: 0, loss: 0 }];
+    return Array.from(monthly.entries()).map(([month, v]) => ({ month, ...v }));
+  }, [trades]);
+
+  // Holdings = open trades grouped by asset
+  const holdings = useMemo(() => {
+    const openTrades = (trades ?? []).filter(t => t.status === "open");
+    const assetMap = new Map<string, { amount: number; pnl: number }>();
+    openTrades.forEach(t => {
+      const existing = assetMap.get(t.asset) ?? { amount: 0, pnl: 0 };
+      existing.amount += Number(t.amount);
+      existing.pnl += Number(t.pnl ?? 0);
+      assetMap.set(t.asset, existing);
+    });
+    return Array.from(assetMap.entries()).map(([asset, v]) => ({
+      asset,
+      value: v.amount,
+      pnl: v.pnl,
+      change: v.amount > 0 ? ((v.pnl / v.amount) * 100).toFixed(1) : "0.0",
+      up: v.pnl >= 0,
+    }));
+  }, [trades]);
+
+  const fmt = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
   return (
     <div className="space-y-6">
       <div>
@@ -33,22 +92,21 @@ const DashboardPortfolio = () => {
         <Card className="bg-card border-border">
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Total Value</p>
-            <p className="text-2xl font-display font-bold text-foreground">$119,320.00</p>
-            <p className="text-xs text-success flex items-center gap-1 mt-1"><ArrowUp className="h-3 w-3" /> +12.4% this month</p>
+            <p className="text-2xl font-display font-bold text-foreground">{fmt(totalValue)}</p>
           </CardContent>
         </Card>
         <Card className="bg-card border-border">
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">Total P&L</p>
-            <p className="text-2xl font-display font-bold text-success">+$8,265.00</p>
-            <p className="text-xs text-muted-foreground mt-1">Unrealized gains</p>
+            <p className="text-xs text-muted-foreground">Trading P&L</p>
+            <p className={`text-2xl font-display font-bold ${tradePnl >= 0 ? "text-success" : "text-destructive"}`}>{tradePnl >= 0 ? "+" : ""}{fmt(tradePnl)}</p>
+            <p className="text-xs text-muted-foreground mt-1">{(trades ?? []).filter(t => t.status === "closed").length} closed trades</p>
           </CardContent>
         </Card>
         <Card className="bg-card border-border">
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground">Monthly Return</p>
-            <p className="text-2xl font-display font-bold text-foreground">7.2%</p>
-            <p className="text-xs text-muted-foreground mt-1">Estimated (not guaranteed)</p>
+            <p className="text-xs text-muted-foreground">Active Investments</p>
+            <p className="text-2xl font-display font-bold text-foreground">{fmt(investmentValue)}</p>
+            <p className="text-xs text-muted-foreground mt-1">{(investments ?? []).filter(i => i.status === "active").length} plans active</p>
           </CardContent>
         </Card>
       </div>
@@ -72,36 +130,38 @@ const DashboardPortfolio = () => {
 
       <Card className="bg-card border-border">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">Holdings</CardTitle>
+          <CardTitle className="text-sm font-medium">Open Holdings</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-2 text-muted-foreground font-medium">Asset</th>
-                  <th className="text-left py-2 text-muted-foreground font-medium">Quantity</th>
-                  <th className="text-left py-2 text-muted-foreground font-medium">Value</th>
-                  <th className="text-left py-2 text-muted-foreground font-medium">P&L</th>
-                  <th className="text-right py-2 text-muted-foreground font-medium">Change</th>
-                </tr>
-              </thead>
-              <tbody>
-                {holdings.map((h, i) => (
-                  <tr key={i} className="border-b border-border/50 last:border-0">
-                    <td className="py-3 font-medium text-foreground">{h.asset}</td>
-                    <td className="py-3 text-muted-foreground">{h.qty}</td>
-                    <td className="py-3 text-foreground">{h.value}</td>
-                    <td className={`py-3 ${h.up ? "text-success" : "text-destructive"}`}>{h.pnl}</td>
-                    <td className={`py-3 text-right flex items-center justify-end gap-1 ${h.up ? "text-success" : "text-destructive"}`}>
-                      {h.up ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                      {h.change}
-                    </td>
+          {holdings.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">No open positions. Place a trade to see your holdings here.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-2 text-muted-foreground font-medium">Asset</th>
+                    <th className="text-left py-2 text-muted-foreground font-medium">Value</th>
+                    <th className="text-left py-2 text-muted-foreground font-medium">P&L</th>
+                    <th className="text-right py-2 text-muted-foreground font-medium">Change</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {holdings.map((h) => (
+                    <tr key={h.asset} className="border-b border-border/50 last:border-0">
+                      <td className="py-3 font-medium text-foreground">{h.asset}</td>
+                      <td className="py-3 text-foreground">{fmt(h.value)}</td>
+                      <td className={`py-3 ${h.up ? "text-success" : "text-destructive"}`}>{h.up ? "+" : ""}{fmt(h.pnl)}</td>
+                      <td className={`py-3 text-right flex items-center justify-end gap-1 ${h.up ? "text-success" : "text-destructive"}`}>
+                        {h.up ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                        {h.change}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

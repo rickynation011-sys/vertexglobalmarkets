@@ -3,15 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowUp, ArrowDown, Bot, Zap, Signal } from "lucide-react";
+import { ArrowUp, ArrowDown } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { useState } from "react";
-
-const chartData = [
-  { t: "09:00", p: 1.0842 }, { t: "10:00", p: 1.0856 }, { t: "11:00", p: 1.0831 },
-  { t: "12:00", p: 1.0870 }, { t: "13:00", p: 1.0885 }, { t: "14:00", p: 1.0862 },
-  { t: "15:00", p: 1.0891 }, { t: "16:00", p: 1.0905 }, { t: "17:00", p: 1.0918 },
-];
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const watchlist = [
   { pair: "EUR/USD", price: "1.0918", change: "+0.42%", up: true },
@@ -24,14 +22,70 @@ const watchlist = [
   { pair: "TSLA", price: "255.30", change: "-1.20%", up: false },
 ];
 
-const signals = [
-  { pair: "EUR/USD", direction: "Buy", confidence: "92%", entry: "1.0910", tp: "1.0960", sl: "1.0880" },
-  { pair: "BTC/USDT", direction: "Buy", confidence: "87%", entry: "67,100", tp: "69,500", sl: "66,000" },
-  { pair: "Gold", direction: "Sell", confidence: "78%", entry: "2,345", tp: "2,310", sl: "2,365" },
+const chartData = [
+  { t: "09:00", p: 1.0842 }, { t: "10:00", p: 1.0856 }, { t: "11:00", p: 1.0831 },
+  { t: "12:00", p: 1.0870 }, { t: "13:00", p: 1.0885 }, { t: "14:00", p: 1.0862 },
+  { t: "15:00", p: 1.0891 }, { t: "16:00", p: 1.0905 }, { t: "17:00", p: 1.0918 },
 ];
 
 const DashboardTrading = () => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [selectedPair, setSelectedPair] = useState("EUR/USD");
+  const [amount, setAmount] = useState("");
+  const [price, setPrice] = useState("");
+  const [tp, setTp] = useState("");
+  const [sl, setSl] = useState("");
+
+  const { data: openTrades } = useQuery({
+    queryKey: ["trades-open", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("trades").select("*").eq("user_id", user!.id).eq("status", "open").order("created_at", { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
+  const placeTrade = useMutation({
+    mutationFn: async (side: "buy" | "sell") => {
+      const amt = parseFloat(amount);
+      if (!amt || amt <= 0) throw new Error("Enter a valid amount");
+      const { error } = await supabase.from("trades").insert({
+        user_id: user!.id,
+        asset: selectedPair,
+        side,
+        amount: amt,
+        price: price ? parseFloat(price) : null,
+        take_profit: tp ? parseFloat(tp) : null,
+        stop_loss: sl ? parseFloat(sl) : null,
+        status: "open",
+      });
+      if (error) throw error;
+    },
+    onSuccess: (_, side) => {
+      queryClient.invalidateQueries({ queryKey: ["trades-open", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["trades", user?.id] });
+      toast.success(`${side.charAt(0).toUpperCase() + side.slice(1)} order placed for ${selectedPair}`);
+      setAmount("");
+      setPrice("");
+      setTp("");
+      setSl("");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const closeTrade = useMutation({
+    mutationFn: async (tradeId: string) => {
+      const { error } = await supabase.from("trades").update({ status: "closed", closed_at: new Date().toISOString() }).eq("id", tradeId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["trades-open", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["trades", user?.id] });
+      toast.success("Trade closed.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   return (
     <div className="space-y-6">
@@ -41,7 +95,6 @@ const DashboardTrading = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        {/* Watchlist */}
         <Card className="bg-card border-border">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Watchlist</CardTitle>
@@ -68,18 +121,10 @@ const DashboardTrading = () => {
           </CardContent>
         </Card>
 
-        {/* Chart + Order */}
         <div className="lg:col-span-2 space-y-4">
           <Card className="bg-card border-border">
             <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium">{selectedPair} Chart</CardTitle>
-                <div className="flex gap-1">
-                  {["1H", "4H", "1D", "1W"].map((tf) => (
-                    <Button key={tf} variant="ghost" size="sm" className="text-xs h-7 px-2 text-muted-foreground">{tf}</Button>
-                  ))}
-                </div>
-              </div>
+              <CardTitle className="text-sm font-medium">{selectedPair} Chart</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -99,7 +144,6 @@ const DashboardTrading = () => {
             </CardContent>
           </Card>
 
-          {/* Order panel */}
           <Card className="bg-card border-border">
             <CardContent className="p-4">
               <Tabs defaultValue="buy">
@@ -107,79 +151,68 @@ const DashboardTrading = () => {
                   <TabsTrigger value="buy" className="flex-1 data-[state=active]:bg-success/20 data-[state=active]:text-success">Buy</TabsTrigger>
                   <TabsTrigger value="sell" className="flex-1 data-[state=active]:bg-destructive/20 data-[state=active]:text-destructive">Sell</TabsTrigger>
                 </TabsList>
-                <TabsContent value="buy" className="space-y-3 mt-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs text-muted-foreground">Amount</label>
-                      <Input placeholder="0.00" className="mt-1" />
+                {(["buy", "sell"] as const).map((side) => (
+                  <TabsContent key={side} value={side} className="space-y-3 mt-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-muted-foreground">Amount (USD)</label>
+                        <Input placeholder="0.00" className="mt-1" value={amount} onChange={(e) => setAmount(e.target.value)} type="number" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Price</label>
+                        <Input placeholder="Market" className="mt-1" value={price} onChange={(e) => setPrice(e.target.value)} type="number" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Take Profit</label>
+                        <Input placeholder="Optional" className="mt-1" value={tp} onChange={(e) => setTp(e.target.value)} type="number" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Stop Loss</label>
+                        <Input placeholder="Optional" className="mt-1" value={sl} onChange={(e) => setSl(e.target.value)} type="number" />
+                      </div>
                     </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground">Price</label>
-                      <Input placeholder="Market" className="mt-1" />
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground">Take Profit</label>
-                      <Input placeholder="Optional" className="mt-1" />
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground">Stop Loss</label>
-                      <Input placeholder="Optional" className="mt-1" />
-                    </div>
-                  </div>
-                  <Button className="w-full bg-success text-primary-foreground font-semibold">Place Buy Order</Button>
-                </TabsContent>
-                <TabsContent value="sell" className="space-y-3 mt-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs text-muted-foreground">Amount</label>
-                      <Input placeholder="0.00" className="mt-1" />
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground">Price</label>
-                      <Input placeholder="Market" className="mt-1" />
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground">Take Profit</label>
-                      <Input placeholder="Optional" className="mt-1" />
-                    </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground">Stop Loss</label>
-                      <Input placeholder="Optional" className="mt-1" />
-                    </div>
-                  </div>
-                  <Button className="w-full bg-destructive text-destructive-foreground font-semibold">Place Sell Order</Button>
-                </TabsContent>
+                    <Button
+                      className={`w-full font-semibold ${side === "buy" ? "bg-success text-primary-foreground" : "bg-destructive text-destructive-foreground"}`}
+                      onClick={() => placeTrade.mutate(side)}
+                      disabled={placeTrade.isPending}
+                    >
+                      {placeTrade.isPending ? "Placing..." : `Place ${side.charAt(0).toUpperCase() + side.slice(1)} Order`}
+                    </Button>
+                  </TabsContent>
+                ))}
               </Tabs>
             </CardContent>
           </Card>
         </div>
 
-        {/* AI Signals */}
         <Card className="bg-card border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-1.5">
-              <Bot className="h-4 w-4 text-primary" /> AI Signals
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Open Positions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {signals.map((s, i) => (
-              <div key={i} className="p-3 rounded-lg bg-muted/50 border border-border space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">{s.pair}</span>
-                  <Badge variant="outline" className={`text-xs ${s.direction === "Buy" ? "border-success text-success" : "border-destructive text-destructive"}`}>
-                    {s.direction}
-                  </Badge>
+            {(openTrades ?? []).length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-4">No open positions.</p>
+            ) : (
+              (openTrades ?? []).map((t) => (
+                <div key={t.id} className="p-3 rounded-lg bg-muted/50 border border-border space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-foreground">{t.asset}</span>
+                    <Badge variant="outline" className={`text-xs ${t.side === "buy" ? "border-success text-success" : "border-destructive text-destructive"}`}>
+                      {t.side.charAt(0).toUpperCase() + t.side.slice(1)}
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
+                    <span>Amount: <span className="text-foreground">${Number(t.amount).toLocaleString()}</span></span>
+                    {t.price && <span>Price: <span className="text-foreground">{t.price}</span></span>}
+                    {t.take_profit && <span>TP: <span className="text-success">{t.take_profit}</span></span>}
+                    {t.stop_loss && <span>SL: <span className="text-destructive">{t.stop_loss}</span></span>}
+                  </div>
+                  <Button size="sm" variant="outline" className="w-full text-xs h-7" onClick={() => closeTrade.mutate(t.id)} disabled={closeTrade.isPending}>
+                    Close Position
+                  </Button>
                 </div>
-                <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
-                  <span>Confidence: <span className="text-foreground">{s.confidence}</span></span>
-                  <span>Entry: <span className="text-foreground">{s.entry}</span></span>
-                  <span>TP: <span className="text-success">{s.tp}</span></span>
-                  <span>SL: <span className="text-destructive">{s.sl}</span></span>
-                </div>
-                <Button size="sm" variant="outline" className="w-full text-xs h-7">Copy Trade</Button>
-              </div>
-            ))}
-            <p className="text-[10px] text-muted-foreground italic text-center">AI signals are estimates, not financial advice.</p>
+              ))
+            )}
           </CardContent>
         </Card>
       </div>
