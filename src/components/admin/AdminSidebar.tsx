@@ -15,6 +15,7 @@ const mainItems = [
   { title: "Users", url: "/admin/users", icon: Users },
   { title: "KYC Verification", url: "/admin/kyc", icon: ShieldCheck },
   { title: "Transactions", url: "/admin/transactions", icon: ArrowUpDown },
+  { title: "Investments", url: "/admin/investments", icon: TrendingUp },
 ];
 
 const systemItems = [
