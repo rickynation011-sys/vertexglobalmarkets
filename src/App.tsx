@@ -35,6 +35,7 @@ import DashboardWallet from "./pages/dashboard/DashboardWallet.tsx";
 import DashboardHistory from "./pages/dashboard/DashboardHistory.tsx";
 import DashboardSettings from "./pages/dashboard/DashboardSettings.tsx";
 import DashboardContact from "./pages/dashboard/DashboardContact.tsx";
+import DashboardKYC from "./pages/dashboard/DashboardKYC.tsx";
 
 // Admin
 import AdminLayout from "./layouts/AdminLayout.tsx";
@@ -85,6 +86,7 @@ const App = () => (
                 <Route path="wallet" element={<DashboardWallet />} />
                 <Route path="history" element={<DashboardHistory />} />
                 <Route path="settings" element={<DashboardSettings />} />
+                <Route path="kyc" element={<DashboardKYC />} />
                 <Route path="contact" element={<DashboardContact />} />
               </Route>
             </Route>
