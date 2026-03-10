@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Login from "./pages/Login.tsx";
@@ -35,15 +36,17 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/dashboard" element={<DashboardLayout />}>
-              <Route index element={<DashboardOverview />} />
-              <Route path="portfolio" element={<DashboardPortfolio />} />
-              <Route path="investments" element={<DashboardInvestments />} />
-              <Route path="trading" element={<DashboardTrading />} />
-              <Route path="wallet" element={<DashboardWallet />} />
-              <Route path="history" element={<DashboardHistory />} />
-              <Route path="settings" element={<DashboardSettings />} />
-              <Route path="contact" element={<DashboardContact />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<DashboardLayout />}>
+                <Route index element={<DashboardOverview />} />
+                <Route path="portfolio" element={<DashboardPortfolio />} />
+                <Route path="investments" element={<DashboardInvestments />} />
+                <Route path="trading" element={<DashboardTrading />} />
+                <Route path="wallet" element={<DashboardWallet />} />
+                <Route path="history" element={<DashboardHistory />} />
+                <Route path="settings" element={<DashboardSettings />} />
+                <Route path="contact" element={<DashboardContact />} />
+              </Route>
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
