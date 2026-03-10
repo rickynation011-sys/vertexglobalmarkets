@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface MarketAsset {
   symbol: string;
@@ -9,7 +10,6 @@ export interface MarketAsset {
   source: "binance" | "simulated";
 }
 
-// Binance symbols we can fetch live
 const BINANCE_SYMBOLS = [
   { symbol: "BTCUSDT", displayName: "BTC/USDT" },
   { symbol: "ETHUSDT", displayName: "ETH/USDT" },
@@ -18,7 +18,6 @@ const BINANCE_SYMBOLS = [
   { symbol: "XRPUSDT", displayName: "XRP/USDT" },
 ];
 
-// Simulated assets (forex, stocks, commodities) with realistic base prices
 const SIMULATED_ASSETS: { displayName: string; basePrice: number }[] = [
   { displayName: "EUR/USD", basePrice: 1.0918 },
   { displayName: "GBP/JPY", basePrice: 191.45 },
@@ -30,21 +29,17 @@ const SIMULATED_ASSETS: { displayName: string; basePrice: number }[] = [
   { displayName: "Oil", basePrice: 78.42 },
 ];
 
-async function fetchBinancePrices(): Promise<
-  Record<string, { price: number; change: number }>
-> {
+async function fetchBinancePrices(): Promise<Record<string, { price: number; change: number }>> {
   const symbols = BINANCE_SYMBOLS.map((s) => s.symbol);
-  const url = `https://api.binance.com/api/v3/ticker/24hr?symbols=${JSON.stringify(symbols)}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("Binance API error");
-  const data: { symbol: string; lastPrice: string; priceChangePercent: string }[] =
-    await res.json();
+  const { data, error } = await supabase.functions.invoke("binance-proxy", {
+    body: { symbols },
+  });
+  if (error) throw error;
   const map: Record<string, { price: number; change: number }> = {};
-  for (const d of data) {
-    map[d.symbol] = {
-      price: parseFloat(d.lastPrice),
-      change: parseFloat(d.priceChangePercent),
-    };
+  if (Array.isArray(data)) {
+    for (const d of data) {
+      map[d.symbol] = { price: d.price, change: d.change };
+    }
   }
   return map;
 }
@@ -58,11 +53,9 @@ export function useMarketPrices(intervalMs = 5000) {
   const prevPricesRef = useRef<Record<string, number>>({});
   const simDriftRef = useRef<Record<string, number>>({});
 
-  // Initialise simulated drift
   useEffect(() => {
     for (const a of SIMULATED_ASSETS) {
-      simDriftRef.current[a.displayName] =
-        (Math.random() - 0.5) * 2; // small daily drift %
+      simDriftRef.current[a.displayName] = (Math.random() - 0.5) * 2;
     }
   }, []);
 
@@ -70,11 +63,10 @@ export function useMarketPrices(intervalMs = 5000) {
     try {
       const binance = await fetchBinancePrices();
 
-      setAssets((prev) => {
+      setAssets(() => {
         const prevMap = { ...prevPricesRef.current };
         const next: MarketAsset[] = [];
 
-        // Live crypto
         for (const s of BINANCE_SYMBOLS) {
           const d = binance[s.symbol];
           if (d) {
@@ -90,7 +82,6 @@ export function useMarketPrices(intervalMs = 5000) {
           }
         }
 
-        // Simulated
         for (const a of SIMULATED_ASSETS) {
           const last = prevMap[a.displayName] ?? a.basePrice;
           const newPrice = jitter(last);
@@ -111,7 +102,30 @@ export function useMarketPrices(intervalMs = 5000) {
         return next;
       });
     } catch {
-      // On error keep stale data, retry next interval
+      // On error, update simulated only
+      setAssets((prev) => {
+        const prevMap = { ...prevPricesRef.current };
+        const next: MarketAsset[] = [];
+
+        for (const a of SIMULATED_ASSETS) {
+          const last = prevMap[a.displayName] ?? a.basePrice;
+          const newPrice = jitter(last);
+          const drift = simDriftRef.current[a.displayName] ?? 0;
+          const change24h = ((newPrice - a.basePrice) / a.basePrice) * 100 + drift;
+          next.push({
+            symbol: a.displayName,
+            displayName: a.displayName,
+            price: newPrice,
+            prevPrice: last,
+            change24h: parseFloat(change24h.toFixed(2)),
+            source: "simulated",
+          });
+          prevMap[a.displayName] = newPrice;
+        }
+
+        prevPricesRef.current = prevMap;
+        return next;
+      });
     }
   }, []);
 

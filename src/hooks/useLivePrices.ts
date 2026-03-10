@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface LivePrice {
   symbol: string;
@@ -10,20 +11,25 @@ export interface LivePrice {
 }
 
 interface SymbolConfig {
-  binanceSymbol?: string; // If provided, fetch from Binance
+  binanceSymbol?: string;
   displayName: string;
-  basePrice: number; // Used as fallback / simulation base
+  basePrice: number;
 }
 
-async function fetchBinance24hr(symbols: string[]): Promise<Record<string, { price: number; change: number }>> {
+async function fetchBinanceViaProxy(symbols: string[]): Promise<Record<string, { price: number; change: number }>> {
   if (symbols.length === 0) return {};
-  const url = `https://api.binance.com/api/v3/ticker/24hr?symbols=${JSON.stringify(symbols)}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("Binance API error");
-  const data: { symbol: string; lastPrice: string; priceChangePercent: string }[] = await res.json();
+  
+  const { data, error } = await supabase.functions.invoke("binance-proxy", {
+    body: { symbols },
+  });
+
+  if (error) throw error;
+
   const map: Record<string, { price: number; change: number }> = {};
-  for (const d of data) {
-    map[d.symbol] = { price: parseFloat(d.lastPrice), change: parseFloat(d.priceChangePercent) };
+  if (Array.isArray(data)) {
+    for (const d of data) {
+      map[d.symbol] = { price: d.price, change: d.change };
+    }
   }
   return map;
 }
@@ -48,7 +54,7 @@ export function useLivePrices(configs: SymbolConfig[], intervalMs = 4000) {
   const refresh = useCallback(async () => {
     try {
       const binanceSymbols = configs.filter((c) => c.binanceSymbol).map((c) => c.binanceSymbol!);
-      const binanceData = await fetchBinance24hr(binanceSymbols);
+      const binanceData = await fetchBinanceViaProxy(binanceSymbols);
 
       setPrices(() => {
         const prevMap = { ...prevRef.current };
@@ -87,7 +93,30 @@ export function useLivePrices(configs: SymbolConfig[], intervalMs = 4000) {
         return next;
       });
     } catch {
-      // Keep stale data on error
+      // On error, still update simulated prices
+      setPrices((prev) => {
+        const prevMap = { ...prevRef.current };
+        const next: LivePrice[] = [];
+
+        for (const c of configs) {
+          const last = prevMap[c.displayName] ?? c.basePrice;
+          const newPrice = jitter(last);
+          const drift = driftRef.current[c.displayName] ?? 0;
+          const change = ((newPrice - c.basePrice) / c.basePrice) * 100 + drift;
+          next.push({
+            symbol: c.displayName,
+            displayName: c.displayName,
+            price: newPrice,
+            prevPrice: last,
+            change24h: parseFloat(change.toFixed(2)),
+            source: "simulated",
+          });
+          prevMap[c.displayName] = newPrice;
+        }
+
+        prevRef.current = prevMap;
+        return next;
+      });
     }
   }, [configs]);
 
