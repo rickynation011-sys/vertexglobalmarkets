@@ -69,9 +69,7 @@ const About = () => (
           {team.map((t) => (
             <Card key={t.name} className="bg-card border-border text-center">
               <CardContent className="p-6">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-xl font-display font-bold text-primary">{t.name.split(" ").map(n => n[0]).join("")}</span>
-                </div>
+                <img src={t.photo} alt={t.name} className="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-2 border-primary/20" />
                 <h3 className="font-display font-semibold text-foreground">{t.name}</h3>
                 <p className="text-xs text-primary mb-2">{t.role}</p>
                 <p className="text-xs text-muted-foreground">{t.bio}</p>
