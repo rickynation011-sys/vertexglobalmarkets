@@ -1,3 +1,4 @@
+import SEO from "@/components/SEO";
 import StaticPageLayout from "@/layouts/StaticPageLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, Lock, Eye, Server, Key, AlertTriangle } from "lucide-react";

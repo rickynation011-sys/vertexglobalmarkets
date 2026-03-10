@@ -21,6 +21,7 @@ const team = [
 
 const About = () => (
   <StaticPageLayout>
+    <SEO title="About Us" description="Founded in 2020, Vertex Global Markets serves 500K+ traders in 180+ countries with AI-powered trading technology." path="/about" />
     <section className="py-20">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-16">

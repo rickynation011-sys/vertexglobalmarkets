@@ -1,3 +1,4 @@
+import SEO from "@/components/SEO";
 import StaticPageLayout from "@/layouts/StaticPageLayout";
 
 const Terms = () => (
