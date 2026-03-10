@@ -6,6 +6,7 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useLivePrices } from "@/hooks/useLivePrices";
 import MarketChart from "@/components/MarketChart";
+import Sparkline from "@/components/Sparkline";
 
 const forexConfigs = [
   // Major pairs (simulated with realistic bases)
@@ -142,6 +143,7 @@ const MarketForex = () => {
                     <span className={`font-medium ${up ? "text-primary" : "text-destructive"}`}>
                       {up ? "+" : ""}{change.toFixed(2)}%
                     </span>
+                    <Sparkline basePrice={pair.basePrice} change={change} />
                     <span className="text-muted-foreground hidden sm:block">
                       Spread: {spreads[pair.displayName] ?? "—"}
                     </span>

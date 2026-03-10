@@ -6,6 +6,7 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 import { useMemo } from "react";
 import { useLivePrices } from "@/hooks/useLivePrices";
 import MarketChart from "@/components/MarketChart";
+import Sparkline from "@/components/Sparkline";
 
 const indexConfigs = [
   { displayName: "S&P 500", symbol: "SPX", basePrice: 5425.80, region: "US" },
@@ -102,6 +103,7 @@ const MarketIndices = () => {
                           <span className={`font-medium ${up ? "text-primary" : "text-destructive"}`}>
                             {up ? "+" : ""}{change.toFixed(2)}%
                           </span>
+                          <Sparkline basePrice={idx.basePrice} change={change} />
                           <Button size="sm" className="bg-gradient-brand text-primary-foreground font-semibold" asChild>
                             <Link to="/register">Trade</Link>
                           </Button>

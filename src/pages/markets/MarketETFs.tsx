@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { TrendingUp, TrendingDown, PieChart } from "lucide-react";
 import MarketChart from "@/components/MarketChart";
+import Sparkline from "@/components/Sparkline";
 
 const funds = [
   { name: "SPDR S&P 500", symbol: "SPY", price: "$528.45", change: "+0.72%", aum: "$520B", category: "Index ETF", up: true },
@@ -62,6 +63,7 @@ const MarketETFs = () => (
                 <span className="text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground hidden md:block">{f.category}</span>
                 <span className="font-mono text-foreground">{f.price}</span>
                 <span className={`font-medium ${f.up ? "text-primary" : "text-destructive"}`}>{f.change}</span>
+                <Sparkline basePrice={parseFloat(f.price.replace(/[$,]/g, ""))} change={parseFloat(f.change)} />
                 <span className="text-muted-foreground hidden lg:block">{f.aum}</span>
                 <Button size="sm" className="bg-gradient-brand text-primary-foreground font-semibold" asChild>
                   <Link to="/register">Invest</Link>

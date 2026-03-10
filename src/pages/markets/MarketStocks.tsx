@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useMemo } from "react";
 import { useLivePrices } from "@/hooks/useLivePrices";
 import MarketChart from "@/components/MarketChart";
+import Sparkline from "@/components/Sparkline";
 
 const stockConfigs = [
   { displayName: "Apple Inc.", symbol: "AAPL", basePrice: 198.45, exchange: "NASDAQ" },
@@ -148,6 +149,7 @@ const MarketStocks = () => {
                     <span className={`font-medium ${up ? "text-primary" : "text-destructive"}`}>
                       {up ? "+" : ""}{s.change.toFixed(2)}%
                     </span>
+                    <Sparkline basePrice={s.basePrice} change={s.change} />
                     <div className="flex gap-2">
                       <Button size="sm" className="bg-primary/10 text-primary hover:bg-primary/20 font-semibold" asChild>
                         <Link to="/register">Buy</Link>

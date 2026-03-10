@@ -6,6 +6,7 @@ import { TrendingUp, TrendingDown, Clock } from "lucide-react";
 import { useMemo } from "react";
 import { useLivePrices } from "@/hooks/useLivePrices";
 import MarketChart from "@/components/MarketChart";
+import Sparkline from "@/components/Sparkline";
 
 const cryptoConfigs = [
   { displayName: "Bitcoin (BTC)", binanceSymbol: "BTCUSDT", basePrice: 67432 },
@@ -108,6 +109,7 @@ const MarketCrypto = () => {
                     <span className={`font-medium ${up ? "text-primary" : "text-destructive"}`}>
                       {up ? "+" : ""}{change.toFixed(2)}%
                     </span>
+                    <Sparkline basePrice={coin.basePrice} change={change} />
                     {data?.source === "binance" && (
                       <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded hidden md:block">LIVE</span>
                     )}
