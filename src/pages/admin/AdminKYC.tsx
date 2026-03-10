@@ -30,21 +30,28 @@ const AdminKYC = () => {
   const [actionLoading, setActionLoading] = useState(false);
 
   const fetchKYC = async () => {
-    const { data, error } = await supabase
+    const { data: kycData } = await supabase
       .from("kyc_verifications")
-      .select("*, profiles!kyc_verifications_user_id_fkey(full_name, email)")
+      .select("*")
       .order("submitted_at", { ascending: false });
 
-    if (error) {
-      // If the join fails, try without it
-      const { data: fallback } = await supabase
-        .from("kyc_verifications")
-        .select("*")
-        .order("submitted_at", { ascending: false });
-      setKycList((fallback ?? []) as KYC[]);
-    } else {
-      setKycList((data ?? []) as KYC[]);
-    }
+    if (!kycData) { setLoading(false); return; }
+
+    // Fetch profiles for all user_ids
+    const userIds = [...new Set(kycData.map((k) => k.user_id))];
+    const { data: profilesData } = await supabase
+      .from("profiles")
+      .select("user_id, full_name, email")
+      .in("user_id", userIds);
+
+    const profileMap = new Map((profilesData ?? []).map((p) => [p.user_id, p]));
+
+    const enriched: KYC[] = kycData.map((k) => ({
+      ...k,
+      profile: profileMap.get(k.user_id) ?? null,
+    }));
+
+    setKycList(enriched);
     setLoading(false);
   };
 
