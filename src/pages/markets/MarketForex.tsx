@@ -143,6 +143,7 @@ const MarketForex = () => {
                     <span className={`font-medium ${up ? "text-primary" : "text-destructive"}`}>
                       {up ? "+" : ""}{change.toFixed(2)}%
                     </span>
+                    <Sparkline basePrice={pair.basePrice} change={change} />
                     <span className="text-muted-foreground hidden sm:block">
                       Spread: {spreads[pair.displayName] ?? "—"}
                     </span>
