@@ -28,20 +28,27 @@ const AdminTransactions = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchTransactions = async () => {
-    const { data, error } = await supabase
+    const { data: txData } = await supabase
       .from("transactions")
-      .select("*, profiles!transactions_user_id_fkey(full_name, email)")
+      .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) {
-      const { data: fallback } = await supabase
-        .from("transactions")
-        .select("*")
-        .order("created_at", { ascending: false });
-      setTransactions((fallback ?? []) as Transaction[]);
-    } else {
-      setTransactions((data ?? []) as Transaction[]);
-    }
+    if (!txData) { setLoading(false); return; }
+
+    const userIds = [...new Set(txData.map((t) => t.user_id))];
+    const { data: profilesData } = await supabase
+      .from("profiles")
+      .select("user_id, full_name, email")
+      .in("user_id", userIds);
+
+    const profileMap = new Map((profilesData ?? []).map((p) => [p.user_id, p]));
+
+    const enriched: Transaction[] = txData.map((t) => ({
+      ...t,
+      profile: profileMap.get(t.user_id) ?? null,
+    }));
+
+    setTransactions(enriched);
     setLoading(false);
   };
 
