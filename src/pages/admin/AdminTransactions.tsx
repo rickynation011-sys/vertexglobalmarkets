@@ -10,7 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 
-type Transaction = Tables<"transactions"> & { profiles?: { full_name: string | null; email: string | null } | null };
+type Transaction = Tables<"transactions"> & { profile?: { full_name: string | null; email: string | null } | null };
 
 const statusColors: Record<string, string> = {
   pending: "bg-warning/10 text-warning",
