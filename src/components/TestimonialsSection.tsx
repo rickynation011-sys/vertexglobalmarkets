@@ -1,5 +1,8 @@
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
+import testimonialJames from "@/assets/testimonial-james.jpg";
+import testimonialSarah from "@/assets/testimonial-sarah.jpg";
+import testimonialMarco from "@/assets/testimonial-marco.jpg";
 
 const testimonials = [
   {
@@ -7,18 +10,21 @@ const testimonials = [
     role: "Portfolio Manager, London",
     quote: "Vertex's AI trading engine has consistently delivered results. The platform's institutional-grade tools rival anything I've used at major brokerages.",
     rating: 5,
+    photo: testimonialJames,
   },
   {
     name: "Sarah Chen",
     role: "Independent Trader, Singapore",
     quote: "The copy trading feature transformed my investment approach. I've diversified across multiple strategies and seen steady monthly returns.",
     rating: 5,
+    photo: testimonialSarah,
   },
   {
     name: "Marco Rossi",
     role: "Crypto Investor, Milan",
     quote: "Finally a platform that combines traditional markets with crypto. The multi-asset portfolio management is exceptional.",
     rating: 5,
+    photo: testimonialMarco,
   },
 ];
 
@@ -54,9 +60,12 @@ const TestimonialsSection = () => {
                 ))}
               </div>
               <p className="text-foreground leading-relaxed mb-6 italic">"{t.quote}"</p>
-              <div>
-                <p className="font-display font-semibold text-foreground">{t.name}</p>
-                <p className="text-sm text-muted-foreground">{t.role}</p>
+              <div className="flex items-center gap-3">
+                <img src={t.photo} alt={t.name} className="w-12 h-12 rounded-full object-cover border-2 border-primary/20" />
+                <div>
+                  <p className="font-display font-semibold text-foreground">{t.name}</p>
+                  <p className="text-sm text-muted-foreground">{t.role}</p>
+                </div>
               </div>
             </motion.div>
           ))}
