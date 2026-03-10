@@ -77,8 +77,8 @@ const AdminTransactions = () => {
   const filtered = transactions.filter((t) => {
     const matchesStatus = filter === "all" || t.status === filter;
     const matchesType = typeFilter === "all" || t.type === typeFilter;
-    const name = t.profiles?.full_name ?? "";
-    const email = t.profiles?.email ?? "";
+    const name = t.profile?.full_name ?? "";
+    const email = t.profile?.email ?? "";
     const matchesSearch = name.toLowerCase().includes(search.toLowerCase()) || email.toLowerCase().includes(search.toLowerCase()) || t.id.includes(search);
     return matchesStatus && matchesType && matchesSearch;
   });
