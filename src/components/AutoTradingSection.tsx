@@ -34,7 +34,7 @@ const AutoTradingSection = () => {
               ))}
             </div>
             <p className="text-xs text-muted-foreground mt-6">
-              *Returns are estimates, not guarantees. Past performance does not guarantee future results.
+              *Returns are estimates based on historical performance.
             </p>
           </motion.div>
 
