@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
+import AdminRoute from "./components/AdminRoute.tsx";
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Login from "./pages/Login.tsx";
@@ -20,6 +21,15 @@ import DashboardWallet from "./pages/dashboard/DashboardWallet.tsx";
 import DashboardHistory from "./pages/dashboard/DashboardHistory.tsx";
 import DashboardSettings from "./pages/dashboard/DashboardSettings.tsx";
 import DashboardContact from "./pages/dashboard/DashboardContact.tsx";
+import AdminLayout from "./layouts/AdminLayout.tsx";
+import AdminLogin from "./pages/admin/AdminLogin.tsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
+import AdminUsers from "./pages/admin/AdminUsers.tsx";
+import AdminKYC from "./pages/admin/AdminKYC.tsx";
+import AdminTransactions from "./pages/admin/AdminTransactions.tsx";
+import AdminSettings from "./pages/admin/AdminSettings.tsx";
+import AdminContent from "./pages/admin/AdminContent.tsx";
+import AdminNotifications from "./pages/admin/AdminNotifications.tsx";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +46,8 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+
+            {/* User dashboard - protected */}
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<DashboardOverview />} />
@@ -48,7 +60,21 @@ const App = () => (
                 <Route path="contact" element={<DashboardContact />} />
               </Route>
             </Route>
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+
+            {/* Admin - separate login and role-protected */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="kyc" element={<AdminKYC />} />
+                <Route path="transactions" element={<AdminTransactions />} />
+                <Route path="settings" element={<AdminSettings />} />
+                <Route path="content" element={<AdminContent />} />
+                <Route path="notifications" element={<AdminNotifications />} />
+              </Route>
+            </Route>
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
