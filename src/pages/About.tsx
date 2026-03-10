@@ -2,6 +2,10 @@ import SEO from "@/components/SEO";
 import StaticPageLayout from "@/layouts/StaticPageLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, Target, Users, Globe, Award, TrendingUp } from "lucide-react";
+import teamAlexander from "@/assets/team-alexander.jpg";
+import teamSarah from "@/assets/team-sarah.jpg";
+import teamMarcus from "@/assets/team-marcus.jpg";
+import teamElena from "@/assets/team-elena.jpg";
 
 const values = [
   { icon: Shield, title: "Security First", description: "Your funds are segregated in tier-1 banks with institutional-grade encryption protecting every transaction." },
@@ -13,10 +17,10 @@ const values = [
 ];
 
 const team = [
-  { name: "Alexander Wright", role: "CEO & Founder", bio: "Former Goldman Sachs VP with 20+ years in global financial markets." },
-  { name: "Dr. Sarah Chen", role: "Chief Technology Officer", bio: "PhD in Machine Learning from MIT. Previously led AI research at a major hedge fund." },
-  { name: "Marcus Johnson", role: "Chief Financial Officer", bio: "Chartered accountant with experience at Deloitte and HSBC." },
-  { name: "Elena Rodriguez", role: "Head of Compliance", bio: "Former regulator with 15 years ensuring financial market integrity." },
+  { name: "Alexander Wright", role: "CEO & Founder", bio: "Former Goldman Sachs VP with 20+ years in global financial markets.", photo: teamAlexander },
+  { name: "Dr. Sarah Chen", role: "Chief Technology Officer", bio: "PhD in Machine Learning from MIT. Previously led AI research at a major hedge fund.", photo: teamSarah },
+  { name: "Marcus Johnson", role: "Chief Financial Officer", bio: "Chartered accountant with experience at Deloitte and HSBC.", photo: teamMarcus },
+  { name: "Elena Rodriguez", role: "Head of Compliance", bio: "Former regulator with 15 years ensuring financial market integrity.", photo: teamElena },
 ];
 
 const About = () => (
@@ -65,9 +69,7 @@ const About = () => (
           {team.map((t) => (
             <Card key={t.name} className="bg-card border-border text-center">
               <CardContent className="p-6">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-xl font-display font-bold text-primary">{t.name.split(" ").map(n => n[0]).join("")}</span>
-                </div>
+                <img src={t.photo} alt={t.name} className="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-2 border-primary/20" />
                 <h3 className="font-display font-semibold text-foreground">{t.name}</h3>
                 <p className="text-xs text-primary mb-2">{t.role}</p>
                 <p className="text-xs text-muted-foreground">{t.bio}</p>
