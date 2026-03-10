@@ -3,12 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowDownLeft, ArrowUpRight, Wallet, Shield, Copy, TrendingUp } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Wallet, Shield, Copy, TrendingUp, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 
 interface DepositMethod {
   id: string;
@@ -22,9 +23,9 @@ const DashboardWallet = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [depositAmount, setDepositAmount] = useState("");
-  const [depositMethod, setDepositMethod] = useState("");
+  const [depositMethodId, setDepositMethodId] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
-  const [withdrawMethod, setWithdrawMethod] = useState("");
+  const [withdrawMethodId, setWithdrawMethodId] = useState("");
   const [withdrawWallet, setWithdrawWallet] = useState("");
 
   const { data: profile } = useQuery({
@@ -80,18 +81,21 @@ const DashboardWallet = () => {
   const totalDeposited = completedDeposits.reduce((s, t) => s + Number(t.amount), 0);
   const totalWithdrawn = completedWithdrawals.reduce((s, t) => s + Number(t.amount), 0);
   const walletBalance = Number(profile?.wallet_balance ?? 0);
-  const totalBalance = totalDeposited - totalWithdrawn + walletBalance;
+
+  const selectedDepositMethod = (depositMethods ?? []).find(m => m.id === depositMethodId);
+  const selectedWithdrawMethod = (depositMethods ?? []).find(m => m.id === withdrawMethodId);
 
   const depositMutation = useMutation({
     mutationFn: async () => {
       const amt = parseFloat(depositAmount);
       if (!amt || amt <= 0) throw new Error("Enter a valid amount");
-      if (!depositMethod) throw new Error("Select a payment method");
+      if (!selectedDepositMethod) throw new Error("Select a payment method");
       const { error } = await supabase.from("transactions").insert({
         user_id: user!.id,
         type: "deposit",
-        method: depositMethod,
+        method: `${selectedDepositMethod.currency}${selectedDepositMethod.network ? ` (${selectedDepositMethod.network})` : ""}`,
         amount: amt,
+        currency: selectedDepositMethod.currency,
         status: "pending",
       });
       if (error) throw error;
@@ -100,7 +104,7 @@ const DashboardWallet = () => {
       queryClient.invalidateQueries({ queryKey: ["transactions", user?.id] });
       toast.success("Deposit request submitted. It will be reviewed shortly.");
       setDepositAmount("");
-      setDepositMethod("");
+      setDepositMethodId("");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -109,15 +113,17 @@ const DashboardWallet = () => {
     mutationFn: async () => {
       const amt = parseFloat(withdrawAmount);
       if (!amt || amt <= 0) throw new Error("Enter a valid amount");
-      if (!withdrawMethod) throw new Error("Select a withdrawal method");
-      if (amt > totalBalance) throw new Error("Insufficient balance");
+      if (!selectedWithdrawMethod) throw new Error("Select a withdrawal method");
+      if (!withdrawWallet.trim()) throw new Error("Enter your wallet address");
+      if (amt > walletBalance) throw new Error("Insufficient balance");
       const { error } = await supabase.from("transactions").insert({
         user_id: user!.id,
         type: "withdrawal",
-        method: withdrawMethod,
+        method: `${selectedWithdrawMethod.currency}${selectedWithdrawMethod.network ? ` (${selectedWithdrawMethod.network})` : ""}`,
         amount: amt,
+        currency: selectedWithdrawMethod.currency,
         status: "pending",
-        wallet_address: withdrawWallet || null,
+        wallet_address: withdrawWallet.trim(),
       });
       if (error) throw error;
     },
@@ -125,7 +131,7 @@ const DashboardWallet = () => {
       queryClient.invalidateQueries({ queryKey: ["transactions", user?.id] });
       toast.success("Withdrawal request submitted for review.");
       setWithdrawAmount("");
-      setWithdrawMethod("");
+      setWithdrawMethodId("");
       setWithdrawWallet("");
     },
     onError: (e: Error) => toast.error(e.message),
@@ -133,8 +139,7 @@ const DashboardWallet = () => {
 
   const fmt = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-  // Get selected deposit method details
-  const selectedMethodDetails = (depositMethods ?? []).find(m => m.currency.toLowerCase() === depositMethod);
+  const pendingCount = (transactions ?? []).filter(t => t.status === "pending").length;
 
   return (
     <div className="space-y-6">
@@ -143,15 +148,15 @@ const DashboardWallet = () => {
         <p className="text-muted-foreground text-sm">Manage your funds securely</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-card border-border">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
               <Wallet className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Total Balance</p>
-              <p className="text-xl font-display font-bold text-foreground">{fmt(totalBalance)}</p>
+              <p className="text-xs text-muted-foreground">Wallet Balance</p>
+              <p className="text-xl font-display font-bold text-foreground">{fmt(walletBalance)}</p>
             </div>
           </CardContent>
         </Card>
@@ -161,19 +166,8 @@ const DashboardWallet = () => {
               <TrendingUp className="h-5 w-5 text-success" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Profit Earnings</p>
-              <p className="text-xl font-display font-bold text-success">{fmt(walletBalance)}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card border-border">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-success/10 flex items-center justify-center">
-              <ArrowDownLeft className="h-5 w-5 text-success" />
-            </div>
-            <div>
               <p className="text-xs text-muted-foreground">Total Deposited</p>
-              <p className="text-xl font-display font-bold text-foreground">{fmt(totalDeposited)}</p>
+              <p className="text-xl font-display font-bold text-success">{fmt(totalDeposited)}</p>
             </div>
           </CardContent>
         </Card>
@@ -185,6 +179,17 @@ const DashboardWallet = () => {
             <div>
               <p className="text-xs text-muted-foreground">Total Withdrawn</p>
               <p className="text-xl font-display font-bold text-foreground">{fmt(totalWithdrawn)}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card border-border">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+              <AlertCircle className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Pending</p>
+              <p className="text-xl font-display font-bold text-foreground">{pendingCount}</p>
             </div>
           </CardContent>
         </Card>
@@ -225,55 +230,57 @@ const DashboardWallet = () => {
                 <TabsTrigger value="deposit" className="flex-1">Deposit</TabsTrigger>
                 <TabsTrigger value="withdraw" className="flex-1">Withdraw</TabsTrigger>
               </TabsList>
+
+              {/* DEPOSIT TAB */}
               <TabsContent value="deposit" className="space-y-4 mt-4">
                 <div>
                   <label className="text-sm text-muted-foreground">Payment Method</label>
-                  <Select value={depositMethod} onValueChange={setDepositMethod}>
+                  <Select value={depositMethodId} onValueChange={setDepositMethodId}>
                     <SelectTrigger className="mt-1"><SelectValue placeholder="Select crypto" /></SelectTrigger>
                     <SelectContent>
-                      {(depositMethods ?? []).map((m) => (
-                        <SelectItem key={m.id} value={m.currency.toLowerCase()}>
-                          {m.currency}{m.network ? ` (${m.network})` : ""}{m.label ? ` — ${m.label}` : ""}
-                        </SelectItem>
-                      ))}
-                      {(depositMethods ?? []).length === 0 && (
+                      {(depositMethods ?? []).length === 0 ? (
                         <SelectItem value="none" disabled>No methods available</SelectItem>
+                      ) : (
+                        (depositMethods ?? []).map((m) => (
+                          <SelectItem key={m.id} value={m.id}>
+                            {m.currency}{m.network ? ` (${m.network})` : ""}{m.label ? ` — ${m.label}` : ""}
+                          </SelectItem>
+                        ))
                       )}
                     </SelectContent>
                   </Select>
                 </div>
 
-                {/* Show wallet address for selected method */}
-                {selectedMethodDetails && (
+                {selectedDepositMethod && (
                   <div className="p-3 rounded-lg bg-muted/50 border border-border space-y-2">
                     <p className="text-xs text-muted-foreground font-medium">
-                      Send {selectedMethodDetails.currency} to this address:
+                      Send {selectedDepositMethod.currency} to this address:
                     </p>
                     <div className="flex items-center gap-2">
                       <code className="flex-1 text-xs font-mono text-foreground bg-background p-2 rounded border border-border break-all">
-                        {selectedMethodDetails.wallet_address}
+                        {selectedDepositMethod.wallet_address}
                       </code>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 shrink-0"
                         onClick={() => {
-                          navigator.clipboard.writeText(selectedMethodDetails.wallet_address);
+                          navigator.clipboard.writeText(selectedDepositMethod.wallet_address);
                           toast.success("Wallet address copied!");
                         }}
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
                     </div>
-                    {selectedMethodDetails.network && (
-                      <p className="text-[10px] text-warning">⚠️ Make sure to use the {selectedMethodDetails.network} network</p>
+                    {selectedDepositMethod.network && (
+                      <p className="text-[10px] text-warning">⚠️ Make sure to use the {selectedDepositMethod.network} network</p>
                     )}
                   </div>
                 )}
 
                 <div>
                   <label className="text-sm text-muted-foreground">Amount (USD)</label>
-                  <Input placeholder="Enter amount" className="mt-1" type="number" value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} />
+                  <Input placeholder="Enter amount" className="mt-1" type="number" min="1" value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} />
                 </div>
                 <div className="flex gap-2">
                   {["100", "500", "1000", "5000"].map((amt) => (
@@ -284,33 +291,60 @@ const DashboardWallet = () => {
                   <Shield className="h-4 w-4 text-primary" />
                   <p className="text-xs text-muted-foreground">All transactions are secured with 256-bit SSL encryption.</p>
                 </div>
-                <Button className="w-full bg-gradient-brand text-primary-foreground font-semibold" onClick={() => depositMutation.mutate()} disabled={depositMutation.isPending}>
+                <Button
+                  className="w-full bg-gradient-brand text-primary-foreground font-semibold"
+                  onClick={() => depositMutation.mutate()}
+                  disabled={depositMutation.isPending || !depositMethodId || !depositAmount}
+                >
                   {depositMutation.isPending ? "Processing..." : "Submit Deposit"}
                 </Button>
               </TabsContent>
+
+              {/* WITHDRAW TAB */}
               <TabsContent value="withdraw" className="space-y-4 mt-4">
                 <div>
                   <label className="text-sm text-muted-foreground">Withdrawal Method</label>
-                  <Select value={withdrawMethod} onValueChange={setWithdrawMethod}>
+                  <Select value={withdrawMethodId} onValueChange={setWithdrawMethodId}>
                     <SelectTrigger className="mt-1"><SelectValue placeholder="Select method" /></SelectTrigger>
                     <SelectContent>
-                      {(depositMethods ?? []).map((m) => (
-                        <SelectItem key={m.id} value={m.currency.toLowerCase()}>
-                          {m.currency}{m.network ? ` (${m.network})` : ""}
-                        </SelectItem>
-                      ))}
+                      {(depositMethods ?? []).length === 0 ? (
+                        <SelectItem value="none" disabled>No methods available</SelectItem>
+                      ) : (
+                        (depositMethods ?? []).map((m) => (
+                          <SelectItem key={m.id} value={m.id}>
+                            {m.currency}{m.network ? ` (${m.network})` : ""}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
+
+                {selectedWithdrawMethod?.network && (
+                  <p className="text-xs text-warning">⚠️ Withdrawal will be sent via {selectedWithdrawMethod.network} network</p>
+                )}
+
                 <div>
                   <label className="text-sm text-muted-foreground">Amount (USD)</label>
-                  <Input placeholder="Enter amount" className="mt-1" type="number" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} />
+                  <Input placeholder="Enter amount" className="mt-1" type="number" min="1" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} />
+                  <p className="text-[10px] text-muted-foreground mt-1">Available: {fmt(walletBalance)}</p>
+                </div>
+                <div className="flex gap-2">
+                  {["100", "500", "1000"].map((amt) => (
+                    <Button key={amt} variant="outline" size="sm" className="flex-1 text-xs" onClick={() => setWithdrawAmount(amt)}>${Number(amt).toLocaleString()}</Button>
+                  ))}
+                  <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => setWithdrawAmount(String(walletBalance))}>Max</Button>
                 </div>
                 <div>
                   <label className="text-sm text-muted-foreground">Your Wallet Address</label>
-                  <Input placeholder="Enter your wallet address" className="mt-1" value={withdrawWallet} onChange={(e) => setWithdrawWallet(e.target.value)} />
+                  <Input placeholder="Enter your wallet address" className="mt-1 font-mono text-xs" value={withdrawWallet} onChange={(e) => setWithdrawWallet(e.target.value)} />
                 </div>
-                <Button className="w-full" variant="outline" onClick={() => withdrawMutation.mutate()} disabled={withdrawMutation.isPending}>
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  onClick={() => withdrawMutation.mutate()}
+                  disabled={withdrawMutation.isPending || !withdrawMethodId || !withdrawAmount || !withdrawWallet.trim()}
+                >
                   {withdrawMutation.isPending ? "Processing..." : "Request Withdrawal"}
                 </Button>
               </TabsContent>
@@ -327,7 +361,7 @@ const DashboardWallet = () => {
               <p className="text-sm text-muted-foreground text-center py-4">No transactions yet.</p>
             ) : (
               <div className="space-y-0">
-                {(transactions ?? []).slice(0, 8).map((tx) => (
+                {(transactions ?? []).slice(0, 10).map((tx) => (
                   <div key={tx.id} className="flex items-center justify-between py-3 border-b border-border/50 last:border-0">
                     <div className="flex items-center gap-3">
                       <div className={`h-8 w-8 rounded-full flex items-center justify-center ${tx.type === "deposit" ? "bg-success/10" : "bg-warning/10"}`}>
@@ -335,16 +369,16 @@ const DashboardWallet = () => {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-foreground capitalize">{tx.type}</p>
-                        <p className="text-xs text-muted-foreground">{tx.method.replace(/_/g, " ")}</p>
+                        <p className="text-xs text-muted-foreground">{tx.method} · {tx.currency}</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className={`text-sm font-medium ${tx.type === "deposit" ? "text-success" : "text-foreground"}`}>
                         {tx.type === "deposit" ? "+" : "-"}{fmt(Number(tx.amount))}
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        <span className={`${tx.status === "completed" ? "text-success" : tx.status === "pending" ? "text-warning" : "text-muted-foreground"}`}>{tx.status}</span>
-                      </p>
+                      <Badge variant="outline" className={`text-[10px] ${tx.status === "completed" ? "text-success border-success/30" : tx.status === "pending" ? "text-warning border-warning/30" : tx.status === "rejected" ? "text-destructive border-destructive/30" : "text-muted-foreground"}`}>
+                        {tx.status}
+                      </Badge>
                     </div>
                   </div>
                 ))}
