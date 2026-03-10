@@ -3,12 +3,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowDownLeft, ArrowUpRight, Wallet, Shield } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Wallet, Shield, Copy, TrendingUp } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useState } from "react";
+
+interface DepositMethod {
+  id: string;
+  currency: string;
+  network: string | null;
+  wallet_address: string;
+  label: string | null;
+}
 
 const DashboardWallet = () => {
   const { user } = useAuth();
@@ -18,6 +26,15 @@ const DashboardWallet = () => {
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawMethod, setWithdrawMethod] = useState("");
   const [withdrawWallet, setWithdrawWallet] = useState("");
+
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("*").eq("user_id", user!.id).single();
+      return data;
+    },
+    enabled: !!user,
+  });
 
   const { data: transactions } = useQuery({
     queryKey: ["transactions", user?.id],
@@ -32,11 +49,38 @@ const DashboardWallet = () => {
     enabled: !!user,
   });
 
+  const { data: depositMethods } = useQuery({
+    queryKey: ["deposit_methods"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("deposit_methods")
+        .select("*")
+        .eq("is_active", true);
+      return (data as DepositMethod[]) ?? [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: profitLogs } = useQuery({
+    queryKey: ["profit_logs", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profit_logs")
+        .select("*")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
   const completedDeposits = (transactions ?? []).filter(t => t.type === "deposit" && t.status === "completed");
   const completedWithdrawals = (transactions ?? []).filter(t => t.type === "withdrawal" && t.status === "completed");
   const totalDeposited = completedDeposits.reduce((s, t) => s + Number(t.amount), 0);
   const totalWithdrawn = completedWithdrawals.reduce((s, t) => s + Number(t.amount), 0);
-  const balance = totalDeposited - totalWithdrawn;
+  const walletBalance = Number(profile?.wallet_balance ?? 0);
+  const totalBalance = totalDeposited - totalWithdrawn + walletBalance;
 
   const depositMutation = useMutation({
     mutationFn: async () => {
@@ -66,7 +110,7 @@ const DashboardWallet = () => {
       const amt = parseFloat(withdrawAmount);
       if (!amt || amt <= 0) throw new Error("Enter a valid amount");
       if (!withdrawMethod) throw new Error("Select a withdrawal method");
-      if (amt > balance) throw new Error("Insufficient balance");
+      if (amt > totalBalance) throw new Error("Insufficient balance");
       const { error } = await supabase.from("transactions").insert({
         user_id: user!.id,
         type: "withdrawal",
@@ -89,6 +133,9 @@ const DashboardWallet = () => {
 
   const fmt = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+  // Get selected deposit method details
+  const selectedMethodDetails = (depositMethods ?? []).find(m => m.currency.toLowerCase() === depositMethod);
+
   return (
     <div className="space-y-6">
       <div>
@@ -96,15 +143,26 @@ const DashboardWallet = () => {
         <p className="text-muted-foreground text-sm">Manage your funds securely</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <Card className="bg-card border-border">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
               <Wallet className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Available Balance</p>
-              <p className="text-xl font-display font-bold text-foreground">{fmt(balance)}</p>
+              <p className="text-xs text-muted-foreground">Total Balance</p>
+              <p className="text-xl font-display font-bold text-foreground">{fmt(totalBalance)}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card border-border">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-success/10 flex items-center justify-center">
+              <TrendingUp className="h-5 w-5 text-success" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Profit Earnings</p>
+              <p className="text-xl font-display font-bold text-success">{fmt(walletBalance)}</p>
             </div>
           </CardContent>
         </Card>
@@ -132,6 +190,33 @@ const DashboardWallet = () => {
         </Card>
       </div>
 
+      {/* Recent Profits */}
+      {(profitLogs ?? []).length > 0 && (
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Recent Daily Profits</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-0">
+              {(profitLogs ?? []).map((log: any) => (
+                <div key={log.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+                  <div className="flex items-center gap-2">
+                    <div className="h-6 w-6 rounded-full bg-success/10 flex items-center justify-center">
+                      <TrendingUp className="h-3 w-3 text-success" />
+                    </div>
+                    <span className="text-sm text-muted-foreground">Investment profit</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm font-medium text-success">+{fmt(Number(log.amount))}</span>
+                    <p className="text-[10px] text-muted-foreground">{new Date(log.created_at).toLocaleString()}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="bg-card border-border">
           <CardContent className="p-6">
@@ -144,16 +229,48 @@ const DashboardWallet = () => {
                 <div>
                   <label className="text-sm text-muted-foreground">Payment Method</label>
                   <Select value={depositMethod} onValueChange={setDepositMethod}>
-                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select method" /></SelectTrigger>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Select crypto" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                      <SelectItem value="credit_card">Credit/Debit Card</SelectItem>
-                      <SelectItem value="btc">Bitcoin (BTC)</SelectItem>
-                      <SelectItem value="usdt">USDT (TRC20)</SelectItem>
-                      <SelectItem value="eth">Ethereum (ETH)</SelectItem>
+                      {(depositMethods ?? []).map((m) => (
+                        <SelectItem key={m.id} value={m.currency.toLowerCase()}>
+                          {m.currency}{m.network ? ` (${m.network})` : ""}{m.label ? ` — ${m.label}` : ""}
+                        </SelectItem>
+                      ))}
+                      {(depositMethods ?? []).length === 0 && (
+                        <SelectItem value="none" disabled>No methods available</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Show wallet address for selected method */}
+                {selectedMethodDetails && (
+                  <div className="p-3 rounded-lg bg-muted/50 border border-border space-y-2">
+                    <p className="text-xs text-muted-foreground font-medium">
+                      Send {selectedMethodDetails.currency} to this address:
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 text-xs font-mono text-foreground bg-background p-2 rounded border border-border break-all">
+                        {selectedMethodDetails.wallet_address}
+                      </code>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                        onClick={() => {
+                          navigator.clipboard.writeText(selectedMethodDetails.wallet_address);
+                          toast.success("Wallet address copied!");
+                        }}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {selectedMethodDetails.network && (
+                      <p className="text-[10px] text-warning">⚠️ Make sure to use the {selectedMethodDetails.network} network</p>
+                    )}
+                  </div>
+                )}
+
                 <div>
                   <label className="text-sm text-muted-foreground">Amount (USD)</label>
                   <Input placeholder="Enter amount" className="mt-1" type="number" value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} />
@@ -168,7 +285,7 @@ const DashboardWallet = () => {
                   <p className="text-xs text-muted-foreground">All transactions are secured with 256-bit SSL encryption.</p>
                 </div>
                 <Button className="w-full bg-gradient-brand text-primary-foreground font-semibold" onClick={() => depositMutation.mutate()} disabled={depositMutation.isPending}>
-                  {depositMutation.isPending ? "Processing..." : "Deposit Funds"}
+                  {depositMutation.isPending ? "Processing..." : "Submit Deposit"}
                 </Button>
               </TabsContent>
               <TabsContent value="withdraw" className="space-y-4 mt-4">
@@ -177,10 +294,11 @@ const DashboardWallet = () => {
                   <Select value={withdrawMethod} onValueChange={setWithdrawMethod}>
                     <SelectTrigger className="mt-1"><SelectValue placeholder="Select method" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                      <SelectItem value="btc">Bitcoin (BTC)</SelectItem>
-                      <SelectItem value="usdt">USDT (TRC20)</SelectItem>
-                      <SelectItem value="eth">Ethereum (ETH)</SelectItem>
+                      {(depositMethods ?? []).map((m) => (
+                        <SelectItem key={m.id} value={m.currency.toLowerCase()}>
+                          {m.currency}{m.network ? ` (${m.network})` : ""}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -189,8 +307,8 @@ const DashboardWallet = () => {
                   <Input placeholder="Enter amount" className="mt-1" type="number" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} />
                 </div>
                 <div>
-                  <label className="text-sm text-muted-foreground">Wallet / Account</label>
-                  <Input placeholder="Enter wallet address or account" className="mt-1" value={withdrawWallet} onChange={(e) => setWithdrawWallet(e.target.value)} />
+                  <label className="text-sm text-muted-foreground">Your Wallet Address</label>
+                  <Input placeholder="Enter your wallet address" className="mt-1" value={withdrawWallet} onChange={(e) => setWithdrawWallet(e.target.value)} />
                 </div>
                 <Button className="w-full" variant="outline" onClick={() => withdrawMutation.mutate()} disabled={withdrawMutation.isPending}>
                   {withdrawMutation.isPending ? "Processing..." : "Request Withdrawal"}

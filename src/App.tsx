@@ -61,6 +61,7 @@ import AdminSettings from "./pages/admin/AdminSettings.tsx";
 import AdminContent from "./pages/admin/AdminContent.tsx";
 import AdminNotifications from "./pages/admin/AdminNotifications.tsx";
 import AdminInvestments from "./pages/admin/AdminInvestments.tsx";
+import AdminDepositMethods from "./pages/admin/AdminDepositMethods.tsx";
 
 const queryClient = new QueryClient();
 
@@ -127,6 +128,7 @@ const App = () => (
                 <Route path="kyc" element={<AdminKYC />} />
                 <Route path="transactions" element={<AdminTransactions />} />
                 <Route path="investments" element={<AdminInvestments />} />
+                <Route path="deposit-methods" element={<AdminDepositMethods />} />
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="content" element={<AdminContent />} />
                 <Route path="notifications" element={<AdminNotifications />} />

@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, ShieldCheck, ArrowUpDown, Settings,
-  FileText, Bell, LogOut, Shield, TrendingUp
+  FileText, Bell, LogOut, Shield, TrendingUp, Wallet
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import logo from "@/assets/logo-symbol.png";
@@ -16,6 +16,7 @@ const mainItems = [
   { title: "KYC Verification", url: "/admin/kyc", icon: ShieldCheck },
   { title: "Transactions", url: "/admin/transactions", icon: ArrowUpDown },
   { title: "Investments", url: "/admin/investments", icon: TrendingUp },
+  { title: "Deposit Methods", url: "/admin/deposit-methods", icon: Wallet },
 ];
 
 const systemItems = [

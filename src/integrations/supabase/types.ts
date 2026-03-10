@@ -14,11 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      deposit_methods: {
+        Row: {
+          created_at: string
+          currency: string
+          id: string
+          is_active: boolean
+          label: string | null
+          network: string | null
+          updated_at: string
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string
+          currency: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          network?: string | null
+          updated_at?: string
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          network?: string | null
+          updated_at?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       investments: {
         Row: {
           amount: number
           created_at: string
           current_value: number
+          daily_rate: number
           ends_at: string
           id: string
           plan_name: string
@@ -31,6 +65,7 @@ export type Database = {
           amount: number
           created_at?: string
           current_value: number
+          daily_rate?: number
           ends_at: string
           id?: string
           plan_name: string
@@ -43,6 +78,7 @@ export type Database = {
           amount?: number
           created_at?: string
           current_value?: number
+          daily_rate?: number
           ends_at?: string
           id?: string
           plan_name?: string
@@ -131,6 +167,7 @@ export type Database = {
           status: string
           updated_at: string
           user_id: string
+          wallet_balance: number
         }
         Insert: {
           avatar_url?: string | null
@@ -143,6 +180,7 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id: string
+          wallet_balance?: number
         }
         Update: {
           avatar_url?: string | null
@@ -155,8 +193,41 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string
+          wallet_balance?: number
         }
         Relationships: []
+      }
+      profit_logs: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          investment_id: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          investment_id: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          investment_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profit_logs_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "investments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trades: {
         Row: {
