@@ -128,6 +128,7 @@ const App = () => (
                 <Route path="kyc" element={<AdminKYC />} />
                 <Route path="transactions" element={<AdminTransactions />} />
                 <Route path="investments" element={<AdminInvestments />} />
+                <Route path="deposit-methods" element={<AdminDepositMethods />} />
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="content" element={<AdminContent />} />
                 <Route path="notifications" element={<AdminNotifications />} />

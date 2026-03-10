@@ -16,6 +16,7 @@ const mainItems = [
   { title: "KYC Verification", url: "/admin/kyc", icon: ShieldCheck },
   { title: "Transactions", url: "/admin/transactions", icon: ArrowUpDown },
   { title: "Investments", url: "/admin/investments", icon: TrendingUp },
+  { title: "Deposit Methods", url: "/admin/deposit-methods", icon: Wallet },
 ];
 
 const systemItems = [
