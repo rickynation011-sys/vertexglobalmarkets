@@ -1,3 +1,4 @@
+import SEO from "@/components/SEO";
 import StaticPageLayout from "@/layouts/StaticPageLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ const Contact = () => {
 
   return (
     <StaticPageLayout>
+      <SEO title="Contact Us" description="Get in touch with Vertex Global Markets. 24/7 support via email, phone, and live chat." path="/contact" />
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">

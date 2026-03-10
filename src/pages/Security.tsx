@@ -1,3 +1,4 @@
+import SEO from "@/components/SEO";
 import StaticPageLayout from "@/layouts/StaticPageLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, Lock, Eye, Server, Key, AlertTriangle } from "lucide-react";
@@ -13,6 +14,7 @@ const features = [
 
 const Security = () => (
   <StaticPageLayout>
+    <SEO title="Security" description="How Vertex Global Markets protects your assets with encryption, 2FA, cold storage, and 24/7 monitoring." path="/security" />
     <section className="py-20">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-16">

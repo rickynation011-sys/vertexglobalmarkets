@@ -1,3 +1,4 @@
+import SEO from "@/components/SEO";
 import StaticPageLayout from "@/layouts/StaticPageLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ const perks = [
 
 const Careers = () => (
   <StaticPageLayout>
+    <SEO title="Careers" description="Join Vertex Global Markets. Explore open roles in engineering, design, compliance, and more. Remote-first culture." path="/careers" jsonLd={{ "@context": "https://schema.org", "@type": "JobPosting", hiringOrganization: { "@type": "Organization", name: "Vertex Global Markets" }, jobLocation: { "@type": "Place", address: "Remote" } }} />
     <section className="py-20">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-16">

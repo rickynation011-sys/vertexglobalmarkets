@@ -1,3 +1,4 @@
+import SEO from "@/components/SEO";
 import StaticPageLayout from "@/layouts/StaticPageLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, BarChart3, Globe, Zap, Shield } from "lucide-react";
@@ -45,6 +46,7 @@ const marketCategories = [
 
 const Markets = () => (
   <StaticPageLayout>
+    <SEO title="Global Markets" description="Access thousands of instruments across forex, crypto, commodities, indices, stocks, and ETFs on Vertex Global Markets." path="/markets" />
     <section className="py-20">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-16">
