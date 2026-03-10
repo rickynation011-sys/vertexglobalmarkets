@@ -12,6 +12,20 @@ import Login from "./pages/Login.tsx";
 import Register from "./pages/Register.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
+
+// Static pages
+import Markets from "./pages/Markets.tsx";
+import About from "./pages/About.tsx";
+import Careers from "./pages/Careers.tsx";
+import Blog from "./pages/Blog.tsx";
+import Contact from "./pages/Contact.tsx";
+import Terms from "./pages/Terms.tsx";
+import Privacy from "./pages/Privacy.tsx";
+import RiskDisclosure from "./pages/RiskDisclosure.tsx";
+import Compliance from "./pages/Compliance.tsx";
+import Security from "./pages/Security.tsx";
+
+// Dashboard
 import DashboardLayout from "./layouts/DashboardLayout.tsx";
 import DashboardOverview from "./pages/dashboard/DashboardOverview.tsx";
 import DashboardPortfolio from "./pages/dashboard/DashboardPortfolio.tsx";
@@ -21,6 +35,8 @@ import DashboardWallet from "./pages/dashboard/DashboardWallet.tsx";
 import DashboardHistory from "./pages/dashboard/DashboardHistory.tsx";
 import DashboardSettings from "./pages/dashboard/DashboardSettings.tsx";
 import DashboardContact from "./pages/dashboard/DashboardContact.tsx";
+
+// Admin
 import AdminLayout from "./layouts/AdminLayout.tsx";
 import AdminLogin from "./pages/admin/AdminLogin.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
@@ -46,6 +62,18 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+
+            {/* Static pages */}
+            <Route path="/markets" element={<Markets />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/careers" element={<Careers />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/risk-disclosure" element={<RiskDisclosure />} />
+            <Route path="/compliance" element={<Compliance />} />
+            <Route path="/security" element={<Security />} />
 
             {/* User dashboard - protected */}
             <Route element={<ProtectedRoute />}>
