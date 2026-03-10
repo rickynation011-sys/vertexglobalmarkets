@@ -69,8 +69,7 @@ const Footer = () => {
             © 2026 Vertex Global Markets. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground text-center max-w-xl">
-            Trading financial instruments involves significant risk. Returns are estimated and not guaranteed.
-            Past performance does not indicate future results. Please trade responsibly.
+            Trading financial instruments involves significant risk. Please trade responsibly.
           </p>
         </div>
       </div>

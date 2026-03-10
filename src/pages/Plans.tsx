@@ -102,7 +102,7 @@ const Plans = () => (
         <div className="max-w-3xl mx-auto text-center">
           <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
             <p className="text-xs text-muted-foreground">
-              ⚠️ Investment returns are estimated based on historical performance and are not guaranteed. Your capital is at risk. Please read our <Link to="/risk-disclosure" className="text-primary underline">Risk Disclosure</Link> before investing.
+              ⚠️ Investment returns are estimated based on historical performance. Your capital is at risk. Please read our <Link to="/risk-disclosure" className="text-primary underline">Risk Disclosure</Link> before investing.
             </p>
           </div>
         </div>

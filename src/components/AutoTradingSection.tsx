@@ -64,7 +64,7 @@ const AutoTradingSection = () => {
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground mt-4 text-center">Estimated monthly returns. Not guaranteed.</p>
+              <p className="text-xs text-muted-foreground mt-4 text-center">Estimated monthly returns.</p>
             </div>
           </motion.div>
         </div>

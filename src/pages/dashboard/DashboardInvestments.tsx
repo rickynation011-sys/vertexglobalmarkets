@@ -135,7 +135,7 @@ const DashboardInvestments = () => {
                     </p>
                   ))}
                 </div>
-                <p className="text-[10px] text-muted-foreground italic">*Returns are estimates, not guaranteed profits.</p>
+                <p className="text-[10px] text-muted-foreground italic">*Returns are estimates based on historical performance.</p>
                 <Button className="w-full bg-gradient-brand text-primary-foreground font-semibold" size="sm" onClick={() => investMutation.mutate(plan)} disabled={investMutation.isPending}>
                   Invest ${plan.min.toLocaleString()}
                 </Button>

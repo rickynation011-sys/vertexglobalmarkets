@@ -27,7 +27,7 @@ const Terms = () => (
 
           <section>
             <h2 className="text-lg font-display font-semibold text-foreground mb-3">4. Trading & Investment Risks</h2>
-            <p>Trading financial instruments, including forex, cryptocurrencies, and CFDs, involves substantial risk of loss. Leveraged products can result in losses exceeding your initial deposit. Past performance does not guarantee future results. You should not invest money you cannot afford to lose.</p>
+            <p>Trading financial instruments, including forex, cryptocurrencies, and CFDs, involves substantial risk of loss. Leveraged products can result in losses exceeding your initial deposit. You should not invest money you cannot afford to lose.</p>
           </section>
 
           <section>
