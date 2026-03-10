@@ -24,6 +24,7 @@ import Privacy from "./pages/Privacy.tsx";
 import RiskDisclosure from "./pages/RiskDisclosure.tsx";
 import Compliance from "./pages/Compliance.tsx";
 import Security from "./pages/Security.tsx";
+import Press from "./pages/Press.tsx";
 
 // Dashboard
 import DashboardLayout from "./layouts/DashboardLayout.tsx";
@@ -75,6 +76,7 @@ const App = () => (
             <Route path="/risk-disclosure" element={<RiskDisclosure />} />
             <Route path="/compliance" element={<Compliance />} />
             <Route path="/security" element={<Security />} />
+            <Route path="/press" element={<Press />} />
 
             {/* User dashboard - protected */}
             <Route element={<ProtectedRoute />}>
