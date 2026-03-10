@@ -3,6 +3,7 @@ import StaticPageLayout from "@/layouts/StaticPageLayout";
 
 const Terms = () => (
   <StaticPageLayout>
+    <SEO title="Terms of Service" description="Terms and conditions for using the Vertex Global Markets trading platform." path="/terms" />
     <section className="py-20">
       <div className="container mx-auto px-4 max-w-4xl">
         <h1 className="text-4xl font-display font-bold text-foreground mb-2">Terms of Service</h1>

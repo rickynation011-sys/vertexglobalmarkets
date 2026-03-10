@@ -3,6 +3,7 @@ import StaticPageLayout from "@/layouts/StaticPageLayout";
 
 const RiskDisclosure = () => (
   <StaticPageLayout>
+    <SEO title="Risk Disclosure" description="Important risk disclosures for trading financial instruments on Vertex Global Markets." path="/risk-disclosure" />
     <section className="py-20">
       <div className="container mx-auto px-4 max-w-4xl">
         <h1 className="text-4xl font-display font-bold text-foreground mb-2">Risk Disclosure</h1>

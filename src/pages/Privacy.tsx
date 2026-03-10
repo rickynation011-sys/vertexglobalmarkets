@@ -3,6 +3,7 @@ import StaticPageLayout from "@/layouts/StaticPageLayout";
 
 const Privacy = () => (
   <StaticPageLayout>
+    <SEO title="Privacy Policy" description="How Vertex Global Markets collects, uses, and protects your personal data. GDPR compliant." path="/privacy" />
     <section className="py-20">
       <div className="container mx-auto px-4 max-w-4xl">
         <h1 className="text-4xl font-display font-bold text-foreground mb-2">Privacy Policy</h1>
