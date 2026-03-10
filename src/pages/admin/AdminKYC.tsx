@@ -162,8 +162,8 @@ const AdminKYC = () => {
                     filtered.map((kyc) => (
                       <tr key={kyc.id} className={`border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors cursor-pointer ${selected === kyc.id ? "bg-muted/50" : ""}`} onClick={() => setSelected(kyc.id)}>
                         <td className="p-4">
-                          <p className="font-medium text-foreground">{kyc.profiles?.full_name ?? "Unknown"}</p>
-                          <p className="text-xs text-muted-foreground">{kyc.profiles?.email ?? kyc.user_id}</p>
+                          <p className="font-medium text-foreground">{kyc.profile?.full_name ?? "Unknown"}</p>
+                          <p className="text-xs text-muted-foreground">{kyc.profile?.email ?? kyc.user_id}</p>
                         </td>
                         <td className="p-4 text-muted-foreground">{kyc.document_type}</td>
                         <td className="p-4 text-muted-foreground text-xs">{new Date(kyc.submitted_at).toLocaleDateString()}</td>
