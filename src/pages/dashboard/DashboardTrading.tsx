@@ -15,11 +15,32 @@ import { useMarketPrices, type MarketAsset } from "@/hooks/useMarketPrices";
 const DashboardTrading = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [selectedPair, setSelectedPair] = useState("EUR/USD");
+  const marketAssets = useMarketPrices(5000);
+  const [selectedPair, setSelectedPair] = useState("BTC/USDT");
   const [amount, setAmount] = useState("");
   const [price, setPrice] = useState("");
   const [tp, setTp] = useState("");
   const [sl, setSl] = useState("");
+
+  // Build a rolling chart from price snapshots
+  const chartHistoryRef = useRef<{ t: string; p: number }[]>([]);
+  const selectedAsset = marketAssets.find((a) => a.displayName === selectedPair);
+
+  useEffect(() => {
+    if (!selectedAsset) return;
+    const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    chartHistoryRef.current = [
+      ...chartHistoryRef.current.slice(-29),
+      { t: now, p: selectedAsset.price },
+    ];
+  }, [selectedAsset?.price, selectedPair]);
+
+  // Reset chart when pair changes
+  useEffect(() => {
+    chartHistoryRef.current = [];
+  }, [selectedPair]);
+
+  const chartData = chartHistoryRef.current;
 
   const { data: openTrades } = useQuery({
     queryKey: ["trades-open", user?.id],
