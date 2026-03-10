@@ -102,26 +102,40 @@ const DashboardTrading = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <Card className="bg-card border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Watchlist</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium">Watchlist</CardTitle>
+              {marketAssets.length > 0 ? (
+                <span className="flex items-center gap-1 text-xs text-success"><Wifi className="h-3 w-3" /> Live</span>
+              ) : (
+                <span className="flex items-center gap-1 text-xs text-muted-foreground"><WifiOff className="h-3 w-3" /> Connecting</span>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             <div className="max-h-[500px] overflow-y-auto">
-              {watchlist.map((item) => (
-                <button
-                  key={item.pair}
-                  onClick={() => setSelectedPair(item.pair)}
-                  className={`w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors border-b border-border/50 last:border-0 ${selectedPair === item.pair ? "bg-muted" : ""}`}
-                >
-                  <span className="text-sm font-medium text-foreground">{item.pair}</span>
-                  <div className="text-right">
-                    <p className="text-sm text-foreground">{item.price}</p>
-                    <p className={`text-xs flex items-center gap-0.5 justify-end ${item.up ? "text-success" : "text-destructive"}`}>
-                      {item.up ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                      {item.change}
-                    </p>
-                  </div>
-                </button>
-              ))}
+              {marketAssets.map((asset) => {
+                const up = asset.change24h >= 0;
+                const flash = asset.price > asset.prevPrice ? "bg-success/10" : asset.price < asset.prevPrice ? "bg-destructive/10" : "";
+                return (
+                  <button
+                    key={asset.displayName}
+                    onClick={() => setSelectedPair(asset.displayName)}
+                    className={`w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-all border-b border-border/50 last:border-0 ${selectedPair === asset.displayName ? "bg-muted" : ""} ${flash}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">{asset.displayName}</span>
+                      {asset.source === "binance" && <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 border-success/30 text-success">LIVE</Badge>}
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-foreground font-mono">{asset.price < 10 ? asset.price.toFixed(4) : asset.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
+                      <p className={`text-xs flex items-center gap-0.5 justify-end ${up ? "text-success" : "text-destructive"}`}>
+                        {up ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                        {up ? "+" : ""}{asset.change24h.toFixed(2)}%
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
