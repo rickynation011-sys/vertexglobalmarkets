@@ -1,7 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Users, ShieldCheck, ArrowUpDown, DollarSign, TrendingUp, AlertTriangle, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Users, ShieldCheck, ArrowUpDown, DollarSign, TrendingUp, AlertTriangle, Loader2, Play } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface DashboardStats {
   totalUsers: number;
@@ -29,6 +31,20 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activity, setActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
+
+  const handleProcessProfits = async () => {
+    setProcessing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("process-daily-profits");
+      if (error) throw error;
+      toast({ title: "Profits Processed", description: data?.message ?? "Done" });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -104,9 +120,15 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-display font-bold text-foreground">Admin Dashboard</h1>
-        <p className="text-muted-foreground text-sm">Platform overview and management</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-foreground">Admin Dashboard</h1>
+          <p className="text-muted-foreground text-sm">Platform overview and management</p>
+        </div>
+        <Button onClick={handleProcessProfits} disabled={processing} size="sm" variant="outline">
+          {processing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Play className="mr-2 h-4 w-4" />}
+          Process Daily Profits
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
