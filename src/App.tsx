@@ -30,6 +30,13 @@ import Investments from "./pages/Investments.tsx";
 import Signals from "./pages/Signals.tsx";
 import Plans from "./pages/Plans.tsx";
 import RealEstate from "./pages/RealEstate.tsx";
+import MarketForex from "./pages/markets/MarketForex.tsx";
+import MarketCrypto from "./pages/markets/MarketCrypto.tsx";
+import MarketStocks from "./pages/markets/MarketStocks.tsx";
+import MarketCommodities from "./pages/markets/MarketCommodities.tsx";
+import MarketIndices from "./pages/markets/MarketIndices.tsx";
+import MarketRealEstate from "./pages/markets/MarketRealEstate.tsx";
+import MarketETFs from "./pages/markets/MarketETFs.tsx";
 
 // Dashboard
 import DashboardLayout from "./layouts/DashboardLayout.tsx";
@@ -88,6 +95,13 @@ const App = () => (
             <Route path="/signals" element={<Signals />} />
             <Route path="/plans" element={<Plans />} />
             <Route path="/real-estate" element={<RealEstate />} />
+            <Route path="/markets/forex" element={<MarketForex />} />
+            <Route path="/markets/crypto" element={<MarketCrypto />} />
+            <Route path="/markets/stocks" element={<MarketStocks />} />
+            <Route path="/markets/commodities" element={<MarketCommodities />} />
+            <Route path="/markets/indices" element={<MarketIndices />} />
+            <Route path="/markets/real-estate" element={<MarketRealEstate />} />
+            <Route path="/markets/etfs" element={<MarketETFs />} />
 
             {/* User dashboard - protected */}
             <Route element={<ProtectedRoute />}>
