@@ -74,7 +74,8 @@ const DashboardOverview = () => {
   const totalDeposited = completedDeposits.reduce((s, t) => s + Number(t.amount), 0);
   const totalWithdrawn = completedWithdrawals.reduce((s, t) => s + Number(t.amount), 0);
   const tradePnl = (trades ?? []).reduce((s, t) => s + Number(t.pnl ?? 0), 0);
-  const balance = totalDeposited - totalWithdrawn + tradePnl;
+  const walletBalance = Number(profile?.wallet_balance ?? 0);
+  const balance = totalDeposited - totalWithdrawn + tradePnl + walletBalance;
   const activeInvestments = (investments ?? []).filter(i => i.status === "active");
   const closedTrades = (trades ?? []).filter(t => t.status === "closed");
   const winningTrades = closedTrades.filter(t => Number(t.pnl ?? 0) > 0);
