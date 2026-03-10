@@ -1,7 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Users, ShieldCheck, ArrowUpDown, DollarSign, TrendingUp, AlertTriangle, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Users, ShieldCheck, ArrowUpDown, DollarSign, TrendingUp, AlertTriangle, Loader2, Play } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface DashboardStats {
   totalUsers: number;
