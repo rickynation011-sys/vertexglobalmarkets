@@ -129,6 +129,15 @@ const MarketCommodities = () => {
             );
           })}
 
+          <div className="mb-12">
+            <MarketChart
+              title="Gold (XAU/USD)"
+              basePrice={2342.50}
+              symbol="XAU/USD"
+              livePrice={livePrices.find((p) => p.displayName === "Gold (XAU)")?.price}
+            />
+          </div>
+
           <div className="text-center mt-8">
             <Button size="lg" className="bg-gradient-brand text-primary-foreground font-semibold" asChild>
               <Link to="/register">Start Trading Commodities</Link>

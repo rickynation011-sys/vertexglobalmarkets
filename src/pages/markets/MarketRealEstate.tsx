@@ -81,6 +81,14 @@ const MarketRealEstate = () => (
           ))}
         </div>
 
+        <div className="mb-12">
+          <MarketChart
+            title="US REITs Index"
+            basePrice={4250}
+            symbol="US REIT · Real Estate"
+          />
+        </div>
+
         <div className="text-center">
           <Button size="lg" className="bg-gradient-brand text-primary-foreground font-semibold" asChild>
             <Link to="/register">Start Investing in Real Estate</Link>
