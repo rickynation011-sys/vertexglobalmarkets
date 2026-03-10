@@ -31,7 +31,7 @@ const CTASection = () => {
             </Button>
           </div>
           <p className="text-xs text-muted-foreground mt-6">
-            Trading involves risk. Estimated returns are not guaranteed. Past performance does not guarantee future results.
+            Trading involves risk. Please trade responsibly.
           </p>
         </motion.div>
       </div>

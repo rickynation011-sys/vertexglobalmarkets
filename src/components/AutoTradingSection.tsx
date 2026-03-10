@@ -34,7 +34,7 @@ const AutoTradingSection = () => {
               ))}
             </div>
             <p className="text-xs text-muted-foreground mt-6">
-              *Returns are estimates, not guarantees. Past performance does not guarantee future results.
+              *Returns are estimates based on historical performance.
             </p>
           </motion.div>
 
@@ -64,7 +64,7 @@ const AutoTradingSection = () => {
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground mt-4 text-center">Estimated monthly returns. Not guaranteed.</p>
+              <p className="text-xs text-muted-foreground mt-4 text-center">Estimated monthly returns.</p>
             </div>
           </motion.div>
         </div>

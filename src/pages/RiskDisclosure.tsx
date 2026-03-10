@@ -33,7 +33,7 @@ const RiskDisclosure = () => (
 
           <section>
             <h2 className="text-lg font-display font-semibold text-foreground mb-3">AI & Automated Trading Risk</h2>
-            <p>AI-generated signals and automated trading systems are based on historical data and algorithms. They do not guarantee future performance. Technical failures, model errors, and unprecedented market conditions can lead to unexpected losses.</p>
+            <p>AI-generated signals and automated trading systems are based on historical data and algorithms. Technical failures, model errors, and unprecedented market conditions can lead to unexpected losses.</p>
           </section>
 
           <section>

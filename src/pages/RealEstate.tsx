@@ -105,7 +105,7 @@ const RealEstate = () => (
         <div className="max-w-3xl mx-auto text-center">
           <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
             <p className="text-xs text-muted-foreground">
-              *Past performance does not guarantee future results. Real estate investments are illiquid and subject to market risk. Please read our <Link to="/risk-disclosure" className="text-primary underline">Risk Disclosure</Link> before investing.
+              *Real estate investments are subject to market risk. Please read our <Link to="/risk-disclosure" className="text-primary underline">Risk Disclosure</Link> before investing.
             </p>
           </div>
         </div>

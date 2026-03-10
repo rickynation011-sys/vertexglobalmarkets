@@ -60,7 +60,7 @@ const Investments = () => (
           <Button size="lg" className="bg-gradient-brand text-primary-foreground font-semibold" asChild>
             <Link to="/register">Start Investing</Link>
           </Button>
-          <p className="text-xs text-muted-foreground mt-4">*Past performance does not guarantee future results. Capital at risk.</p>
+          <p className="text-xs text-muted-foreground mt-4">*Capital at risk. Please invest responsibly.</p>
         </div>
       </div>
     </section>
