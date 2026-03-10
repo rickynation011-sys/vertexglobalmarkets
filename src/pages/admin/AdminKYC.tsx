@@ -4,17 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle, XCircle, Eye, Search, Clock } from "lucide-react";
-import { useState } from "react";
+import { CheckCircle, XCircle, Eye, Search, Clock, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import type { Tables } from "@/integrations/supabase/types";
 
-const mockKYC = [
-  { id: "1", user: "Sarah Wilson", email: "sarah@example.com", type: "Passport", submitted: "Mar 8, 2026", status: "pending" },
-  { id: "2", user: "Emily Davis", email: "emily@example.com", type: "National ID", submitted: "Mar 7, 2026", status: "pending" },
-  { id: "3", user: "Tom Hardy", email: "tom@example.com", type: "Driver's License", submitted: "Mar 6, 2026", status: "pending" },
-  { id: "4", user: "John Doe", email: "john@example.com", type: "Passport", submitted: "Mar 5, 2026", status: "approved" },
-  { id: "5", user: "Mike Chen", email: "mike@example.com", type: "National ID", submitted: "Mar 4, 2026", status: "approved" },
-  { id: "6", user: "Anna Kowalski", email: "anna@example.com", type: "Passport", submitted: "Mar 3, 2026", status: "rejected" },
-];
+type KYC = Tables<"kyc_verifications"> & { profiles?: { full_name: string | null; email: string | null } | null };
 
 const statusColors: Record<string, string> = {
   pending: "bg-warning/10 text-warning",
@@ -23,11 +20,78 @@ const statusColors: Record<string, string> = {
 };
 
 const AdminKYC = () => {
+  const { user } = useAuth();
+  const [kycList, setKycList] = useState<KYC[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [reviewNotes, setReviewNotes] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
-  const filtered = mockKYC.filter((k) => filter === "all" || k.status === filter);
-  const selectedKYC = mockKYC.find((k) => k.id === selected);
+  const fetchKYC = async () => {
+    const { data, error } = await supabase
+      .from("kyc_verifications")
+      .select("*, profiles!kyc_verifications_user_id_fkey(full_name, email)")
+      .order("submitted_at", { ascending: false });
+
+    if (error) {
+      // If the join fails, try without it
+      const { data: fallback } = await supabase
+        .from("kyc_verifications")
+        .select("*")
+        .order("submitted_at", { ascending: false });
+      setKycList((fallback ?? []) as KYC[]);
+    } else {
+      setKycList((data ?? []) as KYC[]);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchKYC();
+  }, []);
+
+  const handleAction = async (id: string, status: "approved" | "rejected") => {
+    setActionLoading(true);
+    const { error } = await supabase
+      .from("kyc_verifications")
+      .update({
+        status,
+        reviewed_at: new Date().toISOString(),
+        reviewed_by: user?.id ?? null,
+        reviewer_notes: reviewNotes || null,
+      })
+      .eq("id", id);
+
+    if (error) {
+      toast.error(`Failed to ${status} KYC`);
+    } else {
+      toast.success(`KYC ${status} successfully`);
+      setReviewNotes("");
+      setSelected(null);
+      fetchKYC();
+    }
+    setActionLoading(false);
+  };
+
+  const filtered = kycList.filter((k) => {
+    const matchesFilter = filter === "all" || k.status === filter;
+    const name = k.profiles?.full_name ?? "";
+    const email = k.profiles?.email ?? "";
+    const matchesSearch = name.toLowerCase().includes(search.toLowerCase()) || email.toLowerCase().includes(search.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
+  const selectedKYC = kycList.find((k) => k.id === selected);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -38,9 +102,9 @@ const AdminKYC = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: "Pending", count: mockKYC.filter((k) => k.status === "pending").length, icon: Clock, color: "text-warning" },
-          { label: "Approved", count: mockKYC.filter((k) => k.status === "approved").length, icon: CheckCircle, color: "text-success" },
-          { label: "Rejected", count: mockKYC.filter((k) => k.status === "rejected").length, icon: XCircle, color: "text-destructive" },
+          { label: "Pending", count: kycList.filter((k) => k.status === "pending").length, icon: Clock, color: "text-warning" },
+          { label: "Approved", count: kycList.filter((k) => k.status === "approved").length, icon: CheckCircle, color: "text-success" },
+          { label: "Rejected", count: kycList.filter((k) => k.status === "rejected").length, icon: XCircle, color: "text-destructive" },
         ].map((s) => (
           <Card key={s.label} className="bg-card border-border">
             <CardContent className="p-4 flex items-center gap-3">
@@ -57,7 +121,7 @@ const AdminKYC = () => {
       <div className="flex gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search submissions..." className="pl-9" />
+          <Input placeholder="Search submissions..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Select value={filter} onValueChange={setFilter}>
           <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
@@ -85,28 +149,31 @@ const AdminKYC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((kyc) => (
-                    <tr key={kyc.id} className={`border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors cursor-pointer ${selected === kyc.id ? "bg-muted/50" : ""}`} onClick={() => setSelected(kyc.id)}>
-                      <td className="p-4">
-                        <p className="font-medium text-foreground">{kyc.user}</p>
-                        <p className="text-xs text-muted-foreground">{kyc.email}</p>
-                      </td>
-                      <td className="p-4 text-muted-foreground">{kyc.type}</td>
-                      <td className="p-4 text-muted-foreground text-xs">{kyc.submitted}</td>
-                      <td className="p-4"><Badge className={`text-xs ${statusColors[kyc.status]}`}>{kyc.status}</Badge></td>
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          {kyc.status === "pending" && (
-                            <>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-success"><CheckCircle className="h-4 w-4" /></Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"><XCircle className="h-4 w-4" /></Button>
-                            </>
-                          )}
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"><Eye className="h-4 w-4" /></Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {filtered.length === 0 ? (
+                    <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No KYC submissions found</td></tr>
+                  ) : (
+                    filtered.map((kyc) => (
+                      <tr key={kyc.id} className={`border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors cursor-pointer ${selected === kyc.id ? "bg-muted/50" : ""}`} onClick={() => setSelected(kyc.id)}>
+                        <td className="p-4">
+                          <p className="font-medium text-foreground">{kyc.profiles?.full_name ?? "Unknown"}</p>
+                          <p className="text-xs text-muted-foreground">{kyc.profiles?.email ?? kyc.user_id}</p>
+                        </td>
+                        <td className="p-4 text-muted-foreground">{kyc.document_type}</td>
+                        <td className="p-4 text-muted-foreground text-xs">{new Date(kyc.submitted_at).toLocaleDateString()}</td>
+                        <td className="p-4"><Badge className={`text-xs ${statusColors[kyc.status]}`}>{kyc.status}</Badge></td>
+                        <td className="p-4 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            {kyc.status === "pending" && (
+                              <>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-success" onClick={(e) => { e.stopPropagation(); handleAction(kyc.id, "approved"); }}><CheckCircle className="h-4 w-4" /></Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={(e) => { e.stopPropagation(); handleAction(kyc.id, "rejected"); }}><XCircle className="h-4 w-4" /></Button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -119,19 +186,30 @@ const AdminKYC = () => {
             {selectedKYC ? (
               <>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between"><span className="text-muted-foreground">User</span><span className="text-foreground">{selectedKYC.user}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Email</span><span className="text-foreground">{selectedKYC.email}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Document</span><span className="text-foreground">{selectedKYC.type}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Submitted</span><span className="text-foreground">{selectedKYC.submitted}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">User</span><span className="text-foreground">{selectedKYC.profiles?.full_name ?? "Unknown"}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Email</span><span className="text-foreground">{selectedKYC.profiles?.email ?? "—"}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Document</span><span className="text-foreground">{selectedKYC.document_type}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Submitted</span><span className="text-foreground">{new Date(selectedKYC.submitted_at).toLocaleDateString()}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Status</span><Badge className={`text-xs ${statusColors[selectedKYC.status]}`}>{selectedKYC.status}</Badge></div>
+                  {selectedKYC.reviewer_notes && (
+                    <div className="flex justify-between"><span className="text-muted-foreground">Notes</span><span className="text-foreground">{selectedKYC.reviewer_notes}</span></div>
+                  )}
                 </div>
-                <div className="p-8 rounded-lg bg-muted/50 border border-border text-center text-xs text-muted-foreground">Document Preview Area</div>
+                {selectedKYC.document_url && (
+                  <div className="p-4 rounded-lg bg-muted/50 border border-border text-center text-xs text-muted-foreground">
+                    <a href={selectedKYC.document_url} target="_blank" rel="noopener noreferrer" className="text-primary underline">View Document</a>
+                  </div>
+                )}
                 {selectedKYC.status === "pending" && (
                   <>
-                    <Textarea placeholder="Reviewer notes (optional)..." className="text-sm" />
+                    <Textarea placeholder="Reviewer notes (optional)..." className="text-sm" value={reviewNotes} onChange={(e) => setReviewNotes(e.target.value)} />
                     <div className="flex gap-2">
-                      <Button className="flex-1 bg-success text-primary-foreground font-semibold" size="sm"><CheckCircle className="h-4 w-4 mr-1" /> Approve</Button>
-                      <Button className="flex-1" variant="destructive" size="sm"><XCircle className="h-4 w-4 mr-1" /> Reject</Button>
+                      <Button className="flex-1 bg-success text-primary-foreground font-semibold" size="sm" disabled={actionLoading} onClick={() => handleAction(selectedKYC.id, "approved")}>
+                        <CheckCircle className="h-4 w-4 mr-1" /> Approve
+                      </Button>
+                      <Button className="flex-1" variant="destructive" size="sm" disabled={actionLoading} onClick={() => handleAction(selectedKYC.id, "rejected")}>
+                        <XCircle className="h-4 w-4 mr-1" /> Reject
+                      </Button>
                     </div>
                   </>
                 )}

@@ -3,19 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, CheckCircle, XCircle, Eye, ArrowDownLeft, ArrowUpRight, Download } from "lucide-react";
-import { useState } from "react";
+import { Search, CheckCircle, XCircle, Eye, ArrowDownLeft, ArrowUpRight, Download, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import type { Tables } from "@/integrations/supabase/types";
 
-const mockTransactions = [
-  { id: "TXN-5001", user: "John Doe", email: "john@example.com", type: "deposit", method: "Bank Transfer", amount: "$5,000.00", status: "pending", date: "Mar 10, 2026 14:32" },
-  { id: "TXN-5002", user: "Sarah Wilson", email: "sarah@example.com", type: "withdrawal", method: "BTC", amount: "$2,500.00", status: "pending", date: "Mar 10, 2026 13:15" },
-  { id: "TXN-5003", user: "Mike Chen", email: "mike@example.com", type: "deposit", method: "USDT (TRC20)", amount: "$10,000.00", status: "pending", date: "Mar 10, 2026 11:00" },
-  { id: "TXN-5004", user: "Lisa Anderson", email: "lisa@example.com", type: "withdrawal", method: "Bank Transfer", amount: "$15,000.00", status: "pending", date: "Mar 9, 2026 22:45" },
-  { id: "TXN-5005", user: "James Brown", email: "james@example.com", type: "deposit", method: "Credit Card", amount: "$1,500.00", status: "approved", date: "Mar 9, 2026 18:30" },
-  { id: "TXN-5006", user: "Emily Davis", email: "emily@example.com", type: "deposit", method: "ETH", amount: "$3,200.00", status: "approved", date: "Mar 9, 2026 15:20" },
-  { id: "TXN-5007", user: "Tom Hardy", email: "tom@example.com", type: "withdrawal", method: "USDT (TRC20)", amount: "$8,000.00", status: "rejected", date: "Mar 8, 2026 10:00" },
-  { id: "TXN-5008", user: "Anna Kowalski", email: "anna@example.com", type: "deposit", method: "Bank Transfer", amount: "$500.00", status: "completed", date: "Mar 8, 2026 09:00" },
-];
+type Transaction = Tables<"transactions"> & { profiles?: { full_name: string | null; email: string | null } | null };
 
 const statusColors: Record<string, string> = {
   pending: "bg-warning/10 text-warning",
@@ -25,15 +20,78 @@ const statusColors: Record<string, string> = {
 };
 
 const AdminTransactions = () => {
+  const { user } = useAuth();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filter, setFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const filtered = mockTransactions.filter(
-    (t) => (filter === "all" || t.status === filter) && (typeFilter === "all" || t.type === typeFilter)
-  );
+  const fetchTransactions = async () => {
+    const { data, error } = await supabase
+      .from("transactions")
+      .select("*, profiles!transactions_user_id_fkey(full_name, email)")
+      .order("created_at", { ascending: false });
 
-  const pendingDeposits = mockTransactions.filter((t) => t.type === "deposit" && t.status === "pending");
-  const pendingWithdrawals = mockTransactions.filter((t) => t.type === "withdrawal" && t.status === "pending");
+    if (error) {
+      const { data: fallback } = await supabase
+        .from("transactions")
+        .select("*")
+        .order("created_at", { ascending: false });
+      setTransactions((fallback ?? []) as Transaction[]);
+    } else {
+      setTransactions((data ?? []) as Transaction[]);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  const handleAction = async (id: string, status: "approved" | "rejected") => {
+    const { error } = await supabase
+      .from("transactions")
+      .update({
+        status,
+        reviewed_by: user?.id ?? null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    if (error) {
+      toast.error(`Failed to ${status} transaction`);
+    } else {
+      toast.success(`Transaction ${status}`);
+      fetchTransactions();
+    }
+  };
+
+  const filtered = transactions.filter((t) => {
+    const matchesStatus = filter === "all" || t.status === filter;
+    const matchesType = typeFilter === "all" || t.type === typeFilter;
+    const name = t.profiles?.full_name ?? "";
+    const email = t.profiles?.email ?? "";
+    const matchesSearch = name.toLowerCase().includes(search.toLowerCase()) || email.toLowerCase().includes(search.toLowerCase()) || t.id.includes(search);
+    return matchesStatus && matchesType && matchesSearch;
+  });
+
+  const pendingDeposits = transactions.filter((t) => t.type === "deposit" && t.status === "pending");
+  const pendingWithdrawals = transactions.filter((t) => t.type === "withdrawal" && t.status === "pending");
+  const todayVolume = transactions
+    .filter((t) => {
+      const today = new Date().toDateString();
+      return new Date(t.created_at).toDateString() === today;
+    })
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -42,14 +100,13 @@ const AdminTransactions = () => {
           <h1 className="text-2xl font-display font-bold text-foreground">Transaction Management</h1>
           <p className="text-muted-foreground text-sm">Approve deposits and withdrawals</p>
         </div>
-        <Button variant="outline" size="sm" className="gap-2"><Download className="h-4 w-4" /> Export</Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <Card className="bg-card border-border">
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Total Pending</p>
-            <p className="text-2xl font-display font-bold text-warning">{mockTransactions.filter((t) => t.status === "pending").length}</p>
+            <p className="text-2xl font-display font-bold text-warning">{transactions.filter((t) => t.status === "pending").length}</p>
           </CardContent>
         </Card>
         <Card className="bg-card border-border">
@@ -67,7 +124,7 @@ const AdminTransactions = () => {
         <Card className="bg-card border-border">
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Total Volume Today</p>
-            <p className="text-2xl font-display font-bold text-foreground">$45,700</p>
+            <p className="text-2xl font-display font-bold text-foreground">${todayVolume.toLocaleString()}</p>
           </CardContent>
         </Card>
       </div>
@@ -75,7 +132,7 @@ const AdminTransactions = () => {
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search transactions..." className="pl-9" />
+          <Input placeholder="Search transactions..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <Select value={typeFilter} onValueChange={setTypeFilter}>
           <SelectTrigger className="w-full sm:w-[140px]"><SelectValue /></SelectTrigger>
@@ -114,36 +171,39 @@ const AdminTransactions = () => {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((tx) => (
-                  <tr key={tx.id} className="border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors">
-                    <td className="p-4 font-mono text-xs text-muted-foreground">{tx.id}</td>
-                    <td className="p-4">
-                      <p className="font-medium text-foreground">{tx.user}</p>
-                      <p className="text-xs text-muted-foreground">{tx.email}</p>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-1.5">
-                        {tx.type === "deposit" ? <ArrowDownLeft className="h-3 w-3 text-success" /> : <ArrowUpRight className="h-3 w-3 text-warning" />}
-                        <span className="capitalize text-foreground">{tx.type}</span>
-                      </div>
-                    </td>
-                    <td className="p-4 text-muted-foreground">{tx.method}</td>
-                    <td className="p-4 font-medium text-foreground">{tx.amount}</td>
-                    <td className="p-4"><Badge className={`text-xs ${statusColors[tx.status]}`}>{tx.status}</Badge></td>
-                    <td className="p-4 text-muted-foreground text-xs">{tx.date}</td>
-                    <td className="p-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        {tx.status === "pending" && (
-                          <>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-success"><CheckCircle className="h-4 w-4" /></Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"><XCircle className="h-4 w-4" /></Button>
-                          </>
-                        )}
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground"><Eye className="h-4 w-4" /></Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {filtered.length === 0 ? (
+                  <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">No transactions found</td></tr>
+                ) : (
+                  filtered.map((tx) => (
+                    <tr key={tx.id} className="border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors">
+                      <td className="p-4 font-mono text-xs text-muted-foreground">{tx.id.slice(0, 8)}</td>
+                      <td className="p-4">
+                        <p className="font-medium text-foreground">{tx.profiles?.full_name ?? "Unknown"}</p>
+                        <p className="text-xs text-muted-foreground">{tx.profiles?.email ?? tx.user_id.slice(0, 8)}</p>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-1.5">
+                          {tx.type === "deposit" ? <ArrowDownLeft className="h-3 w-3 text-success" /> : <ArrowUpRight className="h-3 w-3 text-warning" />}
+                          <span className="capitalize text-foreground">{tx.type}</span>
+                        </div>
+                      </td>
+                      <td className="p-4 text-muted-foreground">{tx.method}</td>
+                      <td className="p-4 font-medium text-foreground">${tx.amount.toLocaleString()}</td>
+                      <td className="p-4"><Badge className={`text-xs ${statusColors[tx.status] ?? ""}`}>{tx.status}</Badge></td>
+                      <td className="p-4 text-muted-foreground text-xs">{new Date(tx.created_at).toLocaleString()}</td>
+                      <td className="p-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {tx.status === "pending" && (
+                            <>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-success" onClick={() => handleAction(tx.id, "approved")}><CheckCircle className="h-4 w-4" /></Button>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleAction(tx.id, "rejected")}><XCircle className="h-4 w-4" /></Button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

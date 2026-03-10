@@ -1,25 +1,22 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Users, ShieldCheck, ArrowUpDown, DollarSign, TrendingUp, AlertTriangle } from "lucide-react";
+import { Users, ShieldCheck, ArrowUpDown, DollarSign, TrendingUp, AlertTriangle, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-const stats = [
-  { label: "Total Users", value: "12,847", change: "+142 today", icon: Users, color: "text-primary" },
-  { label: "Pending KYC", value: "38", change: "Needs review", icon: ShieldCheck, color: "text-warning" },
-  { label: "Pending Transactions", value: "24", change: "12 deposits, 12 withdrawals", icon: ArrowUpDown, color: "text-info" },
-  { label: "Total Revenue", value: "$2.4M", change: "+12.5% this month", icon: DollarSign, color: "text-success" },
-  { label: "Active Traders", value: "4,231", change: "33% of users", icon: TrendingUp, color: "text-accent" },
-  { label: "Flagged Accounts", value: "7", change: "Requires attention", icon: AlertTriangle, color: "text-destructive" },
-];
+interface DashboardStats {
+  totalUsers: number;
+  pendingKYC: number;
+  pendingTransactions: number;
+  totalRevenue: number;
+  flaggedAccounts: number;
+}
 
-const recentActivity = [
-  { action: "New user registration", user: "sarah@email.com", time: "2 min ago", type: "info" },
-  { action: "KYC submitted", user: "john.doe@email.com", time: "5 min ago", type: "warning" },
-  { action: "Deposit approved", user: "mike.w@email.com", time: "12 min ago", type: "success" },
-  { action: "Withdrawal request", user: "anna.k@email.com", time: "18 min ago", type: "info" },
-  { action: "Account flagged", user: "suspicious@email.com", time: "25 min ago", type: "error" },
-  { action: "KYC approved", user: "jane.s@email.com", time: "32 min ago", type: "success" },
-  { action: "Large deposit", user: "whale@email.com", time: "45 min ago", type: "info" },
-  { action: "Password reset", user: "forgot@email.com", time: "1 hr ago", type: "info" },
-];
+interface RecentActivity {
+  action: string;
+  user: string;
+  time: string;
+  type: "info" | "warning" | "success" | "error";
+}
 
 const typeColors: Record<string, string> = {
   info: "bg-info/10 text-info",
@@ -29,6 +26,82 @@ const typeColors: Record<string, string> = {
 };
 
 const AdminDashboard = () => {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [activity, setActivity] = useState<RecentActivity[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const [profilesRes, kycRes, txRes] = await Promise.all([
+        supabase.from("profiles").select("id, status", { count: "exact" }),
+        supabase.from("kyc_verifications").select("id, status", { count: "exact" }),
+        supabase.from("transactions").select("id, status, type, amount, created_at", { count: "exact" }),
+      ]);
+
+      const profiles = profilesRes.data ?? [];
+      const kycs = kycRes.data ?? [];
+      const txs = txRes.data ?? [];
+
+      const pendingKYC = kycs.filter((k) => k.status === "pending").length;
+      const pendingTx = txs.filter((t) => t.status === "pending").length;
+      const totalRevenue = txs
+        .filter((t) => t.status === "completed" || t.status === "approved")
+        .reduce((sum, t) => sum + (t.amount ?? 0), 0);
+      const flagged = profiles.filter((p) => p.status === "suspended").length;
+
+      setStats({
+        totalUsers: profilesRes.count ?? profiles.length,
+        pendingKYC,
+        pendingTransactions: pendingTx,
+        totalRevenue,
+        flaggedAccounts: flagged,
+      });
+
+      // Build recent activity from latest transactions & KYC submissions
+      const recentItems: RecentActivity[] = [];
+
+      const recentTxs = [...txs]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5);
+
+      for (const tx of recentTxs) {
+        const typeMap: Record<string, "info" | "warning" | "success" | "error"> = {
+          pending: "warning",
+          approved: "success",
+          completed: "success",
+          rejected: "error",
+        };
+        recentItems.push({
+          action: `${tx.type === "deposit" ? "Deposit" : "Withdrawal"} — $${tx.amount.toLocaleString()} (${tx.status})`,
+          user: tx.type,
+          time: new Date(tx.created_at).toLocaleDateString(),
+          type: typeMap[tx.status] ?? "info",
+        });
+      }
+
+      setActivity(recentItems);
+      setLoading(false);
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const statCards = [
+    { label: "Total Users", value: stats?.totalUsers?.toLocaleString() ?? "0", change: "Registered accounts", icon: Users, color: "text-primary" },
+    { label: "Pending KYC", value: String(stats?.pendingKYC ?? 0), change: "Needs review", icon: ShieldCheck, color: "text-warning" },
+    { label: "Pending Transactions", value: String(stats?.pendingTransactions ?? 0), change: "Awaiting approval", icon: ArrowUpDown, color: "text-info" },
+    { label: "Total Revenue", value: `$${(stats?.totalRevenue ?? 0).toLocaleString()}`, change: "Completed transactions", icon: DollarSign, color: "text-success" },
+    { label: "Flagged Accounts", value: String(stats?.flaggedAccounts ?? 0), change: "Requires attention", icon: AlertTriangle, color: "text-destructive" },
+  ];
+
   return (
     <div className="space-y-6">
       <div>
@@ -37,7 +110,7 @@ const AdminDashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {stats.map((stat) => (
+        {statCards.map((stat) => (
           <Card key={stat.label} className="bg-card border-border">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
@@ -54,22 +127,25 @@ const AdminDashboard = () => {
       <Card className="bg-card border-border">
         <CardContent className="p-4">
           <h2 className="text-sm font-medium text-foreground mb-4">Recent Activity</h2>
-          <div className="space-y-0">
-            {recentActivity.map((item, i) => (
-              <div key={i} className="flex items-center justify-between py-3 border-b border-border/50 last:border-0">
-                <div className="flex items-center gap-3">
-                  <div className={`px-2 py-0.5 rounded text-xs font-medium ${typeColors[item.type]}`}>
-                    {item.type}
+          {activity.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">No recent activity</p>
+          ) : (
+            <div className="space-y-0">
+              {activity.map((item, i) => (
+                <div key={i} className="flex items-center justify-between py-3 border-b border-border/50 last:border-0">
+                  <div className="flex items-center gap-3">
+                    <div className={`px-2 py-0.5 rounded text-xs font-medium ${typeColors[item.type]}`}>
+                      {item.type}
+                    </div>
+                    <div>
+                      <p className="text-sm text-foreground">{item.action}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-foreground">{item.action}</p>
-                    <p className="text-xs text-muted-foreground">{item.user}</p>
-                  </div>
+                  <span className="text-xs text-muted-foreground">{item.time}</span>
                 </div>
-                <span className="text-xs text-muted-foreground">{item.time}</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
