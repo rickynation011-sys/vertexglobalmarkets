@@ -3,30 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUp, ArrowDown, Wifi, WifiOff } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-
-const watchlist = [
-  { pair: "EUR/USD", price: "1.0918", change: "+0.42%", up: true },
-  { pair: "BTC/USDT", price: "67,245", change: "+2.15%", up: true },
-  { pair: "GBP/JPY", price: "191.45", change: "-0.18%", up: false },
-  { pair: "AAPL", price: "178.52", change: "+1.05%", up: true },
-  { pair: "Gold", price: "2,342", change: "+0.67%", up: true },
-  { pair: "ETH/USDT", price: "3,528", change: "-0.92%", up: false },
-  { pair: "USD/JPY", price: "154.82", change: "+0.31%", up: true },
-  { pair: "TSLA", price: "255.30", change: "-1.20%", up: false },
-];
-
-const chartData = [
-  { t: "09:00", p: 1.0842 }, { t: "10:00", p: 1.0856 }, { t: "11:00", p: 1.0831 },
-  { t: "12:00", p: 1.0870 }, { t: "13:00", p: 1.0885 }, { t: "14:00", p: 1.0862 },
-  { t: "15:00", p: 1.0891 }, { t: "16:00", p: 1.0905 }, { t: "17:00", p: 1.0918 },
-];
+import { useMarketPrices, type MarketAsset } from "@/hooks/useMarketPrices";
 
 const DashboardTrading = () => {
   const { user } = useAuth();
