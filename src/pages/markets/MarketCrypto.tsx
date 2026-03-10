@@ -1,11 +1,11 @@
 import SEO from "@/components/SEO";
 import StaticPageLayout from "@/layouts/StaticPageLayout";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { TrendingUp, TrendingDown, BarChart3, Clock } from "lucide-react";
+import { TrendingUp, TrendingDown, Clock } from "lucide-react";
 import { useMemo } from "react";
 import { useLivePrices } from "@/hooks/useLivePrices";
+import MarketChart from "@/components/MarketChart";
 
 const cryptoConfigs = [
   { displayName: "Bitcoin (BTC)", binanceSymbol: "BTCUSDT", basePrice: 67432 },
