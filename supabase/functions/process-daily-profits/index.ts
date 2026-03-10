@@ -24,12 +24,20 @@ Deno.serve(async (req) => {
 
     if (fetchErr) throw fetchErr;
     if (!investments || investments.length === 0) {
+      // Log empty run
+      await supabase.from("profit_processing_logs").insert({
+        processed_count: 0,
+        total_profit: 0,
+        status: "success",
+        triggered_by: req.headers.get("x-trigger") || "manual",
+      });
       return new Response(JSON.stringify({ message: "No active investments to process" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     let processed = 0;
+    let totalProfit = 0;
 
     for (const inv of investments) {
       // Check if investment has expired
@@ -72,13 +80,36 @@ Deno.serve(async (req) => {
         amount: dailyProfit,
       });
 
+      totalProfit += dailyProfit;
       processed++;
     }
 
-    return new Response(JSON.stringify({ message: `Processed ${processed} investments` }), {
+    // Log the processing run
+    await supabase.from("profit_processing_logs").insert({
+      processed_count: processed,
+      total_profit: totalProfit,
+      status: "success",
+      triggered_by: req.headers.get("x-trigger") || "manual",
+    });
+
+    return new Response(JSON.stringify({ message: `Processed ${processed} investments`, totalProfit }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
+    // Try to log the error
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabase = createClient(supabaseUrl, serviceRoleKey);
+      await supabase.from("profit_processing_logs").insert({
+        processed_count: 0,
+        total_profit: 0,
+        status: "error",
+        error_message: error.message,
+        triggered_by: "manual",
+      });
+    } catch (_) { /* ignore logging errors */ }
+
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

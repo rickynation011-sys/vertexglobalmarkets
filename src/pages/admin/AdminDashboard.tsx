@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, ShieldCheck, ArrowUpDown, DollarSign, TrendingUp, AlertTriangle, Loader2, Play } from "lucide-react";
+import { Users, ShieldCheck, ArrowUpDown, DollarSign, TrendingUp, AlertTriangle, Loader2, Play, History, CheckCircle2, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -20,6 +20,16 @@ interface RecentActivity {
   type: "info" | "warning" | "success" | "error";
 }
 
+interface ProcessingLog {
+  id: string;
+  processed_count: number;
+  total_profit: number;
+  status: string;
+  error_message: string | null;
+  triggered_by: string;
+  created_at: string;
+}
+
 const typeColors: Record<string, string> = {
   info: "bg-info/10 text-info",
   warning: "bg-warning/10 text-warning",
@@ -30,8 +40,18 @@ const typeColors: Record<string, string> = {
 const AdminDashboard = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activity, setActivity] = useState<RecentActivity[]>([]);
+  const [processingLogs, setProcessingLogs] = useState<ProcessingLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+
+  const fetchProcessingLogs = async () => {
+    const { data } = await supabase
+      .from("profit_processing_logs")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(10);
+    setProcessingLogs((data as ProcessingLog[]) ?? []);
+  };
 
   const handleProcessProfits = async () => {
     setProcessing(true);
@@ -39,8 +59,10 @@ const AdminDashboard = () => {
       const { data, error } = await supabase.functions.invoke("process-daily-profits");
       if (error) throw error;
       toast({ title: "Profits Processed", description: data?.message ?? "Done" });
+      fetchProcessingLogs();
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
+      fetchProcessingLogs();
     } finally {
       setProcessing(false);
     }
@@ -73,9 +95,7 @@ const AdminDashboard = () => {
         flaggedAccounts: flagged,
       });
 
-      // Build recent activity from latest transactions & KYC submissions
       const recentItems: RecentActivity[] = [];
-
       const recentTxs = [...txs]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 5);
@@ -96,6 +116,7 @@ const AdminDashboard = () => {
       }
 
       setActivity(recentItems);
+      await fetchProcessingLogs();
       setLoading(false);
     };
 
@@ -145,6 +166,46 @@ const AdminDashboard = () => {
           </Card>
         ))}
       </div>
+
+      {/* Profit Processing History */}
+      <Card className="bg-card border-border">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <History className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-medium text-foreground">Profit Processing History</h2>
+          </div>
+          {processingLogs.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">No processing runs yet</p>
+          ) : (
+            <div className="space-y-0">
+              {processingLogs.map((log) => (
+                <div key={log.id} className="flex items-center justify-between py-3 border-b border-border/50 last:border-0">
+                  <div className="flex items-center gap-3">
+                    {log.status === "success" ? (
+                      <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
+                    ) : (
+                      <XCircle className="h-4 w-4 text-destructive shrink-0" />
+                    )}
+                    <div>
+                      <p className="text-sm text-foreground">
+                        {log.status === "success"
+                          ? `Processed ${log.processed_count} investment${log.processed_count !== 1 ? "s" : ""} — $${Number(log.total_profit).toFixed(2)} total profit`
+                          : `Failed: ${log.error_message ?? "Unknown error"}`}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Triggered: {log.triggered_by}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                    {new Date(log.created_at).toLocaleString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card className="bg-card border-border">
         <CardContent className="p-4">
