@@ -5,33 +5,47 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { TrendingUp, TrendingDown, BarChart3, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useLivePrices } from "@/hooks/useLivePrices";
 
-const allStocks = [
-  { name: "Apple Inc.", symbol: "AAPL", price: "$198.45", change: "+1.24%", exchange: "NASDAQ", up: true },
-  { name: "Tesla Inc.", symbol: "TSLA", price: "$245.12", change: "+3.85%", exchange: "NASDAQ", up: true },
-  { name: "Amazon.com", symbol: "AMZN", price: "$185.67", change: "-0.42%", exchange: "NASDAQ", up: false },
-  { name: "Microsoft", symbol: "MSFT", price: "$415.32", change: "+0.95%", exchange: "NASDAQ", up: true },
-  { name: "NVIDIA", symbol: "NVDA", price: "$875.28", change: "+2.15%", exchange: "NASDAQ", up: true },
-  { name: "Alphabet", symbol: "GOOGL", price: "$165.89", change: "-0.18%", exchange: "NASDAQ", up: false },
-  { name: "Meta Platforms", symbol: "META", price: "$512.45", change: "+1.67%", exchange: "NASDAQ", up: true },
-  { name: "JPMorgan Chase", symbol: "JPM", price: "$198.34", change: "+0.52%", exchange: "NYSE", up: true },
-  { name: "Shell plc", symbol: "SHEL", price: "£26.85", change: "-0.65%", exchange: "LSE", up: false },
-  { name: "Toyota Motor", symbol: "TM", price: "$182.10", change: "+0.38%", exchange: "NYSE", up: true },
+const stockConfigs = [
+  { displayName: "Apple Inc.", symbol: "AAPL", basePrice: 198.45, exchange: "NASDAQ" },
+  { displayName: "Tesla Inc.", symbol: "TSLA", basePrice: 245.12, exchange: "NASDAQ" },
+  { displayName: "Amazon.com", symbol: "AMZN", basePrice: 185.67, exchange: "NASDAQ" },
+  { displayName: "Microsoft", symbol: "MSFT", basePrice: 415.32, exchange: "NASDAQ" },
+  { displayName: "NVIDIA", symbol: "NVDA", basePrice: 875.28, exchange: "NASDAQ" },
+  { displayName: "Alphabet", symbol: "GOOGL", basePrice: 165.89, exchange: "NASDAQ" },
+  { displayName: "Meta Platforms", symbol: "META", basePrice: 512.45, exchange: "NASDAQ" },
+  { displayName: "JPMorgan Chase", symbol: "JPM", basePrice: 198.34, exchange: "NYSE" },
+  { displayName: "Shell plc", symbol: "SHEL", basePrice: 68.85, exchange: "LSE" },
+  { displayName: "Toyota Motor", symbol: "TM", basePrice: 182.10, exchange: "NYSE" },
 ];
-
-const gainers = allStocks.filter((s) => s.up).sort((a, b) => parseFloat(b.change) - parseFloat(a.change));
-const losers = allStocks.filter((s) => !s.up);
 
 const MarketStocks = () => {
   const [search, setSearch] = useState("");
-  const filtered = allStocks.filter(
-    (s) => s.name.toLowerCase().includes(search.toLowerCase()) || s.symbol.toLowerCase().includes(search.toLowerCase())
+
+  const hookConfigs = useMemo(() => stockConfigs.map((s) => ({
+    displayName: s.displayName,
+    basePrice: s.basePrice,
+  })), []);
+
+  const livePrices = useLivePrices(hookConfigs, 4000);
+
+  const filtered = stockConfigs.filter(
+    (s) => s.displayName.toLowerCase().includes(search.toLowerCase()) || s.symbol.toLowerCase().includes(search.toLowerCase())
   );
+
+  const withPrices = filtered.map((s) => {
+    const data = livePrices.find((p) => p.displayName === s.displayName);
+    return { ...s, price: data?.price ?? s.basePrice, change: data?.change24h ?? 0, flash: data ? data.price !== data.prevPrice : false };
+  });
+
+  const gainers = withPrices.filter((s) => s.change >= 0).sort((a, b) => b.change - a.change);
+  const losers = withPrices.filter((s) => s.change < 0).sort((a, b) => a.change - b.change);
 
   return (
     <StaticPageLayout>
-      <SEO title="Stock Trading | Vertex Global Markets" description="Invest in 5,000+ equities from NYSE, NASDAQ, LSE and more." path="/markets/stocks" />
+      <SEO title="Stock Trading | Vertex Global Markets" description="Invest in 5,000+ equities from NYSE, NASDAQ, LSE with live price updates." path="/markets/stocks" />
       <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-12">
@@ -42,6 +56,11 @@ const MarketStocks = () => {
             <p className="text-lg text-muted-foreground">
               Invest in 5,000+ global equities from NYSE, NASDAQ, LSE, and more leading exchanges.
             </p>
+          </div>
+
+          <div className="flex items-center justify-center gap-2 mb-8">
+            <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+            <span className="text-sm text-primary font-medium">Live Prices · Updates every 4s</span>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
@@ -69,7 +88,10 @@ const MarketStocks = () => {
                   {gainers.slice(0, 4).map((s) => (
                     <div key={s.symbol} className="flex justify-between items-center">
                       <span className="text-sm text-foreground font-medium">{s.symbol}</span>
-                      <span className="text-sm text-primary font-medium">{s.change}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-mono text-foreground">${s.price.toFixed(2)}</span>
+                        <span className="text-sm text-primary font-medium">+{s.change.toFixed(2)}%</span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -84,7 +106,10 @@ const MarketStocks = () => {
                   {losers.slice(0, 4).map((s) => (
                     <div key={s.symbol} className="flex justify-between items-center">
                       <span className="text-sm text-foreground font-medium">{s.symbol}</span>
-                      <span className="text-sm text-destructive font-medium">{s.change}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-mono text-foreground">${s.price.toFixed(2)}</span>
+                        <span className="text-sm text-destructive font-medium">{s.change.toFixed(2)}%</span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -99,29 +124,41 @@ const MarketStocks = () => {
           </div>
 
           <div className="space-y-3 mb-12">
-            {filtered.map((s) => (
-              <div key={s.symbol} className="flex items-center justify-between p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors">
-                <div className="flex items-center gap-3">
-                  {s.up ? <TrendingUp className="h-4 w-4 text-primary" /> : <TrendingDown className="h-4 w-4 text-destructive" />}
-                  <div>
-                    <span className="font-display font-semibold text-foreground">{s.name}</span>
-                    <span className="text-xs text-muted-foreground ml-2">{s.symbol} · {s.exchange}</span>
+            {withPrices.map((s) => {
+              const up = s.change >= 0;
+              return (
+                <div
+                  key={s.symbol}
+                  className={`flex items-center justify-between p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-all ${
+                    s.flash ? "ring-1 ring-primary/20" : ""
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {up ? <TrendingUp className="h-4 w-4 text-primary" /> : <TrendingDown className="h-4 w-4 text-destructive" />}
+                    <div>
+                      <span className="font-display font-semibold text-foreground">{s.displayName}</span>
+                      <span className="text-xs text-muted-foreground ml-2">{s.symbol} · {s.exchange}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 md:gap-6 text-sm">
+                    <span className={`font-mono text-foreground transition-colors ${s.flash ? (up ? "text-primary" : "text-destructive") : ""}`}>
+                      ${s.price.toFixed(2)}
+                    </span>
+                    <span className={`font-medium ${up ? "text-primary" : "text-destructive"}`}>
+                      {up ? "+" : ""}{s.change.toFixed(2)}%
+                    </span>
+                    <div className="flex gap-2">
+                      <Button size="sm" className="bg-primary/10 text-primary hover:bg-primary/20 font-semibold" asChild>
+                        <Link to="/register">Buy</Link>
+                      </Button>
+                      <Button size="sm" variant="outline" className="font-semibold" asChild>
+                        <Link to="/register">Sell</Link>
+                      </Button>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 md:gap-6 text-sm">
-                  <span className="font-mono text-foreground">{s.price}</span>
-                  <span className={`font-medium ${s.up ? "text-primary" : "text-destructive"}`}>{s.change}</span>
-                  <div className="flex gap-2">
-                    <Button size="sm" className="bg-primary/10 text-primary hover:bg-primary/20 font-semibold" asChild>
-                      <Link to="/register">Buy</Link>
-                    </Button>
-                    <Button size="sm" variant="outline" className="font-semibold" asChild>
-                      <Link to="/register">Sell</Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <Card className="bg-card border-border mb-12">
