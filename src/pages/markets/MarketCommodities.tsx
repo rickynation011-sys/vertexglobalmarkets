@@ -6,6 +6,7 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 import { useMemo } from "react";
 import { useLivePrices } from "@/hooks/useLivePrices";
 import MarketChart from "@/components/MarketChart";
+import Sparkline from "@/components/Sparkline";
 
 const commodityConfigs = [
   // Metals — Gold & Silver tracked via Binance pairs (PAXG is gold-backed token)
