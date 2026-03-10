@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Shield, Zap, Crown, Star, Target } from "lucide-react";
+import { TrendingUp, Shield, Zap, Crown, Star, Target, Building2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13,6 +13,7 @@ const plans = [
   { name: "Aggressive Alpha", icon: Zap, returns: "8-12%", risk: "High", min: 5000, duration: 30, description: "High-frequency algorithmic trading across volatile markets.", features: ["AI signal trading", "Leveraged positions", "Real-time alerts"], popular: false },
   { name: "Forex Specialist", icon: TrendingUp, returns: "5-8%", risk: "Medium", min: 1000, duration: 30, description: "Dedicated forex strategy across major and minor currency pairs.", features: ["24/5 trading", "News-driven AI", "Spread optimization"], popular: false },
   { name: "Crypto Momentum", icon: Star, returns: "7-12%", risk: "High", min: 1500, duration: 30, description: "Capitalize on crypto market trends using AI momentum indicators.", features: ["Top 20 cryptos", "DeFi yield", "Auto stop-loss"], popular: false },
+  { name: "Real Estate Income", icon: Building2, returns: "6-10%", risk: "Medium", min: 2500, duration: 90, description: "Earn passive income through diversified global real estate investments and REITs.", features: ["REIT portfolio", "Monthly dividends", "Property diversification"], popular: false },
   { name: "VIP Elite", icon: Crown, returns: "10-15%", risk: "Variable", min: 25000, duration: 30, description: "Exclusive strategies with dedicated account management and priority execution.", features: ["Personal manager", "Priority execution", "Custom strategies"], popular: false },
 ];
 

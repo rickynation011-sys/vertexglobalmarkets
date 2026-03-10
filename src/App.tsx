@@ -29,6 +29,7 @@ import Trading from "./pages/Trading.tsx";
 import Investments from "./pages/Investments.tsx";
 import Signals from "./pages/Signals.tsx";
 import Plans from "./pages/Plans.tsx";
+import RealEstate from "./pages/RealEstate.tsx";
 
 // Dashboard
 import DashboardLayout from "./layouts/DashboardLayout.tsx";
@@ -52,6 +53,7 @@ import AdminTransactions from "./pages/admin/AdminTransactions.tsx";
 import AdminSettings from "./pages/admin/AdminSettings.tsx";
 import AdminContent from "./pages/admin/AdminContent.tsx";
 import AdminNotifications from "./pages/admin/AdminNotifications.tsx";
+import AdminInvestments from "./pages/admin/AdminInvestments.tsx";
 
 const queryClient = new QueryClient();
 
@@ -85,6 +87,7 @@ const App = () => (
             <Route path="/investments" element={<Investments />} />
             <Route path="/signals" element={<Signals />} />
             <Route path="/plans" element={<Plans />} />
+            <Route path="/real-estate" element={<RealEstate />} />
 
             {/* User dashboard - protected */}
             <Route element={<ProtectedRoute />}>
@@ -109,6 +112,7 @@ const App = () => (
                 <Route path="users" element={<AdminUsers />} />
                 <Route path="kyc" element={<AdminKYC />} />
                 <Route path="transactions" element={<AdminTransactions />} />
+                <Route path="investments" element={<AdminInvestments />} />
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="content" element={<AdminContent />} />
                 <Route path="notifications" element={<AdminNotifications />} />

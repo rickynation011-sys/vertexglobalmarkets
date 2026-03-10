@@ -1,7 +1,7 @@
 import SEO from "@/components/SEO";
 import StaticPageLayout from "@/layouts/StaticPageLayout";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, BarChart3, Globe, Zap, Shield } from "lucide-react";
+import { TrendingUp, TrendingDown, BarChart3, Globe, Zap, Shield, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
@@ -35,6 +35,13 @@ const marketCategories = [
     description: "Trade fractional shares of top companies from NYSE, NASDAQ, and global exchanges.",
     pairs: ["Apple", "Tesla", "Amazon", "Google", "Microsoft", "NVIDIA"],
     icon: TrendingDown,
+  },
+  {
+    title: "Real Estate",
+    description: "Invest in global real estate through REITs, tokenized properties, and development projects.",
+    pairs: ["US REITs", "EU REITs", "Commercial", "Residential", "Tokenized", "Development"],
+    icon: Building2,
+    link: "/real-estate",
   },
   {
     title: "ETFs",

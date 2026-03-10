@@ -6,6 +6,7 @@ const footerLinks = {
     { label: "Markets", href: "/markets" },
     { label: "Trading", href: "/trading" },
     { label: "Investments", href: "/investments" },
+    { label: "Real Estate", href: "/real-estate" },
     { label: "Signals", href: "/signals" },
     { label: "Investment Plans", href: "/plans" },
   ],

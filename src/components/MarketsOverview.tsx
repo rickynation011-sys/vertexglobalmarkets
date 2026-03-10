@@ -9,7 +9,8 @@ const assetClasses = [
   { name: "Stocks", pairs: "5,000+ equities", desc: "Invest in global equities from NYSE, NASDAQ, LSE, and more.", icon: "📈" },
   { name: "Commodities", pairs: "30+ assets", desc: "Trade gold, silver, oil, natural gas, and agricultural products.", icon: "🏆" },
   { name: "Indices", pairs: "20+ indices", desc: "Gain exposure to S&P 500, FTSE, DAX, Nikkei, and more.", icon: "📊" },
-  { name: "ETFs & Funds", pairs: "500+ funds", desc: "Diversify with ETFs, venture funds, and real estate portfolios.", icon: "🏦" },
+  { name: "Real Estate", pairs: "140+ properties", desc: "Invest in global real estate through REITs, tokenized assets, and development projects.", icon: "🏢" },
+  { name: "ETFs & Funds", pairs: "500+ funds", desc: "Diversify with ETFs, venture funds, and managed portfolios.", icon: "🏦" },
 ];
 
 const MarketsOverview = () => {
