@@ -76,6 +76,7 @@ const App = () => (
             <Route path="/risk-disclosure" element={<RiskDisclosure />} />
             <Route path="/compliance" element={<Compliance />} />
             <Route path="/security" element={<Security />} />
+            <Route path="/press" element={<Press />} />
 
             {/* User dashboard - protected */}
             <Route element={<ProtectedRoute />}>
