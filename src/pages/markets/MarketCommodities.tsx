@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { useMemo } from "react";
 import { useLivePrices } from "@/hooks/useLivePrices";
+import MarketChart from "@/components/MarketChart";
 
 const commodityConfigs = [
   // Metals — Gold & Silver tracked via Binance pairs (PAXG is gold-backed token)
@@ -127,6 +128,15 @@ const MarketCommodities = () => {
               </div>
             );
           })}
+
+          <div className="mb-12">
+            <MarketChart
+              title="Gold (XAU/USD)"
+              basePrice={2342.50}
+              symbol="XAU/USD"
+              livePrice={livePrices.find((p) => p.displayName === "Gold (XAU)")?.price}
+            />
+          </div>
 
           <div className="text-center mt-8">
             <Button size="lg" className="bg-gradient-brand text-primary-foreground font-semibold" asChild>

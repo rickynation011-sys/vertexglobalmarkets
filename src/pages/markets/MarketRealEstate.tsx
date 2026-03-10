@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Building2, TrendingUp, MapPin, DollarSign } from "lucide-react";
+import MarketChart from "@/components/MarketChart";
 
 const properties = [
   { name: "Manhattan Office Tower", type: "Commercial", location: "New York, USA", minInvest: "$5,000", returns: "8-12%", status: "Open" },
@@ -78,6 +79,14 @@ const MarketRealEstate = () => (
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        <div className="mb-12">
+          <MarketChart
+            title="US REITs Index"
+            basePrice={4250}
+            symbol="US REIT · Real Estate"
+          />
         </div>
 
         <div className="text-center">

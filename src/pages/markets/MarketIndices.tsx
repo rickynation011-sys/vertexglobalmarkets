@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { useMemo } from "react";
 import { useLivePrices } from "@/hooks/useLivePrices";
+import MarketChart from "@/components/MarketChart";
 
 const indexConfigs = [
   { displayName: "S&P 500", symbol: "SPX", basePrice: 5425.80, region: "US" },
@@ -112,6 +113,15 @@ const MarketIndices = () => {
               </div>
             );
           })}
+
+          <div className="mb-12">
+            <MarketChart
+              title="S&P 500 (SPX)"
+              basePrice={5425.80}
+              symbol="SPX · US"
+              livePrice={livePrices.find((p) => p.displayName === "S&P 500")?.price}
+            />
+          </div>
 
           <div className="text-center mt-8">
             <Button size="lg" className="bg-gradient-brand text-primary-foreground font-semibold" asChild>

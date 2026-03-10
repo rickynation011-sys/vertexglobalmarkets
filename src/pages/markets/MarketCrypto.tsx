@@ -1,11 +1,11 @@
 import SEO from "@/components/SEO";
 import StaticPageLayout from "@/layouts/StaticPageLayout";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { TrendingUp, TrendingDown, BarChart3, Clock } from "lucide-react";
+import { TrendingUp, TrendingDown, Clock } from "lucide-react";
 import { useMemo } from "react";
 import { useLivePrices } from "@/hooks/useLivePrices";
+import MarketChart from "@/components/MarketChart";
 
 const cryptoConfigs = [
   { displayName: "Bitcoin (BTC)", binanceSymbol: "BTCUSDT", basePrice: 67432 },
@@ -125,17 +125,14 @@ const MarketCrypto = () => {
             })}
           </div>
 
-          <Card className="bg-card border-border mb-12">
-            <CardContent className="p-8">
-              <div className="flex items-center gap-3 mb-4">
-                <BarChart3 className="h-5 w-5 text-primary" />
-                <h3 className="font-display font-semibold text-foreground text-lg">Live Crypto Chart</h3>
-              </div>
-              <div className="h-64 rounded-xl bg-muted/50 flex items-center justify-center">
-                <p className="text-muted-foreground">Interactive chart available in your trading dashboard</p>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="mb-12">
+            <MarketChart
+              title="Bitcoin (BTC/USDT)"
+              basePrice={67432}
+              symbol="BTC/USDT"
+              livePrice={livePrices.find((p) => p.displayName === "Bitcoin (BTC)")?.price}
+            />
+          </div>
 
           <div className="text-center">
             <Button size="lg" className="bg-gradient-brand text-primary-foreground font-semibold" asChild>
