@@ -3,8 +3,22 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { Bell, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 const DashboardLayout = () => {
+  const { user } = useAuth();
+
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("full_name").eq("user_id", user!.id).single();
+      return data;
+    },
+    enabled: !!user,
+  });
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
@@ -16,6 +30,7 @@ const DashboardLayout = () => {
               <span className="text-sm font-medium text-muted-foreground hidden sm:block">Dashboard</span>
             </div>
             <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground hidden sm:block">{profile?.full_name || user?.email}</span>
               <Button variant="ghost" size="icon" className="text-muted-foreground">
                 <Bell className="h-4 w-4" />
               </Button>

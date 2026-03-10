@@ -2,7 +2,6 @@ import {
   LayoutDashboard,
   Briefcase,
   TrendingUp,
-  ArrowUpDown,
   History,
   Settings,
   Phone,
@@ -11,7 +10,8 @@ import {
   LogOut,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.jpg";
 import {
   Sidebar,
@@ -44,6 +44,13 @@ const secondaryItems = [
 export function DashboardSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/login");
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
@@ -66,12 +73,7 @@ export function DashboardSidebar() {
               {mainItems.map((item) => (
                 <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      end={item.url === "/dashboard"}
-                      className="hover:bg-muted/50"
-                      activeClassName="bg-muted text-primary font-medium"
-                    >
+                    <NavLink to={item.url} end={item.url === "/dashboard"} className="hover:bg-muted/50" activeClassName="bg-muted text-primary font-medium">
                       <item.icon className="mr-2 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
@@ -89,11 +91,7 @@ export function DashboardSidebar() {
               {secondaryItems.map((item) => (
                 <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      className="hover:bg-muted/50"
-                      activeClassName="bg-muted text-primary font-medium"
-                    >
+                    <NavLink to={item.url} className="hover:bg-muted/50" activeClassName="bg-muted text-primary font-medium">
                       <item.icon className="mr-2 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
@@ -106,11 +104,9 @@ export function DashboardSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-4">
-        <SidebarMenuButton asChild>
-          <NavLink to="/" className="hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
-            <LogOut className="mr-2 h-4 w-4" />
-            {!collapsed && <span>Sign Out</span>}
-          </NavLink>
+        <SidebarMenuButton onClick={handleSignOut} className="hover:bg-destructive/10 text-muted-foreground hover:text-destructive cursor-pointer">
+          <LogOut className="mr-2 h-4 w-4" />
+          {!collapsed && <span>Sign Out</span>}
         </SidebarMenuButton>
       </SidebarFooter>
     </Sidebar>
