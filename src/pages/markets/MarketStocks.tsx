@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useMemo } from "react";
 import { useLivePrices } from "@/hooks/useLivePrices";
 import MarketChart from "@/components/MarketChart";
+import Sparkline from "@/components/Sparkline";
 
 const stockConfigs = [
   { displayName: "Apple Inc.", symbol: "AAPL", basePrice: 198.45, exchange: "NASDAQ" },
