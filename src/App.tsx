@@ -95,6 +95,13 @@ const App = () => (
             <Route path="/signals" element={<Signals />} />
             <Route path="/plans" element={<Plans />} />
             <Route path="/real-estate" element={<RealEstate />} />
+            <Route path="/markets/forex" element={<MarketForex />} />
+            <Route path="/markets/crypto" element={<MarketCrypto />} />
+            <Route path="/markets/stocks" element={<MarketStocks />} />
+            <Route path="/markets/commodities" element={<MarketCommodities />} />
+            <Route path="/markets/indices" element={<MarketIndices />} />
+            <Route path="/markets/real-estate" element={<MarketRealEstate />} />
+            <Route path="/markets/etfs" element={<MarketETFs />} />
 
             {/* User dashboard - protected */}
             <Route element={<ProtectedRoute />}>
