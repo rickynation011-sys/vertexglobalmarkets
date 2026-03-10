@@ -120,9 +120,15 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-display font-bold text-foreground">Admin Dashboard</h1>
-        <p className="text-muted-foreground text-sm">Platform overview and management</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-foreground">Admin Dashboard</h1>
+          <p className="text-muted-foreground text-sm">Platform overview and management</p>
+        </div>
+        <Button onClick={handleProcessProfits} disabled={processing} size="sm" variant="outline">
+          {processing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Play className="mr-2 h-4 w-4" />}
+          Process Daily Profits
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
