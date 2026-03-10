@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      investments: {
+        Row: {
+          amount: number
+          created_at: string
+          current_value: number
+          ends_at: string
+          id: string
+          plan_name: string
+          return_pct: number | null
+          started_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          current_value: number
+          ends_at: string
+          id?: string
+          plan_name: string
+          return_pct?: number | null
+          started_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          current_value?: number
+          ends_at?: string
+          id?: string
+          plan_name?: string
+          return_pct?: number | null
+          started_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       kyc_verifications: {
         Row: {
           document_type: string
@@ -115,6 +154,51 @@ export type Database = {
           phone?: string | null
           status?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      trades: {
+        Row: {
+          amount: number
+          asset: string
+          closed_at: string | null
+          created_at: string
+          id: string
+          pnl: number | null
+          price: number | null
+          side: string
+          status: string
+          stop_loss: number | null
+          take_profit: number | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          asset: string
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          pnl?: number | null
+          price?: number | null
+          side: string
+          status?: string
+          stop_loss?: number | null
+          take_profit?: number | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          asset?: string
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          pnl?: number | null
+          price?: number | null
+          side?: string
+          status?: string
+          stop_loss?: number | null
+          take_profit?: number | null
           user_id?: string
         }
         Relationships: []
