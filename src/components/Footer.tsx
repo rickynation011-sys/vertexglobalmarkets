@@ -34,7 +34,11 @@ const Footer = () => {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <img src={logo} alt="Vertex Global Markets" className="h-8 w-8 rounded" />
-              <span className="font-display font-bold text-foreground">Vertex</span>
+              <span className="font-display font-bold">
+                <span style={{ color: 'hsl(145, 60%, 45%)' }}>Vertex</span>{' '}
+                <span style={{ color: 'hsl(195, 70%, 45%)' }}>Global</span>{' '}
+                <span style={{ color: 'hsl(225, 65%, 45%)' }}>Markets</span>
+              </span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
               AI-powered trading and investment platform serving investors in 180+ countries worldwide.
