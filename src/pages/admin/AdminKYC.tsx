@@ -84,8 +84,8 @@ const AdminKYC = () => {
 
   const filtered = kycList.filter((k) => {
     const matchesFilter = filter === "all" || k.status === filter;
-    const name = k.profiles?.full_name ?? "";
-    const email = k.profiles?.email ?? "";
+    const name = k.profile?.full_name ?? "";
+    const email = k.profile?.email ?? "";
     const matchesSearch = name.toLowerCase().includes(search.toLowerCase()) || email.toLowerCase().includes(search.toLowerCase());
     return matchesFilter && matchesSearch;
   });
