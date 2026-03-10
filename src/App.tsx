@@ -86,6 +86,7 @@ const App = () => (
                 <Route path="wallet" element={<DashboardWallet />} />
                 <Route path="history" element={<DashboardHistory />} />
                 <Route path="settings" element={<DashboardSettings />} />
+                <Route path="kyc" element={<DashboardKYC />} />
                 <Route path="contact" element={<DashboardContact />} />
               </Route>
             </Route>

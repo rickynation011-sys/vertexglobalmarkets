@@ -37,6 +37,7 @@ const mainItems = [
 ];
 
 const secondaryItems = [
+  { title: "KYC Verification", url: "/dashboard/kyc", icon: ShieldCheck },
   { title: "History", url: "/dashboard/history", icon: History },
   { title: "Settings", url: "/dashboard/settings", icon: Settings },
   { title: "Contact Us", url: "/dashboard/contact", icon: Phone },
