@@ -3,10 +3,11 @@ import StaticPageLayout from "@/layouts/StaticPageLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { TrendingUp, TrendingDown, BarChart3, Search } from "lucide-react";
+import { TrendingUp, TrendingDown, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState, useMemo } from "react";
 import { useLivePrices } from "@/hooks/useLivePrices";
+import MarketChart from "@/components/MarketChart";
 
 const stockConfigs = [
   { displayName: "Apple Inc.", symbol: "AAPL", basePrice: 198.45, exchange: "NASDAQ" },
