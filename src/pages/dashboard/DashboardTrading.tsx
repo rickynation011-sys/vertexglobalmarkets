@@ -3,39 +3,44 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUp, ArrowDown, Wifi, WifiOff } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-
-const watchlist = [
-  { pair: "EUR/USD", price: "1.0918", change: "+0.42%", up: true },
-  { pair: "BTC/USDT", price: "67,245", change: "+2.15%", up: true },
-  { pair: "GBP/JPY", price: "191.45", change: "-0.18%", up: false },
-  { pair: "AAPL", price: "178.52", change: "+1.05%", up: true },
-  { pair: "Gold", price: "2,342", change: "+0.67%", up: true },
-  { pair: "ETH/USDT", price: "3,528", change: "-0.92%", up: false },
-  { pair: "USD/JPY", price: "154.82", change: "+0.31%", up: true },
-  { pair: "TSLA", price: "255.30", change: "-1.20%", up: false },
-];
-
-const chartData = [
-  { t: "09:00", p: 1.0842 }, { t: "10:00", p: 1.0856 }, { t: "11:00", p: 1.0831 },
-  { t: "12:00", p: 1.0870 }, { t: "13:00", p: 1.0885 }, { t: "14:00", p: 1.0862 },
-  { t: "15:00", p: 1.0891 }, { t: "16:00", p: 1.0905 }, { t: "17:00", p: 1.0918 },
-];
+import { useMarketPrices, type MarketAsset } from "@/hooks/useMarketPrices";
 
 const DashboardTrading = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [selectedPair, setSelectedPair] = useState("EUR/USD");
+  const marketAssets = useMarketPrices(5000);
+  const [selectedPair, setSelectedPair] = useState("BTC/USDT");
   const [amount, setAmount] = useState("");
   const [price, setPrice] = useState("");
   const [tp, setTp] = useState("");
   const [sl, setSl] = useState("");
+
+  // Build a rolling chart from price snapshots
+  const chartHistoryRef = useRef<{ t: string; p: number }[]>([]);
+  const selectedAsset = marketAssets.find((a) => a.displayName === selectedPair);
+
+  useEffect(() => {
+    if (!selectedAsset) return;
+    const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    chartHistoryRef.current = [
+      ...chartHistoryRef.current.slice(-29),
+      { t: now, p: selectedAsset.price },
+    ];
+  }, [selectedAsset?.price, selectedPair]);
+
+  // Reset chart when pair changes
+  useEffect(() => {
+    chartHistoryRef.current = [];
+  }, [selectedPair]);
+
+  const chartData = chartHistoryRef.current;
 
   const { data: openTrades } = useQuery({
     queryKey: ["trades-open", user?.id],
@@ -97,26 +102,40 @@ const DashboardTrading = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <Card className="bg-card border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Watchlist</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium">Watchlist</CardTitle>
+              {marketAssets.length > 0 ? (
+                <span className="flex items-center gap-1 text-xs text-success"><Wifi className="h-3 w-3" /> Live</span>
+              ) : (
+                <span className="flex items-center gap-1 text-xs text-muted-foreground"><WifiOff className="h-3 w-3" /> Connecting</span>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             <div className="max-h-[500px] overflow-y-auto">
-              {watchlist.map((item) => (
-                <button
-                  key={item.pair}
-                  onClick={() => setSelectedPair(item.pair)}
-                  className={`w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors border-b border-border/50 last:border-0 ${selectedPair === item.pair ? "bg-muted" : ""}`}
-                >
-                  <span className="text-sm font-medium text-foreground">{item.pair}</span>
-                  <div className="text-right">
-                    <p className="text-sm text-foreground">{item.price}</p>
-                    <p className={`text-xs flex items-center gap-0.5 justify-end ${item.up ? "text-success" : "text-destructive"}`}>
-                      {item.up ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                      {item.change}
-                    </p>
-                  </div>
-                </button>
-              ))}
+              {marketAssets.map((asset) => {
+                const up = asset.change24h >= 0;
+                const flash = asset.price > asset.prevPrice ? "bg-success/10" : asset.price < asset.prevPrice ? "bg-destructive/10" : "";
+                return (
+                  <button
+                    key={asset.displayName}
+                    onClick={() => setSelectedPair(asset.displayName)}
+                    className={`w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-all border-b border-border/50 last:border-0 ${selectedPair === asset.displayName ? "bg-muted" : ""} ${flash}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">{asset.displayName}</span>
+                      {asset.source === "binance" && <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 border-success/30 text-success">LIVE</Badge>}
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-foreground font-mono">{asset.price < 10 ? asset.price.toFixed(4) : asset.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
+                      <p className={`text-xs flex items-center gap-0.5 justify-end ${up ? "text-success" : "text-destructive"}`}>
+                        {up ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                        {up ? "+" : ""}{asset.change24h.toFixed(2)}%
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
