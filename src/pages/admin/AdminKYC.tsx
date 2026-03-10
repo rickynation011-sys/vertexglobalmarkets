@@ -193,8 +193,8 @@ const AdminKYC = () => {
             {selectedKYC ? (
               <>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between"><span className="text-muted-foreground">User</span><span className="text-foreground">{selectedKYC.profiles?.full_name ?? "Unknown"}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Email</span><span className="text-foreground">{selectedKYC.profiles?.email ?? "—"}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">User</span><span className="text-foreground">{selectedKYC.profile?.full_name ?? "Unknown"}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Email</span><span className="text-foreground">{selectedKYC.profile?.email ?? "—"}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Document</span><span className="text-foreground">{selectedKYC.document_type}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Submitted</span><span className="text-foreground">{new Date(selectedKYC.submitted_at).toLocaleDateString()}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Status</span><Badge className={`text-xs ${statusColors[selectedKYC.status]}`}>{selectedKYC.status}</Badge></div>

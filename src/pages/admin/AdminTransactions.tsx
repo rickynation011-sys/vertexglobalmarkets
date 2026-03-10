@@ -185,8 +185,8 @@ const AdminTransactions = () => {
                     <tr key={tx.id} className="border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors">
                       <td className="p-4 font-mono text-xs text-muted-foreground">{tx.id.slice(0, 8)}</td>
                       <td className="p-4">
-                        <p className="font-medium text-foreground">{tx.profiles?.full_name ?? "Unknown"}</p>
-                        <p className="text-xs text-muted-foreground">{tx.profiles?.email ?? tx.user_id.slice(0, 8)}</p>
+                        <p className="font-medium text-foreground">{tx.profile?.full_name ?? "Unknown"}</p>
+                        <p className="text-xs text-muted-foreground">{tx.profile?.email ?? tx.user_id.slice(0, 8)}</p>
                       </td>
                       <td className="p-4">
                         <div className="flex items-center gap-1.5">
