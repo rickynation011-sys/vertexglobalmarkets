@@ -24,6 +24,7 @@ import Privacy from "./pages/Privacy.tsx";
 import RiskDisclosure from "./pages/RiskDisclosure.tsx";
 import Compliance from "./pages/Compliance.tsx";
 import Security from "./pages/Security.tsx";
+import Press from "./pages/Press.tsx";
 
 // Dashboard
 import DashboardLayout from "./layouts/DashboardLayout.tsx";
