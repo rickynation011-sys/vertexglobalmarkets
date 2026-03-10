@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { Mail, Lock, Loader2, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import logo from "@/assets/logo.jpg";
+import logo from "@/assets/logo-symbol.png";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
