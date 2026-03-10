@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Building2, TrendingUp, MapPin, DollarSign } from "lucide-react";
 import MarketChart from "@/components/MarketChart";
+import Sparkline from "@/components/Sparkline";
 
 const properties = [
   { name: "Manhattan Office Tower", type: "Commercial", location: "New York, USA", minInvest: "$5,000", returns: "8-12%", status: "Open" },

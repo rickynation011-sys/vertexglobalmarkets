@@ -103,6 +103,7 @@ const MarketIndices = () => {
                           <span className={`font-medium ${up ? "text-primary" : "text-destructive"}`}>
                             {up ? "+" : ""}{change.toFixed(2)}%
                           </span>
+                          <Sparkline basePrice={idx.basePrice} change={change} />
                           <Button size="sm" className="bg-gradient-brand text-primary-foreground font-semibold" asChild>
                             <Link to="/register">Trade</Link>
                           </Button>
