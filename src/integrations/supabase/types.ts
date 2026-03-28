@@ -259,6 +259,50 @@ export type Database = {
         }
         Relationships: []
       }
+      signal_subscriptions: {
+        Row: {
+          amount: number
+          created_at: string
+          expires_at: string
+          id: string
+          plan_name: string
+          started_at: string
+          status: string
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          expires_at: string
+          id?: string
+          plan_name?: string
+          started_at?: string
+          status?: string
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          expires_at?: string
+          id?: string
+          plan_name?: string
+          started_at?: string
+          status?: string
+          transaction_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signal_subscriptions_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trades: {
         Row: {
           amount: number
