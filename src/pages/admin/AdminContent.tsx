@@ -85,8 +85,8 @@ const AdminContent = () => {
     },
   });
 
-  const announcements: Announcement[] = Array.isArray(announcementsSetting?.value) ? announcementsSetting.value : [];
-  const plans: InvestmentPlan[] = Array.isArray(plansSetting?.value) ? plansSetting.value : defaultPlans;
+  const announcements: Announcement[] = Array.isArray(announcementsSetting?.value) ? (announcementsSetting.value as unknown as Announcement[]) : [];
+  const plans: InvestmentPlan[] = Array.isArray(plansSetting?.value) ? (plansSetting.value as unknown as InvestmentPlan[]) : defaultPlans;
 
   // ─── Announcement Dialog ───
   const [annDialog, setAnnDialog] = useState<{ open: boolean; editing?: Announcement }>({ open: false });
