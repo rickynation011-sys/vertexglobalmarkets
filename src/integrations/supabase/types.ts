@@ -128,6 +128,48 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          channel_email: boolean
+          channel_in_app: boolean
+          channel_push: boolean
+          created_at: string
+          id: string
+          message: string
+          sent_by: string | null
+          status: string
+          target: string
+          target_user_id: string | null
+          title: string
+        }
+        Insert: {
+          channel_email?: boolean
+          channel_in_app?: boolean
+          channel_push?: boolean
+          created_at?: string
+          id?: string
+          message: string
+          sent_by?: string | null
+          status?: string
+          target?: string
+          target_user_id?: string | null
+          title: string
+        }
+        Update: {
+          channel_email?: boolean
+          channel_in_app?: boolean
+          channel_push?: boolean
+          created_at?: string
+          id?: string
+          message?: string
+          sent_by?: string | null
+          status?: string
+          target?: string
+          target_user_id?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       platform_settings: {
         Row: {
           description: string | null
