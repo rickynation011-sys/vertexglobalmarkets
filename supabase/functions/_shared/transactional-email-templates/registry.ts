@@ -18,6 +18,8 @@ import { template as investmentConfirmation } from './investment-confirmation.ts
 import { template as feeApproved } from './fee-approved.tsx'
 import { template as feeRejected } from './fee-rejected.tsx'
 import { template as ticketReply } from './ticket-reply.tsx'
+import { template as adminNewDeposit } from './admin-new-deposit.tsx'
+import { template as adminNewWithdrawal } from './admin-new-withdrawal.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'welcome': welcome,
@@ -29,4 +31,6 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'fee-approved': feeApproved,
   'fee-rejected': feeRejected,
   'ticket-reply': ticketReply,
+  'admin-new-deposit': adminNewDeposit,
+  'admin-new-withdrawal': adminNewWithdrawal,
 }
