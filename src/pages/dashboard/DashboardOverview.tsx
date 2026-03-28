@@ -328,6 +328,42 @@ const DashboardOverview = () => {
         ))}
       </div>
 
+      {/* Live Crypto Prices */}
+      {cryptoAssets.length > 0 && (
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Coins className="h-4 w-4 text-primary" /> Live Market Prices
+              </CardTitle>
+              <Badge variant="outline" className="text-[10px] text-success border-success/30">● LIVE</Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              {cryptoAssets.map(asset => {
+                const up = asset.change24h >= 0;
+                const flash = asset.price > asset.prevPrice ? "border-success/30" : asset.price < asset.prevPrice ? "border-destructive/30" : "border-border/50";
+                return (
+                  <div key={asset.symbol} className={`p-3 rounded-lg bg-muted/30 border transition-colors ${flash}`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-semibold text-foreground">{asset.displayName}</span>
+                      <Badge variant="outline" className={`text-[9px] px-1 py-0 h-4 ${up ? "border-success/30 text-success" : "border-destructive/30 text-destructive"}`}>
+                        {up ? <ArrowUp className="h-2.5 w-2.5 mr-0.5" /> : <ArrowDown className="h-2.5 w-2.5 mr-0.5" />}
+                        {up ? "+" : ""}{asset.change24h.toFixed(2)}%
+                      </Badge>
+                    </div>
+                    <p className="text-sm font-display font-bold text-foreground">
+                      ${asset.price < 10 ? asset.price.toFixed(4) : asset.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Active Investments with Timers */}
       {activeInvestments.length > 0 && (
         <Card className="bg-card border-border">
