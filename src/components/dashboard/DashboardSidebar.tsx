@@ -4,7 +4,7 @@ import {
   TrendingUp,
   History,
   Settings,
-  Phone,
+  
   BarChart3,
   Wallet,
   LogOut,
