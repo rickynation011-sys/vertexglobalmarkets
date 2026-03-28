@@ -65,11 +65,8 @@ function ActiveInvestmentRow({ inv }: { inv: any }) {
   const endMs = new Date(inv.ends_at).getTime();
   const elapsed = Math.min(100, Math.max(0, ((Date.now() - startMs) / (endMs - startMs)) * 100));
   const profit = Number(inv.current_value) - Number(inv.amount);
-  const fmt = (n: number) => {
-    const { symbol, convert } = useCurrencyRef.current;
-    const converted = convert(n);
-    return `${symbol}${converted.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
+  const { format } = useCurrency();
+  const fmt = (n: number) => format(n);
 
   return (
     <div className="p-3 rounded-lg bg-muted/30 border border-border/50 space-y-2">
@@ -196,8 +193,8 @@ const DashboardOverview = () => {
   const activeSignals = (signalSubs ?? []).filter(s => new Date(s.expires_at) > new Date()).length;
   const activeCopyTrades = (copyTrades ?? []).length;
 
-  const fmt = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
+  const { format } = useCurrency();
+  const fmt = (n: number) => format(n);
   const portfolioData = (() => {
     const allTxns = [...(transactions ?? [])].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     if (allTxns.length === 0) return [{ date: "Now", value: walletBalance }];
