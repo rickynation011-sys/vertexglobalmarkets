@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, ShieldCheck, ArrowUpDown, Settings,
-  FileText, Bell, LogOut, Shield, TrendingUp, Wallet
+  FileText, Bell, LogOut, Shield, TrendingUp, Wallet, Signal, Copy, ArrowDownLeft, ArrowUpRight
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import logo from "@/assets/logo-symbol.png";
@@ -9,25 +9,37 @@ import {
   SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
   SidebarHeader, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const mainItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
   { title: "Users", url: "/admin/users", icon: Users },
   { title: "KYC Verification", url: "/admin/kyc", icon: ShieldCheck },
+  { title: "Deposits", url: "/admin/deposits", icon: ArrowDownLeft },
+  { title: "Withdrawals", url: "/admin/withdrawals", icon: ArrowUpRight },
   { title: "Transactions", url: "/admin/transactions", icon: ArrowUpDown },
-  { title: "Investments", url: "/admin/investments", icon: TrendingUp },
-  { title: "Deposit Methods", url: "/admin/deposit-methods", icon: Wallet },
+  { title: "Investment Plans", url: "/admin/investments", icon: TrendingUp },
+  { title: "Signals", url: "/admin/signals", icon: Signal },
+  { title: "Copy Trading", url: "/admin/copy-trading", icon: Copy },
+  { title: "Wallet Settings", url: "/admin/deposit-methods", icon: Wallet },
 ];
 
 const systemItems = [
+  { title: "Notifications", url: "/admin/notifications", icon: Bell },
   { title: "Platform Settings", url: "/admin/settings", icon: Settings },
   { title: "Content", url: "/admin/content", icon: FileText },
-  { title: "Notifications", url: "/admin/notifications", icon: Bell },
 ];
 
 export function AdminSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
@@ -85,11 +97,9 @@ export function AdminSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-4">
-        <SidebarMenuButton asChild>
-          <NavLink to="/" className="hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
-            <LogOut className="mr-2 h-4 w-4" />
-            {!collapsed && <span>Exit Admin</span>}
-          </NavLink>
+        <SidebarMenuButton onClick={handleLogout} className="hover:bg-destructive/10 text-muted-foreground hover:text-destructive cursor-pointer">
+          <LogOut className="mr-2 h-4 w-4" />
+          {!collapsed && <span>Logout</span>}
         </SidebarMenuButton>
       </SidebarFooter>
     </Sidebar>
