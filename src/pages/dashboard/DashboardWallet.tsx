@@ -9,7 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import WithdrawalFeeDialog from "@/components/dashboard/WithdrawalFeeDialog";
 
 interface DepositMethod {
   id: string;
@@ -27,6 +29,8 @@ const DashboardWallet = () => {
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawMethodId, setWithdrawMethodId] = useState("");
   const [withdrawWallet, setWithdrawWallet] = useState("");
+  const [showFeeDialog, setShowFeeDialog] = useState(false);
+  const navigate = useNavigate();
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -76,11 +80,33 @@ const DashboardWallet = () => {
     enabled: !!user,
   });
 
+  const { data: profitLogsAll } = useQuery({
+    queryKey: ["total_profit", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profit_logs").select("amount").eq("user_id", user!.id);
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: feePayments } = useQuery({
+    queryKey: ["fee_payments", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("fee_payments").select("*").eq("user_id", user!.id);
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
   const completedDeposits = (transactions ?? []).filter(t => t.type === "deposit" && t.status === "completed");
   const completedWithdrawals = (transactions ?? []).filter(t => t.type === "withdrawal" && t.status === "completed");
   const totalDeposited = completedDeposits.reduce((s, t) => s + Number(t.amount), 0);
   const totalWithdrawn = completedWithdrawals.reduce((s, t) => s + Number(t.amount), 0);
   const walletBalance = Number(profile?.wallet_balance ?? 0);
+
+  const totalProfit = (profitLogsAll ?? []).reduce((s, l) => s + Number(l.amount), 0);
+  const processingFee = totalProfit * 0.10;
+  const hasFeeApproved = (feePayments ?? []).some((p: any) => p.status === "approved");
 
   const selectedDepositMethod = (depositMethods ?? []).find(m => m.id === depositMethodId);
   const selectedWithdrawMethod = (depositMethods ?? []).find(m => m.id === withdrawMethodId);
@@ -108,6 +134,22 @@ const DashboardWallet = () => {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const handleWithdrawClick = () => {
+    const amt = parseFloat(withdrawAmount);
+    if (!amt || amt <= 0) { toast.error("Enter a valid amount"); return; }
+    if (!selectedWithdrawMethod) { toast.error("Select a withdrawal method"); return; }
+    if (!withdrawWallet.trim()) { toast.error("Enter your wallet address"); return; }
+    if (amt > walletBalance) { toast.error("Insufficient balance"); return; }
+
+    // Check if fee is required and not yet approved
+    if (totalProfit > 0 && !hasFeeApproved) {
+      setShowFeeDialog(true);
+      return;
+    }
+
+    withdrawMutation.mutate();
+  };
 
   const withdrawMutation = useMutation({
     mutationFn: async () => {
@@ -342,7 +384,7 @@ const DashboardWallet = () => {
                 <Button
                   className="w-full"
                   variant="outline"
-                  onClick={() => withdrawMutation.mutate()}
+                  onClick={handleWithdrawClick}
                   disabled={withdrawMutation.isPending || !withdrawMethodId || !withdrawAmount || !withdrawWallet.trim()}
                 >
                   {withdrawMutation.isPending ? "Processing..." : "Request Withdrawal"}
@@ -387,6 +429,18 @@ const DashboardWallet = () => {
           </CardContent>
         </Card>
       </div>
+
+      <WithdrawalFeeDialog
+        open={showFeeDialog}
+        onClose={() => setShowFeeDialog(false)}
+        onProceed={() => {
+          setShowFeeDialog(false);
+          navigate("/dashboard/fee-payment");
+        }}
+        userName={profile?.full_name ?? "User"}
+        totalProfit={totalProfit}
+        processingFee={processingFee}
+      />
     </div>
   );
 };
