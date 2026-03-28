@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { NotificationDetailDialog } from "@/components/dashboard/NotificationDetailDialog";
 
 interface Notification {
   id: string;
@@ -29,6 +30,8 @@ const DashboardNotifications = () => {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["all-notifications", user?.id],
