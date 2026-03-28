@@ -62,6 +62,10 @@ import AdminContent from "./pages/admin/AdminContent.tsx";
 import AdminNotifications from "./pages/admin/AdminNotifications.tsx";
 import AdminInvestments from "./pages/admin/AdminInvestments.tsx";
 import AdminDepositMethods from "./pages/admin/AdminDepositMethods.tsx";
+import AdminDeposits from "./pages/admin/AdminDeposits.tsx";
+import AdminWithdrawals from "./pages/admin/AdminWithdrawals.tsx";
+import AdminSignals from "./pages/admin/AdminSignals.tsx";
+import AdminCopyTrading from "./pages/admin/AdminCopyTrading.tsx";
 
 const queryClient = new QueryClient();
 
