@@ -158,16 +158,30 @@ const DashboardWallet = () => {
       if (!selectedWithdrawMethod) throw new Error("Select a withdrawal method");
       if (!withdrawWallet.trim()) throw new Error("Enter your wallet address");
       if (amt > walletBalance) throw new Error("Insufficient balance");
+      const method = `${selectedWithdrawMethod.currency}${selectedWithdrawMethod.network ? ` (${selectedWithdrawMethod.network})` : ""}`;
       const { error } = await supabase.from("transactions").insert({
         user_id: user!.id,
         type: "withdrawal",
-        method: `${selectedWithdrawMethod.currency}${selectedWithdrawMethod.network ? ` (${selectedWithdrawMethod.network})` : ""}`,
+        method,
         amount: amt,
         currency: selectedWithdrawMethod.currency,
         status: "pending",
         wallet_address: withdrawWallet.trim(),
       });
       if (error) throw error;
+
+      // Send withdrawal request email to user
+      const { data: prof } = await supabase.from("profiles").select("email, full_name").eq("user_id", user!.id).single();
+      if (prof?.email) {
+        supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: 'withdrawal-request',
+            recipientEmail: prof.email,
+            idempotencyKey: `withdrawal-req-${user!.id}-${Date.now()}`,
+            templateData: { name: prof.full_name || undefined, amount: amt.toLocaleString(), method },
+          },
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions", user?.id] });

@@ -157,6 +157,23 @@ export const TicketChatThread = ({ ticket, senderType, onBack, onStatusChange }:
           channel_in_app: true,
           sent_by: user.id,
         });
+
+        // Send email notification to user about admin reply
+        const { data: userProfile } = await supabase
+          .from("profiles")
+          .select("email, full_name")
+          .eq("user_id", ticket.user_id)
+          .single();
+        if (userProfile?.email) {
+          supabase.functions.invoke('send-transactional-email', {
+            body: {
+              templateName: 'ticket-reply',
+              recipientEmail: userProfile.email,
+              idempotencyKey: `ticket-reply-${ticket.id}-${Date.now()}`,
+              templateData: { name: userProfile.full_name || undefined, subject: ticket.subject },
+            },
+          });
+        }
       }
     } catch (err: any) {
       toast.error(err.message || "Failed to send message.");
