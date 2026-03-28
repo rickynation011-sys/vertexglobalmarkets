@@ -53,6 +53,7 @@ import DashboardSignals from "./pages/dashboard/DashboardSignals.tsx";
 import DashboardCopyTrading from "./pages/dashboard/DashboardCopyTrading.tsx";
 import DashboardProfile from "./pages/dashboard/DashboardProfile.tsx";
 import DashboardNotifications from "./pages/dashboard/DashboardNotifications.tsx";
+import DashboardFeePayment from "./pages/dashboard/DashboardFeePayment.tsx";
 
 // Admin
 import AdminLayout from "./layouts/AdminLayout.tsx";
@@ -71,6 +72,7 @@ import AdminWithdrawals from "./pages/admin/AdminWithdrawals.tsx";
 import AdminSignals from "./pages/admin/AdminSignals.tsx";
 import AdminCopyTrading from "./pages/admin/AdminCopyTrading.tsx";
 import AdminTickets from "./pages/admin/AdminTickets.tsx";
+import AdminFeePayments from "./pages/admin/AdminFeePayments.tsx";
 
 const queryClient = new QueryClient();
 
@@ -129,6 +131,7 @@ const App = () => (
                 <Route path="contact" element={<DashboardContact />} />
                 <Route path="profile" element={<DashboardProfile />} />
                 <Route path="notifications" element={<DashboardNotifications />} />
+                <Route path="fee-payment" element={<DashboardFeePayment />} />
               </Route>
             </Route>
 
@@ -147,6 +150,7 @@ const App = () => (
                 <Route path="signals" element={<AdminSignals />} />
                 <Route path="copy-trading" element={<AdminCopyTrading />} />
                 <Route path="tickets" element={<AdminTickets />} />
+                <Route path="fee-payments" element={<AdminFeePayments />} />
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="content" element={<AdminContent />} />
                 <Route path="notifications" element={<AdminNotifications />} />
