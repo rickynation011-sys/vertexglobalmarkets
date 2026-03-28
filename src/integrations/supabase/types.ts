@@ -352,11 +352,13 @@ export type Database = {
           category: string
           created_at: string
           id: string
+          last_message_at: string | null
           message: string
           replied_at: string | null
           replied_by: string | null
           status: string
           subject: string
+          unread_count: number
           updated_at: string
           user_id: string
         }
@@ -366,11 +368,13 @@ export type Database = {
           category?: string
           created_at?: string
           id?: string
+          last_message_at?: string | null
           message: string
           replied_at?: string | null
           replied_by?: string | null
           status?: string
           subject: string
+          unread_count?: number
           updated_at?: string
           user_id: string
         }
@@ -380,15 +384,55 @@ export type Database = {
           category?: string
           created_at?: string
           id?: string
+          last_message_at?: string | null
           message?: string
           replied_at?: string | null
           replied_by?: string | null
           status?: string
           subject?: string
+          unread_count?: number
           updated_at?: string
           user_id?: string
         }
         Relationships: []
+      }
+      ticket_messages: {
+        Row: {
+          attachment_url: string | null
+          created_at: string
+          id: string
+          message: string
+          sender_id: string
+          sender_type: string
+          ticket_id: string
+        }
+        Insert: {
+          attachment_url?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          sender_id: string
+          sender_type?: string
+          ticket_id: string
+        }
+        Update: {
+          attachment_url?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          sender_id?: string
+          sender_type?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trades: {
         Row: {
