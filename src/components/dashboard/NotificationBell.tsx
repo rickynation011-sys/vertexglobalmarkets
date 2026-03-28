@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
+import { NotificationDetailDialog } from "./NotificationDetailDialog";
 
 interface Notification {
   id: string;
@@ -21,13 +22,14 @@ export const NotificationBell = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const { data: notifications = [] } = useQuery({
     queryKey: ["user-notifications", user?.id],
     queryFn: async () => {
       if (!user) return [];
 
-      // Get notifications targeted to this user or all users
       const { data: notifs, error } = await supabase
         .from("notifications")
         .select("id, title, message, created_at, target, target_user_id")
@@ -37,7 +39,6 @@ export const NotificationBell = () => {
 
       if (error) throw error;
 
-      // Get read statuses
       const { data: readStatuses } = await supabase
         .from("user_notifications")
         .select("notification_id, is_read")
@@ -76,6 +77,7 @@ export const NotificationBell = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["all-notifications"] });
     },
   });
 
@@ -97,64 +99,78 @@ export const NotificationBell = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["all-notifications"] });
     },
   });
 
+  const handleNotificationClick = (n: Notification) => {
+    if (!n.is_read) markReadMutation.mutate(n.notification_id);
+    setSelectedNotification({ ...n, is_read: true });
+    setDetailOpen(true);
+    setOpen(false);
+  };
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative text-muted-foreground">
-          <Bell className="h-4 w-4" />
-          {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
-              {unreadCount > 9 ? "9+" : unreadCount}
-            </span>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-          <h4 className="text-sm font-semibold text-foreground">Notifications</h4>
-          {unreadCount > 0 && (
-            <button
-              onClick={() => markAllReadMutation.mutate()}
-              className="text-xs text-primary hover:underline"
-            >
-              Mark all read
-            </button>
-          )}
-        </div>
-        <ScrollArea className="max-h-80">
-          {notifications.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">No notifications</p>
-          ) : (
-            notifications.map((n) => (
+    <>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="ghost" size="icon" className="relative text-muted-foreground">
+            <Bell className="h-4 w-4" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-80 p-0" align="end">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+            <h4 className="text-sm font-semibold text-foreground">Notifications</h4>
+            {unreadCount > 0 && (
               <button
-                key={n.id}
-                onClick={() => {
-                  if (!n.is_read) markReadMutation.mutate(n.notification_id);
-                }}
-                className={`w-full text-left px-4 py-3 border-b border-border/50 last:border-0 transition-colors hover:bg-muted/50 ${
-                  !n.is_read ? "bg-primary/5" : ""
-                }`}
+                onClick={() => markAllReadMutation.mutate()}
+                className="text-xs text-primary hover:underline"
               >
-                <div className="flex items-start gap-2">
-                  {!n.is_read && (
-                    <span className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />
-                  )}
-                  <div className={!n.is_read ? "" : "pl-4"}>
-                    <p className="text-sm font-medium text-foreground">{n.title}</p>
-                    <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.message}</p>
-                    <p className="text-xs text-muted-foreground/70 mt-1">
-                      {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
-                    </p>
-                  </div>
-                </div>
+                Mark all read
               </button>
-            ))
-          )}
-        </ScrollArea>
-      </PopoverContent>
-    </Popover>
+            )}
+          </div>
+          <ScrollArea className="max-h-80">
+            {notifications.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">No notifications</p>
+            ) : (
+              notifications.map((n) => (
+                <button
+                  key={n.id}
+                  onClick={() => handleNotificationClick(n)}
+                  className={`w-full text-left px-4 py-3 border-b border-border/50 last:border-0 transition-colors hover:bg-muted/50 ${
+                    !n.is_read ? "bg-primary/5" : ""
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    {!n.is_read && (
+                      <span className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />
+                    )}
+                    <div className={!n.is_read ? "" : "pl-4"}>
+                      <p className="text-sm font-medium text-foreground">{n.title}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.message}</p>
+                      <p className="text-xs text-muted-foreground/70 mt-1">
+                        {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ))
+            )}
+          </ScrollArea>
+        </PopoverContent>
+      </Popover>
+
+      <NotificationDetailDialog
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        notification={selectedNotification}
+      />
+    </>
   );
 };
