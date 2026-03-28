@@ -130,6 +130,19 @@ Deno.serve(async (req) => {
       admin_notes: `Investment in ${planName} plan`,
     });
 
+    // Send investment confirmation email
+    const { data: prof } = await adminClient.from("profiles").select("email, full_name").eq("user_id", user.id).single();
+    if (prof?.email) {
+      await adminClient.functions.invoke('send-transactional-email', {
+        body: {
+          templateName: 'investment-confirmation',
+          recipientEmail: prof.email,
+          idempotencyKey: `investment-${investment.id}`,
+          templateData: { name: prof.full_name || undefined, planName, amount: amount.toLocaleString() },
+        },
+      });
+    }
+
     return new Response(JSON.stringify({
       success: true,
       message: "Investment successful! Your plan has been activated.",

@@ -75,6 +75,18 @@ const AdminDeposits = () => {
         .eq("user_id", tx.user_id);
       if (balError) throw balError;
 
+      // Send deposit confirmation email
+      if (tx.profile?.email) {
+        supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: 'deposit-confirmation',
+            recipientEmail: tx.profile.email,
+            idempotencyKey: `deposit-confirmed-${tx.id}`,
+            templateData: { name: tx.profile.full_name || undefined, amount: tx.amount.toLocaleString(), method: tx.method },
+          },
+        });
+      }
+
       toast.success(`Deposit approved — $${tx.amount.toLocaleString()} credited`);
       fetchDeposits();
     } catch (err: any) {

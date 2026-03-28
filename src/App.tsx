@@ -12,6 +12,7 @@ import Login from "./pages/Login.tsx";
 import Register from "./pages/Register.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
+import Unsubscribe from "./pages/Unsubscribe.tsx";
 
 // Static pages
 import Markets from "./pages/Markets.tsx";
@@ -89,6 +90,7 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/unsubscribe" element={<Unsubscribe />} />
 
             {/* Static pages */}
             <Route path="/markets" element={<Markets />} />

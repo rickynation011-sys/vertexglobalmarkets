@@ -45,6 +45,15 @@ const Register = () => {
     if (error) {
       toast({ title: "Registration failed", description: error.message, variant: "destructive" });
     } else {
+      // Send welcome email
+      supabase.functions.invoke('send-transactional-email', {
+        body: {
+          templateName: 'welcome',
+          recipientEmail: email.trim(),
+          idempotencyKey: `welcome-${email.trim()}`,
+          templateData: { name: fullName.trim() },
+        },
+      });
       toast({ title: "Account created!", description: "Check your email to verify your account." });
       navigate("/login");
     }
