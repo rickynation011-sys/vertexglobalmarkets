@@ -70,6 +70,7 @@ import AdminDeposits from "./pages/admin/AdminDeposits.tsx";
 import AdminWithdrawals from "./pages/admin/AdminWithdrawals.tsx";
 import AdminSignals from "./pages/admin/AdminSignals.tsx";
 import AdminCopyTrading from "./pages/admin/AdminCopyTrading.tsx";
+import AdminTickets from "./pages/admin/AdminTickets.tsx";
 
 const queryClient = new QueryClient();
 
@@ -145,6 +146,7 @@ const App = () => (
                 <Route path="deposit-methods" element={<AdminDepositMethods />} />
                 <Route path="signals" element={<AdminSignals />} />
                 <Route path="copy-trading" element={<AdminCopyTrading />} />
+                <Route path="tickets" element={<AdminTickets />} />
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="content" element={<AdminContent />} />
                 <Route path="notifications" element={<AdminNotifications />} />

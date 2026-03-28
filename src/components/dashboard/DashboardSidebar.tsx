@@ -4,7 +4,7 @@ import {
   TrendingUp,
   History,
   Settings,
-  Phone,
+  
   BarChart3,
   Wallet,
   LogOut,
@@ -12,6 +12,7 @@ import {
   Signal,
   User,
   Bell,
+  Ticket,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
@@ -47,7 +48,7 @@ const secondaryItems = [
   { title: "KYC Verification", url: "/dashboard/kyc", icon: ShieldCheck },
   { title: "History", url: "/dashboard/history", icon: History },
   { title: "Settings", url: "/dashboard/settings", icon: Settings },
-  { title: "Contact Us", url: "/dashboard/contact", icon: Phone },
+  { title: "Support & Tickets", url: "/dashboard/contact", icon: Ticket },
 ];
 
 export function DashboardSidebar() {
