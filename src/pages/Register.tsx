@@ -58,17 +58,14 @@ const Register = () => {
     // Validate referral code if provided
     let referrerId: string | null = null;
     if (referralCode.trim()) {
-      const { data: refData } = await supabase
-        .from("referral_codes")
-        .select("user_id")
-        .eq("code", referralCode.trim().toUpperCase())
-        .single();
-      if (!refData) {
+      const { data: refUserId } = await supabase
+        .rpc("lookup_referral_code", { _code: referralCode.trim().toUpperCase() });
+      if (!refUserId) {
         setLoading(false);
         toast({ title: "Invalid referral code", description: "Please check the code and try again.", variant: "destructive" });
         return;
       }
-      referrerId = refData.user_id;
+      referrerId = refUserId;
     }
 
     const { data: authData, error } = await supabase.auth.signUp({
