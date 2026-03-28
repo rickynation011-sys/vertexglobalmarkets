@@ -1,11 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Send, Paperclip, ArrowLeft, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -23,9 +22,12 @@ export const TicketChatThread = ({ ticket, senderType, onBack, onStatusChange }:
   const [newMessage, setNewMessage] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
+  const [otherTyping, setOtherTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const channelRef = useRef<any>(null);
 
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ["ticket-messages", ticket.id],
@@ -41,10 +43,10 @@ export const TicketChatThread = ({ ticket, senderType, onBack, onStatusChange }:
     enabled: !!ticket.id,
   });
 
-  // Realtime subscription for new messages
+  // Realtime subscription for messages + typing via broadcast
   useEffect(() => {
     const channel = supabase
-      .channel(`ticket-${ticket.id}`)
+      .channel(`ticket-chat-${ticket.id}`, { config: { broadcast: { self: false } } })
       .on(
         "postgres_changes",
         {
@@ -57,15 +59,41 @@ export const TicketChatThread = ({ ticket, senderType, onBack, onStatusChange }:
           queryClient.invalidateQueries({ queryKey: ["ticket-messages", ticket.id] });
         }
       )
+      .on("broadcast", { event: "typing" }, (payload: any) => {
+        if (payload.payload?.sender_type !== senderType) {
+          setOtherTyping(true);
+          // Clear after 3 seconds of no typing events
+          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+          typingTimeoutRef.current = setTimeout(() => setOtherTyping(false), 3000);
+        }
+      })
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
-  }, [ticket.id, queryClient]);
+    channelRef.current = channel;
+    return () => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      supabase.removeChannel(channel);
+    };
+  }, [ticket.id, queryClient, senderType]);
 
   // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, otherTyping]);
+
+  // Broadcast typing indicator
+  const broadcastTyping = useCallback(() => {
+    channelRef.current?.send({
+      type: "broadcast",
+      event: "typing",
+      payload: { sender_type: senderType },
+    });
+  }, [senderType]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNewMessage(e.target.value);
+    broadcastTyping();
+  };
 
   const sendMessage = async () => {
     if (!newMessage.trim() && !file) return;
@@ -104,7 +132,6 @@ export const TicketChatThread = ({ ticket, senderType, onBack, onStatusChange }:
 
       // Create in-app notification
       if (senderType === "user") {
-        // Notify admins
         await supabase.from("notifications").insert({
           title: "New Ticket Message",
           message: `User replied to ticket: "${ticket.subject}"`,
@@ -113,10 +140,9 @@ export const TicketChatThread = ({ ticket, senderType, onBack, onStatusChange }:
           sent_by: user.id,
         });
       } else {
-        // Notify the ticket owner
         await supabase.from("notifications").insert({
           title: "Support Reply",
-          message: `Admin replied to your ticket: "${ticket.subject}"`,
+          message: `Support replied to your ticket: "${ticket.subject}"`,
           target: "user",
           target_user_id: ticket.user_id,
           channel_in_app: true,
@@ -148,6 +174,8 @@ export const TicketChatThread = ({ ticket, senderType, onBack, onStatusChange }:
     if (s === "in_progress") return "In Progress";
     return s.charAt(0).toUpperCase() + s.slice(1);
   };
+
+  const otherLabel = senderType === "user" ? "Support" : (ticket.user_name || "User");
 
   // Build combined timeline: initial message + chat messages
   const allMessages = [
@@ -241,6 +269,24 @@ export const TicketChatThread = ({ ticket, senderType, onBack, onStatusChange }:
             );
           })
         )}
+
+        {/* Typing Indicator */}
+        {otherTyping && (
+          <div className="flex justify-start">
+            <div className="bg-muted/50 border border-border rounded-2xl rounded-bl-sm px-3.5 py-2.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-medium text-accent">{otherLabel}</span>
+                <span className="text-xs text-muted-foreground">is typing</span>
+                <span className="flex gap-0.5">
+                  <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -272,7 +318,7 @@ export const TicketChatThread = ({ ticket, senderType, onBack, onStatusChange }:
             </Button>
             <Textarea
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               placeholder="Type a message..."
               className="min-h-[38px] max-h-[120px] resize-none text-sm"
