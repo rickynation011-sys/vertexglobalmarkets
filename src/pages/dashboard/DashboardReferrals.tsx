@@ -12,17 +12,19 @@ const DashboardReferrals = () => {
   const { user } = useAuth();
   const { format } = useCurrency();
 
-  const { data: referralCode } = useQuery({
+  const { data: referralCode, isLoading: codeLoading, isError: codeError } = useQuery({
     queryKey: ["referral_code", user?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("referral_codes")
         .select("code")
         .eq("user_id", user!.id)
-        .single();
+        .maybeSingle();
+      if (error) throw error;
       return data?.code ?? null;
     },
     enabled: !!user,
+    retry: 2,
   });
 
   const { data: referrals } = useQuery({
@@ -132,8 +134,15 @@ const DashboardReferrals = () => {
                 Share your code or link with friends. When they sign up and make their first deposit or investment, you'll earn a bonus!
               </p>
             </>
+          ) : codeLoading ? (
+            <div className="flex items-center gap-2 py-4">
+              <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              <p className="text-sm text-muted-foreground">Loading your referral code...</p>
+            </div>
+          ) : codeError ? (
+            <p className="text-sm text-destructive">Unable to load referral code. Please refresh.</p>
           ) : (
-            <p className="text-sm text-muted-foreground">Loading your referral code...</p>
+            <p className="text-sm text-muted-foreground">No referral code found. Please contact support.</p>
           )}
         </CardContent>
       </Card>
