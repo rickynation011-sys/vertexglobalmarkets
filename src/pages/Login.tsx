@@ -34,18 +34,24 @@ const Login = () => {
       return;
     }
 
+    // Check if MFA is enrolled
+    const { data: factorsData } = await supabase.auth.mfa.listFactors();
+    const hasVerifiedTOTP = factorsData?.totp?.some((f) => f.status === "verified");
+
+    if (hasVerifiedTOTP) {
+      setLoading(false);
+      navigate("/mfa-challenge");
+      return;
+    }
+
+    // No MFA - check admin role
     const { data: isAdmin } = await supabase.rpc("has_role", {
       _user_id: authData.user.id,
       _role: "admin",
     });
 
     setLoading(false);
-
-    if (isAdmin) {
-      navigate("/admin");
-    } else {
-      navigate("/dashboard");
-    }
+    navigate(isAdmin ? "/admin" : "/dashboard");
   };
 
   const handleMagicLink = async (e: React.FormEvent) => {
@@ -102,14 +108,7 @@ const Login = () => {
                   <label className="text-sm text-muted-foreground">Email</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="email"
-                      placeholder="you@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-9"
-                      required
-                    />
+                    <Input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-9" required />
                   </div>
                 </div>
                 <div className="space-y-1">
@@ -119,19 +118,8 @@ const Login = () => {
                   </div>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pl-9 pr-10"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
+                    <Input type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-9 pr-10" required />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
@@ -153,9 +141,7 @@ const Login = () => {
                       We've sent a magic login link to <span className="text-foreground">{magicEmail}</span>
                     </p>
                   </div>
-                  <Button variant="outline" className="w-full" onClick={() => setMagicSent(false)}>
-                    Send again
-                  </Button>
+                  <Button variant="outline" className="w-full" onClick={() => setMagicSent(false)}>Send again</Button>
                 </div>
               ) : (
                 <form onSubmit={handleMagicLink} className="space-y-4">
@@ -163,20 +149,10 @@ const Login = () => {
                     <label className="text-sm text-muted-foreground">Email Address</label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        type="email"
-                        placeholder="you@example.com"
-                        value={magicEmail}
-                        onChange={(e) => setMagicEmail(e.target.value)}
-                        className="pl-9"
-                        required
-                        maxLength={255}
-                      />
+                      <Input type="email" placeholder="you@example.com" value={magicEmail} onChange={(e) => setMagicEmail(e.target.value)} className="pl-9" required maxLength={255} />
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    We'll send a secure link to your email. Click it to sign in instantly — no password needed.
-                  </p>
+                  <p className="text-xs text-muted-foreground">We'll send a secure link to your email. Click it to sign in instantly — no password needed.</p>
                   <Button type="submit" className="w-full bg-gradient-brand text-primary-foreground font-semibold" disabled={magicLoading}>
                     {magicLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Wand2 className="h-4 w-4 mr-2" />}
                     Send Magic Link
