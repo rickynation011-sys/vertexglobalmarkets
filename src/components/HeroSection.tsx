@@ -20,7 +20,7 @@ const HeroSection = () => {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-muted/50 text-sm text-muted-foreground mb-8">
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              AI-Powered Trading Platform — Now Live
+              Next-Generation Trading Platform — Now Live
             </div>
           </motion.div>
 
@@ -52,7 +52,7 @@ const HeroSection = () => {
           >
             <Button size="lg" className="bg-gradient-brand text-primary-foreground font-semibold text-base px-8" asChild>
               <Link to="/register">
-                Start Investing <ArrowRight className="ml-2 h-5 w-5" />
+                Start Trading <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
             <Button size="lg" variant="outline" className="text-base px-8" asChild>
@@ -67,7 +67,7 @@ const HeroSection = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
           >
             {[
-              { icon: TrendingUp, label: "AI Trading", desc: "Algorithmic strategies" },
+              { icon: TrendingUp, label: "Smart Trading", desc: "Algorithmic strategies" },
               { icon: Shield, label: "Bank-Grade Security", desc: "256-bit encryption" },
               { icon: Zap, label: "Instant Execution", desc: "Sub-millisecond trades" },
             ].map((item) => (
