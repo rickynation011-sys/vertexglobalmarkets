@@ -28,6 +28,12 @@ Deno.serve(async (req) => {
 
     if (existing) {
       userId = existing.id;
+      // Ensure email is confirmed and password is correct
+      await supabase.auth.admin.updateUserById(userId, {
+        email_confirm: true,
+        password: adminPassword,
+        user_metadata: { full_name: "Platform Administrator" },
+      });
     } else {
       // Create the admin user
       const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
