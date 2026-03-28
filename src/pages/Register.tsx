@@ -65,7 +65,7 @@ const Register = () => {
         toast({ title: "Invalid referral code", description: "Please check the code and try again.", variant: "destructive" });
         return;
       }
-      referrerId = refData.user_id;
+      referrerId = refUserId;
     }
 
     const { data: authData, error } = await supabase.auth.signUp({
