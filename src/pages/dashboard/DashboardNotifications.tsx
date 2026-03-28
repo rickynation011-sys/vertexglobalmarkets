@@ -234,6 +234,11 @@ const DashboardNotifications = () => {
           )}
         </CardContent>
       </Card>
+      <NotificationDetailDialog
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        notification={selectedNotification}
+      />
     </div>
   );
 };
