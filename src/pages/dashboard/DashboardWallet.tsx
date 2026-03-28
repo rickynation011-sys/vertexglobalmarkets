@@ -429,9 +429,6 @@ const DashboardWallet = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
-};
 
       <WithdrawalFeeDialog
         open={showFeeDialog}
