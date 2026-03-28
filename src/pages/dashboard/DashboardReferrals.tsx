@@ -12,17 +12,19 @@ const DashboardReferrals = () => {
   const { user } = useAuth();
   const { format } = useCurrency();
 
-  const { data: referralCode } = useQuery({
+  const { data: referralCode, isLoading: codeLoading, isError: codeError } = useQuery({
     queryKey: ["referral_code", user?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("referral_codes")
         .select("code")
         .eq("user_id", user!.id)
-        .single();
+        .maybeSingle();
+      if (error) throw error;
       return data?.code ?? null;
     },
     enabled: !!user,
+    retry: 2,
   });
 
   const { data: referrals } = useQuery({
