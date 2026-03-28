@@ -47,6 +47,48 @@ export type Database = {
         }
         Relationships: []
       }
+      fee_payments: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          id: string
+          payment_method: string
+          processing_fee: number
+          proof_url: string | null
+          reviewed_by: string | null
+          status: string
+          total_profit: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          payment_method: string
+          processing_fee: number
+          proof_url?: string | null
+          reviewed_by?: string | null
+          status?: string
+          total_profit: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          payment_method?: string
+          processing_fee?: number
+          proof_url?: string | null
+          reviewed_by?: string | null
+          status?: string
+          total_profit?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       investments: {
         Row: {
           amount: number
