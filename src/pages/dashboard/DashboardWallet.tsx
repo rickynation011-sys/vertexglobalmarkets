@@ -116,15 +116,42 @@ const DashboardWallet = () => {
       const amt = parseFloat(depositAmount);
       if (!amt || amt <= 0) throw new Error("Enter a valid amount");
       if (!selectedDepositMethod) throw new Error("Select a payment method");
+      const method = `${selectedDepositMethod.currency}${selectedDepositMethod.network ? ` (${selectedDepositMethod.network})` : ""}`;
       const { error } = await supabase.from("transactions").insert({
         user_id: user!.id,
         type: "deposit",
-        method: `${selectedDepositMethod.currency}${selectedDepositMethod.network ? ` (${selectedDepositMethod.network})` : ""}`,
+        method,
         amount: amt,
         currency: selectedDepositMethod.currency,
         status: "pending",
       });
       if (error) throw error;
+
+      // Notify admin(s) about the new deposit
+      const { data: prof } = await supabase.from("profiles").select("email, full_name").eq("user_id", user!.id).single();
+      const { data: adminRoles } = await supabase.from("user_roles").select("user_id").eq("role", "admin");
+      if (adminRoles && adminRoles.length > 0) {
+        const { data: adminProfiles } = await supabase.from("profiles").select("email").in("user_id", adminRoles.map(r => r.user_id));
+        for (const admin of adminProfiles ?? []) {
+          if (admin.email) {
+            supabase.functions.invoke('send-transactional-email', {
+              body: {
+                templateName: 'admin-new-deposit',
+                recipientEmail: admin.email,
+                idempotencyKey: `admin-deposit-${user!.id}-${Date.now()}-${admin.email}`,
+                templateData: {
+                  userName: prof?.full_name || 'Unknown',
+                  userEmail: prof?.email || user!.email || '',
+                  amount: amt.toLocaleString('en-US', { minimumFractionDigits: 2 }),
+                  method,
+                  currency: selectedDepositMethod.currency,
+                  submittedAt: new Date().toISOString(),
+                },
+              },
+            });
+          }
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions", user?.id] });
@@ -181,6 +208,32 @@ const DashboardWallet = () => {
             templateData: { name: prof.full_name || undefined, amount: amt.toLocaleString(), method },
           },
         });
+      }
+
+      // Notify admin(s) about the new withdrawal
+      const { data: adminRoles } = await supabase.from("user_roles").select("user_id").eq("role", "admin");
+      if (adminRoles && adminRoles.length > 0) {
+        const { data: adminProfiles } = await supabase.from("profiles").select("email").in("user_id", adminRoles.map(r => r.user_id));
+        for (const admin of adminProfiles ?? []) {
+          if (admin.email) {
+            supabase.functions.invoke('send-transactional-email', {
+              body: {
+                templateName: 'admin-new-withdrawal',
+                recipientEmail: admin.email,
+                idempotencyKey: `admin-withdrawal-${user!.id}-${Date.now()}-${admin.email}`,
+                templateData: {
+                  userName: prof?.full_name || 'Unknown',
+                  userEmail: prof?.email || user!.email || '',
+                  amount: amt.toLocaleString('en-US', { minimumFractionDigits: 2 }),
+                  method,
+                  currency: selectedWithdrawMethod!.currency,
+                  walletAddress: withdrawWallet.trim(),
+                  submittedAt: new Date().toISOString(),
+                },
+              },
+            });
+          }
+        }
       }
     },
     onSuccess: () => {
