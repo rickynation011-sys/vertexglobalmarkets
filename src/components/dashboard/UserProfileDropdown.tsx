@@ -48,7 +48,7 @@ export const UserProfileDropdown = () => {
           <p className="text-xs text-muted-foreground">{profile?.email || user?.email}</p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => navigate("/dashboard/settings")}>
+        <DropdownMenuItem onClick={() => navigate("/dashboard/profile")}>
           <User className="mr-2 h-4 w-4" />
           My Profile
         </DropdownMenuItem>

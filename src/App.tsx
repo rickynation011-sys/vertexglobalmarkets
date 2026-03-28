@@ -51,6 +51,7 @@ import DashboardContact from "./pages/dashboard/DashboardContact.tsx";
 import DashboardKYC from "./pages/dashboard/DashboardKYC.tsx";
 import DashboardSignals from "./pages/dashboard/DashboardSignals.tsx";
 import DashboardCopyTrading from "./pages/dashboard/DashboardCopyTrading.tsx";
+import DashboardProfile from "./pages/dashboard/DashboardProfile.tsx";
 
 // Admin
 import AdminLayout from "./layouts/AdminLayout.tsx";
@@ -124,6 +125,7 @@ const App = () => (
                 <Route path="settings" element={<DashboardSettings />} />
                 <Route path="kyc" element={<DashboardKYC />} />
                 <Route path="contact" element={<DashboardContact />} />
+                <Route path="profile" element={<DashboardProfile />} />
               </Route>
             </Route>
 
