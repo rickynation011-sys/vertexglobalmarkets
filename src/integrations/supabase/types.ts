@@ -331,10 +331,12 @@ export type Database = {
           avatar_url: string | null
           country: string | null
           created_at: string
+          currency: string
           email: string | null
           full_name: string | null
           id: string
           phone: string | null
+          referred_by: string | null
           status: string
           updated_at: string
           user_id: string
@@ -344,10 +346,12 @@ export type Database = {
           avatar_url?: string | null
           country?: string | null
           created_at?: string
+          currency?: string
           email?: string | null
           full_name?: string | null
           id?: string
           phone?: string | null
+          referred_by?: string | null
           status?: string
           updated_at?: string
           user_id: string
@@ -357,10 +361,12 @@ export type Database = {
           avatar_url?: string | null
           country?: string | null
           created_at?: string
+          currency?: string
           email?: string | null
           full_name?: string | null
           id?: string
           phone?: string | null
+          referred_by?: string | null
           status?: string
           updated_at?: string
           user_id?: string
@@ -426,6 +432,60 @@ export type Database = {
           processed_count?: number
           status?: string
           total_profit?: number
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          bonus_amount: number
+          bonus_currency: string
+          created_at: string
+          id: string
+          referred_user_id: string
+          referrer_id: string
+          status: string
+          triggered_by: string | null
+        }
+        Insert: {
+          bonus_amount?: number
+          bonus_currency?: string
+          created_at?: string
+          id?: string
+          referred_user_id: string
+          referrer_id: string
+          status?: string
+          triggered_by?: string | null
+        }
+        Update: {
+          bonus_amount?: number
+          bonus_currency?: string
+          created_at?: string
+          id?: string
+          referred_user_id?: string
+          referrer_id?: string
+          status?: string
           triggered_by?: string | null
         }
         Relationships: []

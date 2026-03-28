@@ -56,6 +56,7 @@ import DashboardCopyTrading from "./pages/dashboard/DashboardCopyTrading.tsx";
 import DashboardProfile from "./pages/dashboard/DashboardProfile.tsx";
 import DashboardNotifications from "./pages/dashboard/DashboardNotifications.tsx";
 import DashboardFeePayment from "./pages/dashboard/DashboardFeePayment.tsx";
+import DashboardReferrals from "./pages/dashboard/DashboardReferrals.tsx";
 
 // Admin
 import AdminLayout from "./layouts/AdminLayout.tsx";
@@ -75,6 +76,7 @@ import AdminSignals from "./pages/admin/AdminSignals.tsx";
 import AdminCopyTrading from "./pages/admin/AdminCopyTrading.tsx";
 import AdminTickets from "./pages/admin/AdminTickets.tsx";
 import AdminFeePayments from "./pages/admin/AdminFeePayments.tsx";
+import AdminReferrals from "./pages/admin/AdminReferrals.tsx";
 
 const queryClient = new QueryClient();
 
@@ -136,6 +138,7 @@ const App = () => (
                 <Route path="profile" element={<DashboardProfile />} />
                 <Route path="notifications" element={<DashboardNotifications />} />
                 <Route path="fee-payment" element={<DashboardFeePayment />} />
+                <Route path="referrals" element={<DashboardReferrals />} />
               </Route>
             </Route>
 
@@ -155,6 +158,7 @@ const App = () => (
                 <Route path="copy-trading" element={<AdminCopyTrading />} />
                 <Route path="tickets" element={<AdminTickets />} />
                 <Route path="fee-payments" element={<AdminFeePayments />} />
+                <Route path="referrals" element={<AdminReferrals />} />
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="content" element={<AdminContent />} />
                 <Route path="notifications" element={<AdminNotifications />} />
