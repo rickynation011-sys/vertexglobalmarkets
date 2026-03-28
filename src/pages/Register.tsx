@@ -102,7 +102,7 @@ const Register = () => {
       }
     }
 
-    // Send welcome email
+    // Send welcome email to user
     supabase.functions.invoke('send-transactional-email', {
       body: {
         templateName: 'welcome',
@@ -111,6 +111,29 @@ const Register = () => {
         templateData: { name: fullName.trim() },
       },
     });
+
+    // Notify admin(s) about new registration
+    const { data: adminRoles } = await supabase.from("user_roles").select("user_id").eq("role", "admin");
+    if (adminRoles && adminRoles.length > 0) {
+      const { data: adminProfiles } = await supabase.from("profiles").select("email").in("user_id", adminRoles.map((r: any) => r.user_id));
+      for (const admin of adminProfiles ?? []) {
+        if (admin.email) {
+          supabase.functions.invoke('send-transactional-email', {
+            body: {
+              templateName: 'admin-new-registration',
+              recipientEmail: admin.email,
+              idempotencyKey: `admin-reg-${authData.user!.id}-${admin.email}`,
+              templateData: {
+                userName: fullName.trim(),
+                userEmail: email.trim(),
+                country,
+                registeredAt: new Date().toISOString(),
+              },
+            },
+          });
+        }
+      }
+    }
 
     setLoading(false);
     toast({ title: "Account created!", description: "Check your email to verify your account." });
