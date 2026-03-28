@@ -12,6 +12,7 @@ import Login from "./pages/Login.tsx";
 import Register from "./pages/Register.tsx";
 import ForgotPassword from "./pages/ForgotPassword.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
+import MfaChallenge from "./pages/MfaChallenge.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
 
 // Static pages
@@ -90,6 +91,7 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/mfa-challenge" element={<MfaChallenge />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
 
             {/* Static pages */}

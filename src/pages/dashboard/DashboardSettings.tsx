@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
+import TwoFactorSetup from "@/components/dashboard/TwoFactorSetup";
 
 const DashboardSettings = () => {
   const { user } = useAuth();
@@ -106,6 +107,7 @@ const DashboardSettings = () => {
           <CardTitle className="text-sm font-medium flex items-center gap-2"><Lock className="h-4 w-4" /> Security</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <TwoFactorSetup />
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-foreground">KYC Verification</p>
