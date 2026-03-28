@@ -23,10 +23,23 @@ const Login = () => {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    setLoading(false);
+    const { data: authData, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     if (error) {
+      setLoading(false);
       toast({ title: "Login failed", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    // Check if user has admin role
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: authData.user.id,
+      _role: "admin",
+    });
+
+    setLoading(false);
+
+    if (isAdmin) {
+      navigate("/admin");
     } else {
       navigate("/dashboard");
     }
