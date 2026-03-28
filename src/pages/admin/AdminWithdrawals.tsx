@@ -75,6 +75,18 @@ const AdminWithdrawals = () => {
         .eq("user_id", tx.user_id);
       if (balError) throw balError;
 
+      // Send email notification
+      if (tx.profile?.email) {
+        supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: 'withdrawal-approved',
+            recipientEmail: tx.profile.email,
+            idempotencyKey: `withdrawal-approved-${tx.id}`,
+            templateData: { name: tx.profile.full_name || undefined, amount: tx.amount.toLocaleString() },
+          },
+        });
+      }
+
       toast.success(`Withdrawal approved — $${tx.amount.toLocaleString()} debited`);
       fetchWithdrawals();
     } catch (err: any) {
@@ -86,12 +98,26 @@ const AdminWithdrawals = () => {
 
   const handleReject = async (id: string) => {
     setActionLoading(id);
+    const tx = withdrawals.find(w => w.id === id);
     const { error } = await supabase
       .from("transactions")
       .update({ status: "rejected", reviewed_by: user?.id ?? null, updated_at: new Date().toISOString() })
       .eq("id", id);
     setActionLoading(null);
     if (error) { toast.error("Failed to reject"); return; }
+
+    // Send email notification
+    if (tx?.profile?.email) {
+      supabase.functions.invoke('send-transactional-email', {
+        body: {
+          templateName: 'withdrawal-rejected',
+          recipientEmail: tx.profile.email,
+          idempotencyKey: `withdrawal-rejected-${id}`,
+          templateData: { name: tx.profile.full_name || undefined, amount: tx.amount.toLocaleString() },
+        },
+      });
+    }
+
     toast.success("Withdrawal rejected");
     fetchWithdrawals();
   };

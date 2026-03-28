@@ -70,7 +70,7 @@ const AdminFeePayments = () => {
     setActionLoading(null);
     if (error) { toast.error("Action failed"); return; }
 
-    // Find payment to create notification
+    // Find payment to create notification and send email
     const payment = payments.find((p) => p.id === id);
     if (payment) {
       const title = action === "approved"
@@ -80,7 +80,7 @@ const AdminFeePayments = () => {
         ? "Your processing fee payment has been verified. You can now withdraw your funds."
         : "Your processing fee payment could not be verified. Please resubmit valid proof.";
 
-      // Create notification
+      // Create in-app notification
       const { data: notif } = await supabase.from("notifications").insert({
         title,
         message,
@@ -94,6 +94,18 @@ const AdminFeePayments = () => {
         await supabase.from("user_notifications").insert({
           user_id: payment.user_id,
           notification_id: notif.id,
+        });
+      }
+
+      // Send email notification
+      if (payment.profile?.email) {
+        supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: action === "approved" ? 'fee-approved' : 'fee-rejected',
+            recipientEmail: payment.profile.email,
+            idempotencyKey: `fee-${action}-${id}`,
+            templateData: { name: payment.profile.full_name || undefined },
+          },
         });
       }
     }
