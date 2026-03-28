@@ -145,6 +145,7 @@ const App = () => (
                 <Route path="deposit-methods" element={<AdminDepositMethods />} />
                 <Route path="signals" element={<AdminSignals />} />
                 <Route path="copy-trading" element={<AdminCopyTrading />} />
+                <Route path="tickets" element={<AdminTickets />} />
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="content" element={<AdminContent />} />
                 <Route path="notifications" element={<AdminNotifications />} />

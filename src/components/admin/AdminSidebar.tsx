@@ -23,6 +23,7 @@ const mainItems = [
   { title: "Signals", url: "/admin/signals", icon: Signal },
   { title: "Copy Trading", url: "/admin/copy-trading", icon: Copy },
   { title: "Wallet Settings", url: "/admin/deposit-methods", icon: Wallet },
+  { title: "Ticket Complaints", url: "/admin/tickets", icon: Ticket },
 ];
 
 const systemItems = [
