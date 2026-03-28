@@ -100,6 +100,7 @@ const DashboardOverview = () => {
   const marketAssets = useMarketPrices(8000);
   const cryptoAssets = marketAssets.filter(a => a.source === "binance");
 
+  const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("profiles").select("*").eq("user_id", user!.id).single();
