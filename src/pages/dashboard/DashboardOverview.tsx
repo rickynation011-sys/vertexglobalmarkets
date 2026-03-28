@@ -6,6 +6,7 @@ import {
   ArrowUp, ArrowDown, DollarSign, TrendingUp, Briefcase, Activity,
   Timer, Zap, Globe, BarChart3, Layers, Gem, Building2, Rocket,
   Bot, CircleDollarSign, Palette, Landmark, Coins, ChevronRight,
+  Wallet, Signal, Users, ArrowUpRight, ArrowDownLeft,
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,73 +34,31 @@ const investmentCategories = [
   { name: "Precious Metals", description: "Physical & digital gold, silver, platinum", icon: Landmark, color: "from-amber-500 to-yellow-500", roi: "4-7%", durations: ["7d", "30d"] },
 ];
 
-const durationToMs: Record<string, number> = {
-  "1h": 3600000,
-  "24h": 86400000,
-  "3d": 259200000,
-  "7d": 604800000,
-  "30d": 2592000000,
-};
+const durationToMs: Record<string, number> = { "1h": 3600000, "24h": 86400000, "3d": 259200000, "7d": 604800000, "30d": 2592000000 };
+const durationToLabel: Record<string, string> = { "1h": "1 Hour", "24h": "24 Hours", "3d": "3 Days", "7d": "7 Days", "30d": "30 Days" };
+const durationToRate: Record<string, number> = { "1h": 0.5, "24h": 2.5, "3d": 5, "7d": 10, "30d": 25 };
 
-const durationToLabel: Record<string, string> = {
-  "1h": "1 Hour",
-  "24h": "24 Hours",
-  "3d": "3 Days",
-  "7d": "7 Days",
-  "30d": "30 Days",
-};
-
-const durationToRate: Record<string, number> = {
-  "1h": 0.5,
-  "24h": 2.5,
-  "3d": 5,
-  "7d": 10,
-  "30d": 25,
-};
-
-// ─── Market ticker data ───
-const marketCoins = [
-  { symbol: "BTC", name: "Bitcoin" },
-  { symbol: "ETH", name: "Ethereum" },
-  { symbol: "SOL", name: "Solana" },
-  { symbol: "BNB", name: "BNB" },
-  { symbol: "XRP", name: "XRP" },
-];
-
-// ─── Countdown hook ───
 function useCountdown(targetDate: string) {
   const [timeLeft, setTimeLeft] = useState("");
-  const [pct, setPct] = useState(0);
-
   useEffect(() => {
     const calc = () => {
-      const end = new Date(targetDate).getTime();
-      const now = Date.now();
-      const diff = end - now;
-      if (diff <= 0) {
-        setTimeLeft("Completed");
-        setPct(100);
-        return;
-      }
+      const diff = new Date(targetDate).getTime() - Date.now();
+      if (diff <= 0) { setTimeLeft("Completed"); return; }
       const d = Math.floor(diff / 86400000);
       const h = Math.floor((diff % 86400000) / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
       const s = Math.floor((diff % 60000) / 1000);
-      if (d > 0) setTimeLeft(`${d}d ${h}h ${m}m`);
-      else if (h > 0) setTimeLeft(`${h}h ${m}m ${s}s`);
-      else setTimeLeft(`${m}m ${s}s`);
+      setTimeLeft(d > 0 ? `${d}d ${h}h ${m}m` : h > 0 ? `${h}h ${m}m ${s}s` : `${m}m ${s}s`);
     };
     calc();
     const interval = setInterval(calc, 1000);
     return () => clearInterval(interval);
   }, [targetDate]);
-
-  return { timeLeft, pct };
+  return timeLeft;
 }
 
-// ─── Active Investment Row ───
 function ActiveInvestmentRow({ inv }: { inv: any }) {
-  const { timeLeft } = useCountdown(inv.ends_at);
+  const timeLeft = useCountdown(inv.ends_at);
   const startMs = new Date(inv.started_at).getTime();
   const endMs = new Date(inv.ends_at).getTime();
   const elapsed = Math.min(100, Math.max(0, ((Date.now() - startMs) / (endMs - startMs)) * 100));
@@ -174,39 +133,49 @@ const DashboardOverview = () => {
     enabled: !!user,
   });
 
+  const { data: signalSubs } = useQuery({
+    queryKey: ["signal_subscriptions", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("signal_subscriptions").select("*").eq("user_id", user!.id).eq("status", "active");
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
+  const { data: copyTrades } = useQuery({
+    queryKey: ["copy_trades", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("trades").select("*").eq("user_id", user!.id).eq("status", "open");
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
   const investMutation = useMutation({
     mutationFn: async () => {
       if (!investDialog || !selectedDuration || !investAmount) throw new Error("Fill all fields");
       const amt = parseFloat(investAmount);
       if (!amt || amt <= 0) throw new Error("Enter a valid amount");
-      const walletBalance = Number(profile?.wallet_balance ?? 0);
-      if (amt > walletBalance) throw new Error("Insufficient balance. Please deposit funds first.");
+      const walletBal = Number(profile?.wallet_balance ?? 0);
+      if (amt > walletBal) throw new Error("Insufficient balance. Please deposit funds first.");
       const durMs = durationToMs[selectedDuration];
       const endsAt = new Date(Date.now() + durMs);
       const rate = durationToRate[selectedDuration];
       const { error } = await supabase.from("investments").insert({
         user_id: user!.id,
         plan_name: `${investDialog.name} (${durationToLabel[selectedDuration]})`,
-        amount: amt,
-        current_value: amt,
-        return_pct: 0,
-        daily_rate: rate,
-        status: "active",
-        started_at: new Date().toISOString(),
-        ends_at: endsAt.toISOString(),
+        amount: amt, current_value: amt, return_pct: 0, daily_rate: rate, status: "active",
+        started_at: new Date().toISOString(), ends_at: endsAt.toISOString(),
       });
       if (error) throw error;
-      // Deduct from wallet
-      const { error: walletError } = await supabase.from("profiles").update({ wallet_balance: walletBalance - amt }).eq("user_id", user!.id);
+      const { error: walletError } = await supabase.from("profiles").update({ wallet_balance: walletBal - amt }).eq("user_id", user!.id);
       if (walletError) throw walletError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["investments"] });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       toast.success("Investment placed successfully!");
-      setInvestDialog(null);
-      setSelectedDuration("");
-      setInvestAmount("");
+      setInvestDialog(null); setSelectedDuration(""); setInvestAmount("");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -216,10 +185,11 @@ const DashboardOverview = () => {
   const totalInvested = activeInvestments.reduce((s, i) => s + Number(i.amount), 0);
   const totalCurrentValue = activeInvestments.reduce((s, i) => s + Number(i.current_value), 0);
   const totalProfit = totalCurrentValue - totalInvested + (profitLogs ?? []).reduce((s, l) => s + Number(l.amount), 0);
+  const activeSignals = (signalSubs ?? []).filter(s => new Date(s.expires_at) > new Date()).length;
+  const activeCopyTrades = (copyTrades ?? []).length;
 
   const fmt = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-  // Portfolio chart data
   const portfolioData = (() => {
     const allTxns = [...(transactions ?? [])].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     if (allTxns.length === 0) return [{ date: "Now", value: walletBalance }];
@@ -233,12 +203,7 @@ const DashboardOverview = () => {
 
   const firstName = profile?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "Investor";
 
-  const stats = [
-    { label: "Total Balance", value: fmt(walletBalance), icon: DollarSign, color: "bg-primary/10 text-primary" },
-    { label: "Total Profit", value: fmt(totalProfit), icon: TrendingUp, color: "bg-success/10 text-success", up: totalProfit >= 0 },
-    { label: "Active Investments", value: String(activeInvestments.length), sub: fmt(totalInvested), icon: Briefcase, color: "bg-accent/10 text-accent" },
-    { label: "Win Rate", value: `${activeInvestments.length > 0 ? "100" : "0"}%`, sub: `${(investments ?? []).length} total`, icon: Activity, color: "bg-secondary/10 text-secondary" },
-  ];
+  const recentTx = (transactions ?? []).slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -248,32 +213,115 @@ const DashboardOverview = () => {
           <h1 className="text-2xl font-display font-bold text-foreground">Welcome back, {firstName} 👋</h1>
           <p className="text-muted-foreground text-sm">Here's your portfolio overview</p>
         </div>
-        <Button className="bg-gradient-brand text-primary-foreground font-semibold w-fit" onClick={() => navigate("/dashboard/wallet")}>
-          <DollarSign className="h-4 w-4 mr-1" /> Deposit Funds
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/wallet")}>
+            <ArrowDownLeft className="h-4 w-4 mr-1" /> Deposit
+          </Button>
+          <Button className="bg-gradient-brand text-primary-foreground font-semibold" size="sm" onClick={() => navigate("/dashboard/wallet")}>
+            <ArrowUpRight className="h-4 w-4 mr-1" /> Withdraw
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {stats.map((stat) => (
-          <Card key={stat.label} className="bg-card border-border hover:border-primary/30 transition-colors">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] text-muted-foreground uppercase tracking-wide">{stat.label}</span>
-                <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${stat.color}`}>
-                  <stat.icon className="h-4 w-4" />
-                </div>
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+        <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/wallet")}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Balance</span>
+              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary">
+                <DollarSign className="h-4 w-4" />
               </div>
-              <div className="text-lg sm:text-xl font-display font-bold text-foreground">{stat.value}</div>
-              {stat.sub && <p className="text-xs text-muted-foreground mt-0.5">{stat.sub}</p>}
-              {"up" in stat && (
-                <div className={`flex items-center gap-1 text-xs mt-1 ${stat.up ? "text-success" : "text-destructive"}`}>
-                  {stat.up ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-                  {stat.up ? "Profit" : "Loss"}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            </div>
+            <div className="text-lg font-display font-bold text-foreground">{fmt(walletBalance)}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/portfolio")}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Total Profit</span>
+              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-success/10 text-success">
+                <TrendingUp className="h-4 w-4" />
+              </div>
+            </div>
+            <div className="text-lg font-display font-bold text-foreground">{fmt(totalProfit)}</div>
+            <div className={`flex items-center gap-1 text-xs mt-0.5 ${totalProfit >= 0 ? "text-success" : "text-destructive"}`}>
+              {totalProfit >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+              {totalProfit >= 0 ? "Profit" : "Loss"}
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/investments")}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Investments</span>
+              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-accent/10 text-accent-foreground">
+                <Briefcase className="h-4 w-4" />
+              </div>
+            </div>
+            <div className="text-lg font-display font-bold text-foreground">{activeInvestments.length}</div>
+            <p className="text-xs text-muted-foreground">{fmt(totalInvested)} invested</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/copy-trading")}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Copy Trades</span>
+              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-secondary/50 text-secondary-foreground">
+                <Users className="h-4 w-4" />
+              </div>
+            </div>
+            <div className="text-lg font-display font-bold text-foreground">{activeCopyTrades}</div>
+            <p className="text-xs text-muted-foreground">active allocations</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/signals")}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Signals</span>
+              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary">
+                <Signal className="h-4 w-4" />
+              </div>
+            </div>
+            <div className="text-lg font-display font-bold text-foreground">{activeSignals}</div>
+            <p className="text-xs text-muted-foreground">active subscriptions</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/history")}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Win Rate</span>
+              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-success/10 text-success">
+                <Activity className="h-4 w-4" />
+              </div>
+            </div>
+            <div className="text-lg font-display font-bold text-foreground">{activeInvestments.length > 0 ? "100" : "0"}%</div>
+            <p className="text-xs text-muted-foreground">{(investments ?? []).length} total</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+        {[
+          { label: "Invest", icon: Briefcase, to: "/dashboard/investments", color: "bg-primary/10 text-primary" },
+          { label: "Copy Trade", icon: Users, to: "/dashboard/copy-trading", color: "bg-secondary/50 text-secondary-foreground" },
+          { label: "Signals", icon: Signal, to: "/dashboard/signals", color: "bg-accent/10 text-accent-foreground" },
+          { label: "Portfolio", icon: BarChart3, to: "/dashboard/portfolio", color: "bg-success/10 text-success" },
+          { label: "Deposit", icon: ArrowDownLeft, to: "/dashboard/wallet", color: "bg-primary/10 text-primary" },
+          { label: "Withdraw", icon: ArrowUpRight, to: "/dashboard/wallet", color: "bg-warning/10 text-warning" },
+        ].map(action => (
+          <Button
+            key={action.label}
+            variant="outline"
+            className="flex flex-col items-center gap-1.5 h-auto py-3 border-border hover:border-primary/30"
+            onClick={() => navigate(action.to)}
+          >
+            <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${action.color}`}>
+              <action.icon className="h-4 w-4" />
+            </div>
+            <span className="text-[11px] text-foreground">{action.label}</span>
+          </Button>
         ))}
       </div>
 
@@ -301,28 +349,100 @@ const DashboardOverview = () => {
         </Card>
       )}
 
-      {/* Balance Chart */}
-      <Card className="bg-card border-border">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">Portfolio Performance</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={portfolioData}>
-              <defs>
-                <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(145, 60%, 45%)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(145, 60%, 45%)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="date" stroke="hsl(215, 15%, 55%)" fontSize={11} tickLine={false} axisLine={false} />
-              <YAxis stroke="hsl(215, 15%, 55%)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} />
-              <Tooltip contentStyle={{ background: "hsl(220, 18%, 8%)", border: "1px solid hsl(220, 15%, 16%)", borderRadius: "8px", color: "hsl(210, 20%, 95%)" }} formatter={(v: number) => [`$${v.toLocaleString()}`, "Balance"]} />
-              <Area type="monotone" dataKey="value" stroke="hsl(145, 60%, 45%)" fill="url(#colorValue)" strokeWidth={2} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      {/* Chart + Recent Activity side-by-side */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <Card className="bg-card border-border lg:col-span-3">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Portfolio Performance</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={portfolioData}>
+                <defs>
+                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} />
+                <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", color: "hsl(var(--foreground))" }} formatter={(v: number) => [`$${v.toLocaleString()}`, "Balance"]} />
+                <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" fill="url(#colorValue)" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Recent Activity */}
+        <Card className="bg-card border-border lg:col-span-2">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
+              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => navigate("/dashboard/history")}>
+                View All <ChevronRight className="h-3 w-3 ml-1" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {recentTx.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No recent activity</p>
+            ) : (
+              <div className="space-y-0">
+                {recentTx.map(tx => (
+                  <div key={tx.id} className="flex items-center justify-between py-2.5 border-b border-border/50 last:border-0">
+                    <div className="flex items-center gap-2">
+                      <div className={`h-7 w-7 rounded-full flex items-center justify-center ${tx.type === "deposit" ? "bg-success/10" : "bg-warning/10"}`}>
+                        {tx.type === "deposit" ? <ArrowDownLeft className="h-3.5 w-3.5 text-success" /> : <ArrowUpRight className="h-3.5 w-3.5 text-warning" />}
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-foreground capitalize">{tx.type}</p>
+                        <p className="text-[10px] text-muted-foreground">{tx.method}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className={`text-xs font-medium ${tx.type === "deposit" ? "text-success" : "text-foreground"}`}>
+                        {tx.type === "deposit" ? "+" : "-"}{fmt(Number(tx.amount))}
+                      </p>
+                      <Badge variant="outline" className={`text-[9px] px-1 py-0 ${tx.status === "completed" ? "border-success/30 text-success" : tx.status === "pending" ? "border-warning/30 text-warning" : "border-muted-foreground/30"}`}>
+                        {tx.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Profit Payouts */}
+      {(profitLogs ?? []).length > 0 && (
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Zap className="h-4 w-4 text-success" /> Recent Profit Payouts
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-0">
+              {(profitLogs ?? []).slice(0, 5).map((log: any) => (
+                <div key={log.id} className="flex items-center justify-between py-2.5 border-b border-border/50 last:border-0">
+                  <div className="flex items-center gap-2">
+                    <div className="h-6 w-6 rounded-full bg-success/10 flex items-center justify-center">
+                      <TrendingUp className="h-3 w-3 text-success" />
+                    </div>
+                    <span className="text-sm text-muted-foreground">Daily profit</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm font-medium text-success">+{fmt(Number(log.amount))}</span>
+                    <p className="text-[10px] text-muted-foreground">{new Date(log.created_at).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Investment Categories */}
       <div>
@@ -354,35 +474,6 @@ const DashboardOverview = () => {
           ))}
         </div>
       </div>
-
-      {/* Recent Profit Payouts */}
-      {(profitLogs ?? []).length > 0 && (
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Zap className="h-4 w-4 text-success" /> Recent Profit Payouts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-0">
-              {(profitLogs ?? []).slice(0, 5).map((log: any) => (
-                <div key={log.id} className="flex items-center justify-between py-2.5 border-b border-border/50 last:border-0">
-                  <div className="flex items-center gap-2">
-                    <div className="h-6 w-6 rounded-full bg-success/10 flex items-center justify-center">
-                      <TrendingUp className="h-3 w-3 text-success" />
-                    </div>
-                    <span className="text-sm text-muted-foreground">Daily profit</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-sm font-medium text-success">+{fmt(Number(log.amount))}</span>
-                    <p className="text-[10px] text-muted-foreground">{new Date(log.created_at).toLocaleDateString()}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Investment History */}
       <Card className="bg-card border-border">

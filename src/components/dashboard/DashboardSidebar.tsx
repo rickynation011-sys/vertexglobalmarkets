@@ -35,6 +35,7 @@ const mainItems = [
   { title: "Investments", url: "/dashboard/investments", icon: Briefcase },
   { title: "Trading", url: "/dashboard/trading", icon: TrendingUp },
   { title: "Signals", url: "/dashboard/signals", icon: Signal },
+  { title: "Copy Trading", url: "/dashboard/copy-trading", icon: TrendingUp },
   { title: "Deposit / Withdraw", url: "/dashboard/wallet", icon: Wallet },
 ];
 

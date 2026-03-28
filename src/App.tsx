@@ -50,6 +50,7 @@ import DashboardSettings from "./pages/dashboard/DashboardSettings.tsx";
 import DashboardContact from "./pages/dashboard/DashboardContact.tsx";
 import DashboardKYC from "./pages/dashboard/DashboardKYC.tsx";
 import DashboardSignals from "./pages/dashboard/DashboardSignals.tsx";
+import DashboardCopyTrading from "./pages/dashboard/DashboardCopyTrading.tsx";
 
 // Admin
 import AdminLayout from "./layouts/AdminLayout.tsx";
@@ -118,6 +119,7 @@ const App = () => (
                 <Route path="trading" element={<DashboardTrading />} />
                 <Route path="wallet" element={<DashboardWallet />} />
                 <Route path="signals" element={<DashboardSignals />} />
+                <Route path="copy-trading" element={<DashboardCopyTrading />} />
                 <Route path="history" element={<DashboardHistory />} />
                 <Route path="settings" element={<DashboardSettings />} />
                 <Route path="kyc" element={<DashboardKYC />} />
