@@ -1,25 +1,39 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Shield, Zap, Crown, Star, Target, Building2, DollarSign } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { TrendingUp, Shield, Zap, Crown, Star, Target, Building2, DollarSign, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const plans = [
-  { name: "Conservative Growth", icon: Shield, returns: "4-6%", annualRate: 5, risk: "Low", min: 500, duration: 30, description: "Stable returns through diversified bonds, ETFs, and blue-chip stocks.", features: ["AI Risk Management", "Auto-rebalancing", "Daily reports"], popular: false },
-  { name: "Balanced Portfolio", icon: Target, returns: "6-9%", annualRate: 7.5, risk: "Medium", min: 2000, duration: 30, description: "Mix of growth stocks, forex, and crypto for balanced risk-reward.", features: ["Multi-asset exposure", "Smart hedging", "Weekly analytics"], popular: true },
-  { name: "Aggressive Alpha", icon: Zap, returns: "8-12%", annualRate: 10, risk: "High", min: 5000, duration: 30, description: "High-frequency algorithmic trading across volatile markets.", features: ["AI signal trading", "Leveraged positions", "Real-time alerts"], popular: false },
-  { name: "Forex Specialist", icon: TrendingUp, returns: "5-8%", annualRate: 6.5, risk: "Medium", min: 1000, duration: 30, description: "Dedicated forex strategy across major and minor currency pairs.", features: ["24/5 trading", "News-driven AI", "Spread optimization"], popular: false },
-  { name: "Crypto Momentum", icon: Star, returns: "7-12%", annualRate: 9.5, risk: "High", min: 1500, duration: 30, description: "Capitalize on crypto market trends using AI momentum indicators.", features: ["Top 20 cryptos", "DeFi yield", "Auto stop-loss"], popular: false },
-  { name: "Real Estate Income", icon: Building2, returns: "6-10%", annualRate: 8, risk: "Medium", min: 2500, duration: 90, description: "Earn passive income through diversified global real estate investments and REITs.", features: ["REIT portfolio", "Monthly dividends", "Property diversification"], popular: false },
-  { name: "VIP Elite", icon: Crown, returns: "10-15%", annualRate: 12.5, risk: "Variable", min: 25000, duration: 30, description: "Exclusive strategies with dedicated account management and priority execution.", features: ["Personal manager", "Priority execution", "Custom strategies"], popular: false },
+  { name: "Conservative Growth", icon: Shield, returns: "4-6%", annualRate: 5, risk: "Low", min: 500, max: 50000, duration: 30, description: "Stable returns through diversified bonds, ETFs, and blue-chip stocks.", features: ["AI Risk Management", "Auto-rebalancing", "Daily reports"], popular: false },
+  { name: "Balanced Portfolio", icon: Target, returns: "6-9%", annualRate: 7.5, risk: "Medium", min: 2000, max: 100000, duration: 30, description: "Mix of growth stocks, forex, and crypto for balanced risk-reward.", features: ["Multi-asset exposure", "Smart hedging", "Weekly analytics"], popular: true },
+  { name: "Aggressive Alpha", icon: Zap, returns: "8-12%", annualRate: 10, risk: "High", min: 5000, max: 200000, duration: 30, description: "High-frequency algorithmic trading across volatile markets.", features: ["AI signal trading", "Leveraged positions", "Real-time alerts"], popular: false },
+  { name: "Forex Specialist", icon: TrendingUp, returns: "5-8%", annualRate: 6.5, risk: "Medium", min: 1000, max: 75000, duration: 30, description: "Dedicated forex strategy across major and minor currency pairs.", features: ["24/5 trading", "News-driven AI", "Spread optimization"], popular: false },
+  { name: "Crypto Momentum", icon: Star, returns: "7-12%", annualRate: 9.5, risk: "High", min: 1500, max: 100000, duration: 30, description: "Capitalize on crypto market trends using AI momentum indicators.", features: ["Top 20 cryptos", "DeFi yield", "Auto stop-loss"], popular: false },
+  { name: "Real Estate Income", icon: Building2, returns: "6-10%", annualRate: 8, risk: "Medium", min: 2500, max: 150000, duration: 90, description: "Earn passive income through diversified global real estate investments and REITs.", features: ["REIT portfolio", "Monthly dividends", "Property diversification"], popular: false },
+  { name: "VIP Elite", icon: Crown, returns: "10-15%", annualRate: 12.5, risk: "Variable", min: 25000, max: 1000000, duration: 30, description: "Exclusive strategies with dedicated account management and priority execution.", features: ["Personal manager", "Priority execution", "Custom strategies"], popular: false },
 ];
 
 const DashboardInvestments = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [investAmounts, setInvestAmounts] = useState<Record<string, string>>({});
+
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("*").eq("user_id", user!.id).single();
+      return data;
+    },
+    enabled: !!user,
+  });
 
   const { data: investments } = useQuery({
     queryKey: ["investments", user?.id],
@@ -45,32 +59,75 @@ const DashboardInvestments = () => {
   });
 
   const investMutation = useMutation({
-    mutationFn: async (plan: typeof plans[0]) => {
-      const endsAt = new Date();
-      endsAt.setDate(endsAt.getDate() + plan.duration);
-      const { error } = await supabase.from("investments").insert({
-        user_id: user!.id,
-        plan_name: plan.name,
-        amount: plan.min,
-        current_value: plan.min,
-        return_pct: 0,
-        daily_rate: plan.annualRate,
-        status: "active",
-        ends_at: endsAt.toISOString(),
+    mutationFn: async ({ planName, amount }: { planName: string; amount: number }) => {
+      const { data, error } = await supabase.functions.invoke("create-investment", {
+        body: { plan_name: planName, amount },
       });
-      if (error) throw error;
+      if (error) throw new Error(error.message || "Investment failed");
+      if (data?.error) {
+        // Handle specific error codes
+        if (data.error === "NO_BALANCE") {
+          toast.error(data.message);
+          setTimeout(() => navigate("/dashboard/wallet"), 2000);
+          throw new Error(data.message);
+        }
+        if (data.error === "INSUFFICIENT_BALANCE") {
+          throw new Error(data.message);
+        }
+        throw new Error(data.error);
+      }
+      return data;
     },
-    onSuccess: (_, plan) => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["investments", user?.id] });
-      toast.success(`Invested $${plan.min.toLocaleString()} in ${plan.name}`);
+      queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["transactions", user?.id] });
+      toast.success("Investment successful! Your plan has been activated.");
+      setInvestAmounts({});
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      if (!e.message.includes("fund your account")) {
+        toast.error(e.message);
+      }
+    },
   });
+
+  const handleInvest = (plan: typeof plans[0]) => {
+    const customAmount = investAmounts[plan.name];
+    const amount = customAmount ? parseFloat(customAmount) : plan.min;
+
+    if (isNaN(amount) || amount <= 0) {
+      toast.error("Please enter a valid investment amount.");
+      return;
+    }
+    if (amount < plan.min) {
+      toast.error(`Minimum investment for ${plan.name} is $${plan.min.toLocaleString()}`);
+      return;
+    }
+    if (amount > plan.max) {
+      toast.error(`Maximum investment for ${plan.name} is $${plan.max.toLocaleString()}`);
+      return;
+    }
+
+    const balance = Number(profile?.wallet_balance ?? 0);
+    if (balance <= 0) {
+      toast.error("You need to fund your account before purchasing an investment plan.");
+      setTimeout(() => navigate("/dashboard/wallet"), 2000);
+      return;
+    }
+    if (balance < amount) {
+      toast.error(`Insufficient balance. Please deposit funds to continue.`);
+      return;
+    }
+
+    investMutation.mutate({ planName: plan.name, amount });
+  };
 
   const activeInvestments = (investments ?? []).filter(i => i.status === "active");
   const totalInvested = activeInvestments.reduce((s, i) => s + Number(i.amount), 0);
   const totalCurrentValue = activeInvestments.reduce((s, i) => s + Number(i.current_value), 0);
   const totalProfit = totalCurrentValue - totalInvested;
+  const walletBalance = Number(profile?.wallet_balance ?? 0);
 
   const fmt = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -81,8 +138,19 @@ const DashboardInvestments = () => {
         <p className="text-muted-foreground text-sm">Browse plans and manage active investments</p>
       </div>
 
-      {/* Profit Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-card border-border">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <DollarSign className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Wallet Balance</p>
+              <p className="text-xl font-display font-bold text-foreground">{fmt(walletBalance)}</p>
+            </div>
+          </CardContent>
+        </Card>
         <Card className="bg-card border-border">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -190,47 +258,84 @@ const DashboardInvestments = () => {
       <div>
         <h2 className="text-lg font-display font-semibold text-foreground mb-4">Available Plans</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {plans.map((plan) => (
-            <Card key={plan.name} className={`bg-card border-border relative ${plan.popular ? "ring-1 ring-primary" : ""}`}>
-              {plan.popular && <Badge className="absolute -top-2.5 left-4 bg-gradient-brand text-primary-foreground text-xs">Most Popular</Badge>}
-              <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                  <plan.icon className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-base">{plan.name}</CardTitle>
-                </div>
-                <CardDescription className="text-xs">{plan.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Annual Rate</span>
-                  <span className="text-success font-semibold">{plan.annualRate}%</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Daily Profit (est.)</span>
-                  <span className="text-success font-medium">{fmt(plan.min * plan.annualRate / 100 / 365)}/day</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Risk Level</span>
-                  <Badge variant="outline" className="text-xs">{plan.risk}</Badge>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Minimum</span>
-                  <span className="text-foreground font-medium">${plan.min.toLocaleString()}</span>
-                </div>
-                <div className="space-y-1">
-                  {plan.features.map((f) => (
-                    <p key={f} className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <span className="w-1 h-1 rounded-full bg-primary" /> {f}
-                    </p>
-                  ))}
-                </div>
-                <p className="text-[10px] text-muted-foreground italic">*Profits paid daily to your wallet balance.</p>
-                <Button className="w-full bg-gradient-brand text-primary-foreground font-semibold" size="sm" onClick={() => investMutation.mutate(plan)} disabled={investMutation.isPending}>
-                  Invest ${plan.min.toLocaleString()}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+          {plans.map((plan) => {
+            const customAmount = investAmounts[plan.name];
+            const investAmount = customAmount ? parseFloat(customAmount) : plan.min;
+            const dailyEst = (isNaN(investAmount) ? plan.min : investAmount) * plan.annualRate / 100 / 365;
+
+            return (
+              <Card key={plan.name} className={`bg-card border-border relative ${plan.popular ? "ring-1 ring-primary" : ""}`}>
+                {plan.popular && <Badge className="absolute -top-2.5 left-4 bg-gradient-brand text-primary-foreground text-xs">Most Popular</Badge>}
+                <CardHeader className="pb-2">
+                  <div className="flex items-center gap-2">
+                    <plan.icon className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-base">{plan.name}</CardTitle>
+                  </div>
+                  <CardDescription className="text-xs">{plan.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Annual Rate</span>
+                    <span className="text-success font-semibold">{plan.annualRate}%</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Daily Profit (est.)</span>
+                    <span className="text-success font-medium">{fmt(dailyEst)}/day</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Risk Level</span>
+                    <Badge variant="outline" className="text-xs">{plan.risk}</Badge>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Min / Max</span>
+                    <span className="text-foreground font-medium">${plan.min.toLocaleString()} – ${plan.max.toLocaleString()}</span>
+                  </div>
+                  <div className="space-y-1">
+                    {plan.features.map((f) => (
+                      <p key={f} className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-primary" /> {f}
+                      </p>
+                    ))}
+                  </div>
+
+                  <div className="space-y-2 pt-1">
+                    <Input
+                      type="number"
+                      placeholder={`Amount ($${plan.min.toLocaleString()} - $${plan.max.toLocaleString()})`}
+                      value={investAmounts[plan.name] ?? ""}
+                      onChange={(e) => setInvestAmounts(prev => ({ ...prev, [plan.name]: e.target.value }))}
+                      min={plan.min}
+                      max={plan.max}
+                      className="text-sm"
+                    />
+                    <p className="text-[10px] text-muted-foreground italic">*Profits paid daily to your wallet balance.</p>
+                    <Button
+                      className="w-full bg-gradient-brand text-primary-foreground font-semibold"
+                      size="sm"
+                      onClick={() => handleInvest(plan)}
+                      disabled={investMutation.isPending}
+                    >
+                      {investMutation.isPending ? (
+                        <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Processing...</>
+                      ) : (
+                        `Invest ${fmt(isNaN(investAmount) ? plan.min : investAmount)}`
+                      )}
+                    </Button>
+                    {walletBalance > 0 && walletBalance < plan.min && (
+                      <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => navigate("/dashboard/wallet")}>
+                        Deposit More Funds
+                      </Button>
+                    )}
+                    {walletBalance <= 0 && (
+                      <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => navigate("/dashboard/wallet")}>
+                        Deposit Now
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
     </div>
