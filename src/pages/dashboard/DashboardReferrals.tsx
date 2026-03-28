@@ -141,6 +141,8 @@ const DashboardReferrals = () => {
             </div>
           ) : codeError ? (
             <p className="text-sm text-destructive">Unable to load referral code. Please refresh.</p>
+          ) : (
+            <p className="text-sm text-muted-foreground">No referral code found. Please contact support.</p>
           )}
         </CardContent>
       </Card>
