@@ -1,9 +1,8 @@
 import { Outlet } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import { User } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/dashboard/NotificationBell";
+import { UserProfileDropdown } from "@/components/dashboard/UserProfileDropdown";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -33,9 +32,7 @@ const DashboardLayout = () => {
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground hidden sm:block">{profile?.full_name || user?.email}</span>
               <NotificationBell />
-              <Button variant="ghost" size="icon" className="text-muted-foreground">
-                <User className="h-4 w-4" />
-              </Button>
+              <UserProfileDropdown />
             </div>
           </header>
           <main className="flex-1 overflow-auto p-4 md:p-6">
