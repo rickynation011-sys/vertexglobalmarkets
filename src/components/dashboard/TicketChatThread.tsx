@@ -120,10 +120,19 @@ export const TicketChatThread = ({ ticket, senderType, onBack, onStatusChange }:
       });
       if (error) throw error;
 
-      // Update last_message_at on ticket
-      await supabase.from("support_tickets").update({
+      // Update last_message_at and auto-update status
+      const statusUpdate: Record<string, any> = {
         last_message_at: new Date().toISOString(),
-      }).eq("id", ticket.id);
+      };
+      if (senderType === "user" && ticket.status !== "open") {
+        statusUpdate.status = "open";
+      } else if (senderType === "admin" && ticket.status === "open") {
+        statusUpdate.status = "in_progress";
+      }
+      await supabase.from("support_tickets").update(statusUpdate).eq("id", ticket.id);
+      if (statusUpdate.status && onStatusChange) {
+        onStatusChange(statusUpdate.status);
+      }
 
       setNewMessage("");
       setFile(null);
