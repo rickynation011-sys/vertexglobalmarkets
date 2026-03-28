@@ -10,6 +10,8 @@ import {
   LogOut,
   ShieldCheck,
   Signal,
+  User,
+  Bell,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
@@ -40,6 +42,8 @@ const mainItems = [
 ];
 
 const secondaryItems = [
+  { title: "Profile", url: "/dashboard/profile", icon: User },
+  { title: "Notifications", url: "/dashboard/notifications", icon: Bell },
   { title: "KYC Verification", url: "/dashboard/kyc", icon: ShieldCheck },
   { title: "History", url: "/dashboard/history", icon: History },
   { title: "Settings", url: "/dashboard/settings", icon: Settings },

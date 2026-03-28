@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, Camera, Mail, Phone, Globe, LogOut, Lock, Shield } from "lucide-react";
+import { User, Camera, Mail, Phone, Globe, LogOut, Lock, Shield, KeyRound, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -45,6 +45,12 @@ const DashboardProfile = () => {
   const [phone, setPhone] = useState("");
   const [country, setCountry] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -267,7 +273,77 @@ const DashboardProfile = () => {
         </CardContent>
       </Card>
 
-      {/* Security & Quick Links */}
+      {/* Change Password */}
+      <Card className="bg-card border-border">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <KeyRound className="h-4 w-4" /> Change Password
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm text-muted-foreground">New Password</label>
+              <div className="relative mt-1">
+                <Input
+                  type={showNewPw ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  maxLength={128}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPw(!showNewPw)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground">Confirm New Password</label>
+              <Input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
+                className="mt-1"
+                maxLength={128}
+              />
+            </div>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={changingPassword || !newPassword || !confirmPassword}
+            onClick={async () => {
+              if (newPassword.length < 6) {
+                toast.error("Password must be at least 6 characters");
+                return;
+              }
+              if (newPassword !== confirmPassword) {
+                toast.error("Passwords do not match");
+                return;
+              }
+              setChangingPassword(true);
+              const { error } = await supabase.auth.updateUser({ password: newPassword });
+              setChangingPassword(false);
+              if (error) {
+                toast.error(error.message);
+              } else {
+                toast.success("Password updated successfully");
+                setNewPassword("");
+                setConfirmPassword("");
+              }
+            }}
+          >
+            {changingPassword ? "Updating..." : "Update Password"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Account & Quick Links */}
       <Card className="bg-card border-border">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
