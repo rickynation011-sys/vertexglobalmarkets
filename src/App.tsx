@@ -70,6 +70,7 @@ import AdminDeposits from "./pages/admin/AdminDeposits.tsx";
 import AdminWithdrawals from "./pages/admin/AdminWithdrawals.tsx";
 import AdminSignals from "./pages/admin/AdminSignals.tsx";
 import AdminCopyTrading from "./pages/admin/AdminCopyTrading.tsx";
+import AdminTickets from "./pages/admin/AdminTickets.tsx";
 
 const queryClient = new QueryClient();
 
