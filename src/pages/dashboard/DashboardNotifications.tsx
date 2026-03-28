@@ -205,6 +205,8 @@ const DashboardNotifications = () => {
                     className="flex-1 text-left"
                     onClick={() => {
                       if (!n.is_read) markReadMutation.mutate([n.id]);
+                      setSelectedNotification({ ...n, is_read: true });
+                      setDetailOpen(true);
                     }}
                   >
                     <div className="flex items-center gap-2">
