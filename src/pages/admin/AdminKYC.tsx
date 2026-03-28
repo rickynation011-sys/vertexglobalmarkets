@@ -61,6 +61,7 @@ const AdminKYC = () => {
 
   const handleAction = async (id: string, status: "approved" | "rejected") => {
     setActionLoading(true);
+    const kyc = kycList.find((k) => k.id === id);
     const { error } = await supabase
       .from("kyc_verifications")
       .update({
@@ -74,6 +75,17 @@ const AdminKYC = () => {
     if (error) {
       toast.error(`Failed to ${status} KYC`);
     } else {
+      // Send KYC status email to user
+      if (kyc?.profile?.email) {
+        supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: status === 'approved' ? 'kyc-approved' : 'kyc-rejected',
+            recipientEmail: kyc.profile.email,
+            idempotencyKey: `kyc-${status}-${id}`,
+            templateData: { name: kyc.profile.full_name || undefined, reason: reviewNotes || undefined },
+          },
+        });
+      }
       toast.success(`KYC ${status} successfully`);
       setReviewNotes("");
       setSelected(null);

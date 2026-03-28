@@ -128,8 +128,20 @@ const DashboardWallet = () => {
       });
       if (error) throw error;
 
-      // Notify admin(s) about the new deposit
+      // Send deposit confirmation email to user
       const { data: prof } = await supabase.from("profiles").select("email, full_name").eq("user_id", user!.id).single();
+      if (prof?.email) {
+        supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: 'deposit-confirmation',
+            recipientEmail: prof.email,
+            idempotencyKey: `deposit-request-${user!.id}-${Date.now()}`,
+            templateData: { name: prof.full_name || undefined, amount: amt.toLocaleString('en-US', { minimumFractionDigits: 2 }), method },
+          },
+        });
+      }
+
+      // Notify admin(s) about the new deposit
       const { data: adminRoles } = await supabase.from("user_roles").select("user_id").eq("role", "admin");
       if (adminRoles && adminRoles.length > 0) {
         const { data: adminProfiles } = await supabase.from("profiles").select("email").in("user_id", adminRoles.map(r => r.user_id));

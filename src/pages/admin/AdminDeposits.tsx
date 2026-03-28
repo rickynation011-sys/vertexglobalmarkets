@@ -75,13 +75,13 @@ const AdminDeposits = () => {
         .eq("user_id", tx.user_id);
       if (balError) throw balError;
 
-      // Send deposit confirmation email
+      // Send deposit approved email to user
       if (tx.profile?.email) {
         supabase.functions.invoke('send-transactional-email', {
           body: {
-            templateName: 'deposit-confirmation',
+            templateName: 'deposit-approved',
             recipientEmail: tx.profile.email,
-            idempotencyKey: `deposit-confirmed-${tx.id}`,
+            idempotencyKey: `deposit-approved-${tx.id}`,
             templateData: { name: tx.profile.full_name || undefined, amount: tx.amount.toLocaleString(), method: tx.method },
           },
         });

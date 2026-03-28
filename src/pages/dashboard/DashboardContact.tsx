@@ -68,7 +68,7 @@ const DashboardContact = () => {
       });
       if (error) throw error;
 
-      // Notify admin
+      // Notify admin (in-app)
       await supabase.from("notifications").insert({
         title: "New Support Ticket",
         message: `New ticket submitted: "${subject.trim()}"`,
@@ -76,6 +76,31 @@ const DashboardContact = () => {
         channel_in_app: true,
         sent_by: user.id,
       });
+
+      // Notify admin(s) via email
+      const { data: prof } = await supabase.from("profiles").select("email, full_name").eq("user_id", user.id).single();
+      const { data: adminRoles } = await supabase.from("user_roles").select("user_id").eq("role", "admin");
+      if (adminRoles && adminRoles.length > 0) {
+        const { data: adminProfiles } = await supabase.from("profiles").select("email").in("user_id", adminRoles.map((r: any) => r.user_id));
+        for (const admin of adminProfiles ?? []) {
+          if (admin.email) {
+            supabase.functions.invoke('send-transactional-email', {
+              body: {
+                templateName: 'admin-new-ticket',
+                recipientEmail: admin.email,
+                idempotencyKey: `admin-ticket-${user.id}-${Date.now()}-${admin.email}`,
+                templateData: {
+                  userName: prof?.full_name || 'Unknown',
+                  userEmail: prof?.email || '',
+                  subject: subject.trim(),
+                  category,
+                  submittedAt: new Date().toISOString(),
+                },
+              },
+            });
+          }
+        }
+      }
 
       toast.success("Your complaint has been submitted successfully!");
       setSubject("");

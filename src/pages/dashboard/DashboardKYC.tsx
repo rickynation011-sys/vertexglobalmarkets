@@ -78,6 +78,30 @@ const DashboardKYC = () => {
         status: "pending",
       });
       if (error) throw error;
+
+      // Notify admin(s) about new KYC submission
+      const { data: prof } = await supabase.from("profiles").select("email, full_name").eq("user_id", userId).single();
+      const { data: adminRoles } = await supabase.from("user_roles").select("user_id").eq("role", "admin");
+      if (adminRoles && adminRoles.length > 0) {
+        const { data: adminProfiles } = await supabase.from("profiles").select("email").in("user_id", adminRoles.map((r: any) => r.user_id));
+        for (const admin of adminProfiles ?? []) {
+          if (admin.email) {
+            supabase.functions.invoke('send-transactional-email', {
+              body: {
+                templateName: 'admin-new-kyc',
+                recipientEmail: admin.email,
+                idempotencyKey: `admin-kyc-${userId}-${Date.now()}-${admin.email}`,
+                templateData: {
+                  userName: prof?.full_name || 'Unknown',
+                  userEmail: prof?.email || '',
+                  documentType,
+                  submittedAt: new Date().toISOString(),
+                },
+              },
+            });
+          }
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["kyc", user?.id] });
