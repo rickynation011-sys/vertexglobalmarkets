@@ -31,7 +31,7 @@ const HeroSection = () => {
             transition={{ duration: 0.8, delay: 0.1 }}
           >
             Invest & Trade Global Markets with{" "}
-            <span className="text-gradient-brand">Intelligent Automation</span>
+            <span className="text-gradient-brand">Confidence</span>
           </motion.h1>
 
           <motion.p
@@ -40,8 +40,7 @@ const HeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            Access AI-driven trading strategies, multi-asset portfolios, and institutional-grade tools.
-            Trade forex, crypto, stocks, commodities, and more from one powerful platform.
+            Access advanced trading strategies, multi-asset portfolios, and professional-grade tools—all in one powerful platform.
           </motion.p>
 
           <motion.div
