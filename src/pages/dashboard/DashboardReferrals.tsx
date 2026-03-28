@@ -134,8 +134,13 @@ const DashboardReferrals = () => {
                 Share your code or link with friends. When they sign up and make their first deposit or investment, you'll earn a bonus!
               </p>
             </>
-          ) : (
-            <p className="text-sm text-muted-foreground">Loading your referral code...</p>
+          ) : codeLoading ? (
+            <div className="flex items-center gap-2 py-4">
+              <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              <p className="text-sm text-muted-foreground">Loading your referral code...</p>
+            </div>
+          ) : codeError ? (
+            <p className="text-sm text-destructive">Unable to load referral code. Please refresh.</p>
           )}
         </CardContent>
       </Card>
