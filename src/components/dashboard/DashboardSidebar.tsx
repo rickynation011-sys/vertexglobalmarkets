@@ -9,6 +9,7 @@ import {
   Wallet,
   LogOut,
   ShieldCheck,
+  Signal,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,6 +34,7 @@ const mainItems = [
   { title: "Portfolio", url: "/dashboard/portfolio", icon: BarChart3 },
   { title: "Investments", url: "/dashboard/investments", icon: Briefcase },
   { title: "Trading", url: "/dashboard/trading", icon: TrendingUp },
+  { title: "Signals", url: "/dashboard/signals", icon: Signal },
   { title: "Deposit / Withdraw", url: "/dashboard/wallet", icon: Wallet },
 ];
 
