@@ -130,9 +130,13 @@ const App = () => (
                 <Route index element={<AdminDashboard />} />
                 <Route path="users" element={<AdminUsers />} />
                 <Route path="kyc" element={<AdminKYC />} />
+                <Route path="deposits" element={<AdminDeposits />} />
+                <Route path="withdrawals" element={<AdminWithdrawals />} />
                 <Route path="transactions" element={<AdminTransactions />} />
                 <Route path="investments" element={<AdminInvestments />} />
                 <Route path="deposit-methods" element={<AdminDepositMethods />} />
+                <Route path="signals" element={<AdminSignals />} />
+                <Route path="copy-trading" element={<AdminCopyTrading />} />
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="content" element={<AdminContent />} />
                 <Route path="notifications" element={<AdminNotifications />} />
