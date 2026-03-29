@@ -12,7 +12,7 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 const DashboardLayout = () => {
   const { user } = useAuth();
-  usePushNotifications();
+  const { PushPromptDialog } = usePushNotifications();
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -25,6 +25,7 @@ const DashboardLayout = () => {
 
   return (
     <CurrencyProvider>
+      {PushPromptDialog}
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-background">
           <DashboardSidebar />
