@@ -335,9 +335,11 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          last_profit_processed_date: string | null
           phone: string | null
           referred_by: string | null
           status: string
+          timezone: string | null
           updated_at: string
           user_id: string
           wallet_balance: number
@@ -350,9 +352,11 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          last_profit_processed_date?: string | null
           phone?: string | null
           referred_by?: string | null
           status?: string
+          timezone?: string | null
           updated_at?: string
           user_id: string
           wallet_balance?: number
@@ -365,9 +369,11 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          last_profit_processed_date?: string | null
           phone?: string | null
           referred_by?: string | null
           status?: string
+          timezone?: string | null
           updated_at?: string
           user_id?: string
           wallet_balance?: number

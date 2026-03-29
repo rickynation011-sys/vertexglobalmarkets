@@ -85,11 +85,13 @@ const Register = () => {
 
     // Update profile with additional fields
     if (authData.user) {
+      const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
       await supabase.from("profiles").update({
         country,
         currency,
         phone: phone.trim(),
         referred_by: referrerId,
+        timezone: detectedTimezone,
       } as any).eq("user_id", authData.user.id);
 
       // Create referral record

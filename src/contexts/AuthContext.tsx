@@ -26,6 +26,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setLoading(false);
+
+      // Auto-detect and save timezone on sign-in
+      if (session?.user) {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (tz) {
+          supabase.from("profiles")
+            .update({ timezone: tz } as any)
+            .eq("user_id", session.user.id)
+            .then(() => {});
+        }
+      }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
