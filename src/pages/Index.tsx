@@ -6,6 +6,11 @@ import StatsSection from "@/components/StatsSection";
 import FeaturesSection from "@/components/FeaturesSection";
 import MarketsOverview from "@/components/MarketsOverview";
 import AutoTradingSection from "@/components/AutoTradingSection";
+import TopTradersSection from "@/components/TopTradersSection";
+import InvestorsLeaderboard from "@/components/InvestorsLeaderboard";
+import ExtendedTestimonials from "@/components/ExtendedTestimonials";
+import SecuritySection from "@/components/SecuritySection";
+import PlatformFeaturesSection from "@/components/PlatformFeaturesSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
@@ -34,7 +39,12 @@ const Index = () => {
       <FeaturesSection />
       <MarketsOverview />
       <AutoTradingSection />
+      <TopTradersSection />
+      <InvestorsLeaderboard />
+      <SecuritySection />
+      <PlatformFeaturesSection />
       <TestimonialsSection />
+      <ExtendedTestimonials />
       <CTASection />
       <Footer />
     </div>
