@@ -77,6 +77,7 @@ import AdminCopyTrading from "./pages/admin/AdminCopyTrading.tsx";
 import AdminTickets from "./pages/admin/AdminTickets.tsx";
 import AdminFeePayments from "./pages/admin/AdminFeePayments.tsx";
 import AdminReferrals from "./pages/admin/AdminReferrals.tsx";
+import AdminLandingContent from "./pages/admin/AdminLandingContent.tsx";
 
 const queryClient = new QueryClient();
 
@@ -159,8 +160,10 @@ const App = () => (
                 <Route path="tickets" element={<AdminTickets />} />
                 <Route path="fee-payments" element={<AdminFeePayments />} />
                 <Route path="referrals" element={<AdminReferrals />} />
+                <Route path="landing" element={<AdminLandingContent />} />
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="content" element={<AdminContent />} />
+                <Route path="notifications" element={<AdminNotifications />} />
                 <Route path="notifications" element={<AdminNotifications />} />
               </Route>
             </Route>
