@@ -142,27 +142,56 @@ const AdminNotifications = () => {
           if (match?.email) recipients.push({ email: match.email, full_name: match.full_name });
         } else {
           recipients = allProfilesData
-            .filter((p): p is typeof p & { email: string } => !!p.email);
+            .filter((p): p is typeof p & { email: string } => !!p.email)
+            .map((p) => ({ email: p.email, full_name: p.full_name }));
         }
 
+        if (recipients.length === 0) {
+          throw new Error("No recipient emails found for the selected audience");
+        }
+
+        const failedEmails: Array<{ email: string; reason: string }> = [];
         const batchSize = 10;
+
         for (let i = 0; i < recipients.length; i += batchSize) {
           const batch = recipients.slice(i, i + batchSize);
-          await Promise.all(
-            batch.map((recipient) =>
-              supabase.functions.invoke("send-transactional-email", {
+          const results = await Promise.all(
+            batch.map(async (recipient) => {
+              const { error } = await supabase.functions.invoke("send-transactional-email", {
                 body: {
                   templateName: "admin-notification",
                   recipientEmail: recipient.email,
+                  idempotencyKey: `admin-notification-${notifData.id}-${recipient.email}`,
                   templateData: {
                     title: title.trim(),
                     message: message.trim(),
                     recipientName: recipient.full_name || "Valued Client",
                   },
                 },
-              })
-            )
+              });
+
+              if (error) {
+                return {
+                  email: recipient.email,
+                  reason: error.message || "Failed to queue email",
+                };
+              }
+
+              return null;
+            })
           );
+
+          failedEmails.push(
+            ...results.filter((result): result is { email: string; reason: string } => result !== null)
+          );
+        }
+
+        if (failedEmails.length > 0) {
+          const preview = failedEmails
+            .slice(0, 3)
+            .map((item) => `${item.email} (${item.reason})`)
+            .join(", ");
+          throw new Error(`Notification saved, but ${failedEmails.length} email(s) failed: ${preview}`);
         }
       }
     },
