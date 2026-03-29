@@ -96,6 +96,7 @@ const CopyTradingSection = () => {
       ...t,
       followers: t.followers + Math.round((Math.random() - 0.5) * 40),
       winRate: t.winRate + (Math.random() > 0.5 ? 1 : -1) * Math.round(Math.random()),
+      sparkline: generateSparkline(t.monthlyReturn),
     })), []
   );
 
@@ -151,7 +152,7 @@ const CopyTradingSection = () => {
               </div>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="grid grid-cols-3 gap-3 mb-3">
                 <div className="text-center p-2 rounded-lg bg-muted/30">
                   <div className="flex items-center justify-center gap-1">
                     <TrendingUp className="h-3 w-3 text-success" />
@@ -170,6 +171,12 @@ const CopyTradingSection = () => {
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-0.5">Followers</p>
                 </div>
+              </div>
+
+              {/* 6-Month P&L Sparkline */}
+              <div className="flex items-center justify-between mb-4 px-1">
+                <span className="text-[10px] text-muted-foreground">6-Month P&L</span>
+                <MiniSparkline data={trader.sparkline} />
               </div>
 
               {/* Profit & CTA */}
