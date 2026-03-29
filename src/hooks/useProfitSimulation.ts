@@ -45,17 +45,31 @@ export function useProfitSimulation(
   const tickRef = useRef(0);
   const passedMilestones = useRef<Set<number>>(new Set());
 
+  const lastTickInv = useRef<string | null>(null);
+
   const tick = useCallback(() => {
     if (activeInvestments.length === 0) return;
 
-    const inv =
-      activeInvestments[Math.floor(Math.random() * activeInvestments.length)];
+    // Avoid ticking the same investment twice in a row when multiple exist
+    let inv: Investment;
+    if (activeInvestments.length > 1 && lastTickInv.current) {
+      const others = activeInvestments.filter(i => i.id !== lastTickInv.current);
+      inv = others[Math.floor(Math.random() * others.length)];
+    } else {
+      inv = activeInvestments[Math.floor(Math.random() * activeInvestments.length)];
+    }
+    lastTickInv.current = inv.id;
 
     const baseIncrement =
       (Number(inv.amount) * (Number(inv.daily_rate) / 100)) / 200;
 
-    const fluctuation = 0.7 + Math.random() * 1.1;
-    const increment = Math.max(0.01, baseIncrement * fluctuation);
+    // Log-normal-ish fluctuation for natural variation
+    const u1 = Math.random();
+    const u2 = Math.random();
+    const z = Math.sqrt(-2 * Math.log(Math.max(u1, 0.001))) * Math.cos(2 * Math.PI * u2);
+    const fluctuation = Math.exp(z * 0.3); // centered around 1, spread ~0.3
+    const clampedFluctuation = Math.max(0.3, Math.min(2.5, fluctuation));
+    const increment = Math.max(0.01, baseIncrement * clampedFluctuation);
     const roundedIncrement = Math.round(increment * 100) / 100;
 
     setBonusMap((prev) => ({
@@ -65,7 +79,6 @@ export function useProfitSimulation(
 
     setWalletBonus((prev) => {
       const newBonus = prev + roundedIncrement;
-      // Check milestones
       for (const m of MILESTONES) {
         if (newBonus >= m && !passedMilestones.current.has(m)) {
           passedMilestones.current.add(m);
@@ -77,19 +90,21 @@ export function useProfitSimulation(
 
     setLastFlash({ type: "profit", amount: roundedIncrement, ts: Date.now() });
 
-    // Track balance history for sparkline (keep last 30 points)
     setBalanceHistory((prev) => {
       const newVal = walletBalance + walletBonus + roundedIncrement;
       return [...prev.slice(-29), newVal];
     });
 
-    if (Math.random() < 0.4) {
+    // Vary the chance of logging an activity entry (30-50%)
+    if (Math.random() < 0.3 + Math.random() * 0.2) {
       const labels = [
         `Daily Profit — ${inv.plan_name}`,
         `Trade Profit — ${inv.plan_name}`,
         `Yield — ${inv.plan_name}`,
         `Auto-Trade Gain`,
         `ROI Credit`,
+        `Compound Return`,
+        `Market Gain — ${inv.plan_name}`,
       ];
       const label = labels[Math.floor(Math.random() * labels.length)];
 
@@ -109,14 +124,18 @@ export function useProfitSimulation(
     if (activeInvestments.length === 0) return;
 
     const scheduleNext = () => {
-      const delay = 5000 + Math.random() * 3000;
+      // Variable delay: 4-10s base, occasional longer pauses (15-25s)
+      const isSlowTick = Math.random() < 0.08;
+      const delay = isSlowTick
+        ? 15000 + Math.random() * 10000
+        : 4000 + Math.random() * 6000;
       return setTimeout(() => {
         tick();
         tickRef.current = scheduleNext() as unknown as number;
       }, delay);
     };
 
-    const initialDelay = 2000 + Math.random() * 2000;
+    const initialDelay = 2500 + Math.random() * 3000;
     const initialTimeout = setTimeout(() => {
       tick();
       tickRef.current = scheduleNext() as unknown as number;

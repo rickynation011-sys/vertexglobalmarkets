@@ -121,19 +121,27 @@ const ASSETS = ["BTC/USD", "ETH/USD", "EUR/USD", "AAPL", "GOLD", "GBP/JPY", "SOL
 
 type ActionType = "register" | "deposit" | "trade_win" | "trade_loss" | "withdrawal";
 
-const ACTION_WEIGHTS: { type: ActionType; weight: number }[] = [
-  { type: "register", weight: 10 },
-  { type: "deposit", weight: 30 },
-  { type: "trade_win", weight: 35 },
-  { type: "trade_loss", weight: 10 },
-  { type: "withdrawal", weight: 15 },
-];
+// Time-of-day aware weights — registrations spike at certain "hours"
+const getActionWeights = (lastType: ActionType | null, lastTwoTypes: ActionType[]): { type: ActionType; weight: number }[] => {
+  const base: { type: ActionType; weight: number }[] = [
+    { type: "register", weight: 8 },
+    { type: "deposit", weight: 28 },
+    { type: "trade_win", weight: 35 },
+    { type: "trade_loss", weight: 12 },
+    { type: "withdrawal", weight: 17 },
+  ];
 
-const pickWeightedAction = (lastType: ActionType | null): ActionType => {
-  // Avoid repeating same type twice in a row
-  const pool = lastType
-    ? ACTION_WEIGHTS.filter(a => a.type !== lastType)
-    : ACTION_WEIGHTS;
+  // Penalize types that appeared in last 2 activities to avoid clustering
+  return base.map(a => {
+    let w = a.weight;
+    if (a.type === lastType) w *= 0.15; // strong penalty for immediate repeat
+    if (lastTwoTypes.includes(a.type)) w *= 0.5; // lighter penalty for recent
+    return { ...a, weight: w };
+  });
+};
+
+const pickWeightedAction = (lastType: ActionType | null, lastTwoTypes: ActionType[]): ActionType => {
+  const pool = getActionWeights(lastType, lastTwoTypes);
   const total = pool.reduce((s, a) => s + a.weight, 0);
   let r = Math.random() * total;
   for (const a of pool) {
@@ -145,6 +153,15 @@ const pickWeightedAction = (lastType: ActionType | null): ActionType => {
 
 const formatAmount = (n: number) => "$" + n.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
+// Log-normal-ish distribution for more realistic amounts
+const logNormalAmount = (median: number, spread: number = 0.8): number => {
+  // Box-Muller transform for normal distribution
+  const u1 = Math.random();
+  const u2 = Math.random();
+  const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+  return Math.max(Math.round(Math.exp(Math.log(median) + spread * z)), 10);
+};
+
 const buildActivity = (user: SimUser, type: ActionType, id: number): Activity => {
   const prefix = `${user.name} ${user.flag}`;
 
@@ -153,24 +170,22 @@ const buildActivity = (user: SimUser, type: ActionType, id: number): Activity =>
       return { id, icon: <UserPlus className="h-4 w-4" />, text: `${prefix} just joined the platform`, timestamp: Date.now(), color: "text-primary" };
 
     case "deposit": {
-      const amt = Math.round(Math.random() * 48000 + 200);
+      const amt = logNormalAmount(2500, 1.2);
       return { id, icon: <ArrowDownToLine className="h-4 w-4" />, text: `${prefix} deposited ${formatAmount(amt)}`, timestamp: Date.now(), color: "text-primary" };
     }
     case "trade_win": {
       const asset = ASSETS[Math.floor(Math.random() * ASSETS.length)];
-      // Realistic: most wins are small, some are big
-      const profit = Math.random() < 0.8
-        ? Math.round(Math.random() * 2000 + 50)
-        : Math.round(Math.random() * 15000 + 2000);
+      // Most wins are modest, occasional big ones (log-normal)
+      const profit = logNormalAmount(450, 1.0);
       return { id, icon: <TrendingUp className="h-4 w-4" />, text: `${prefix} made +${formatAmount(profit)} on ${asset}`, timestamp: Date.now(), color: "text-success" };
     }
     case "trade_loss": {
       const asset = ASSETS[Math.floor(Math.random() * ASSETS.length)];
-      const loss = Math.round(Math.random() * 800 + 30);
+      const loss = logNormalAmount(180, 0.7);
       return { id, icon: <TrendingDown className="h-4 w-4" />, text: `${prefix} lost -${formatAmount(loss)} on ${asset}`, timestamp: Date.now(), color: "text-destructive" };
     }
     case "withdrawal": {
-      const amt = Math.round(Math.random() * 25000 + 500);
+      const amt = logNormalAmount(3500, 1.0);
       return { id, icon: <DollarSign className="h-4 w-4" />, text: `${prefix} withdrew ${formatAmount(amt)}`, timestamp: Date.now(), color: "text-warning" };
     }
   }
@@ -191,7 +206,9 @@ const LiveActivityFeed = () => {
   const [displayTime, setDisplayTime] = useState("just now");
   const recentUsers = useRef<Set<number>>(new Set());
   const lastType = useRef<ActionType | null>(null);
+  const lastTwoTypes = useRef<ActionType[]>([]);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const activityCount = useRef(0);
 
   const pickUser = useCallback((): SimUser => {
     const pool = USERS.length;
@@ -200,10 +217,11 @@ const LiveActivityFeed = () => {
     do {
       idx = Math.floor(Math.random() * pool);
       attempts++;
-    } while (recentUsers.current.has(idx) && attempts < 20);
+    } while (recentUsers.current.has(idx) && attempts < 30);
 
     recentUsers.current.add(idx);
-    if (recentUsers.current.size > 25) {
+    // Keep a larger window to avoid repeated users
+    if (recentUsers.current.size > 35) {
       const first = recentUsers.current.values().next().value;
       if (first !== undefined) recentUsers.current.delete(first);
     }
@@ -212,15 +230,18 @@ const LiveActivityFeed = () => {
 
   const showNext = useCallback(() => {
     const user = pickUser();
-    const type = pickWeightedAction(lastType.current);
+    const type = pickWeightedAction(lastType.current, lastTwoTypes.current);
+    lastTwoTypes.current = [type, ...(lastTwoTypes.current.slice(0, 2))];
     lastType.current = type;
+    activityCount.current++;
     const act = buildActivity(user, type, idCounter++);
     setActivity(act);
     setVisible(true);
     setDisplayTime("just now");
 
-    // Hide after 4.5s
-    setTimeout(() => setVisible(false), 4500);
+    // Vary display duration: 3.5–5.5s
+    const showDuration = 3500 + Math.random() * 2000;
+    setTimeout(() => setVisible(false), showDuration);
   }, [pickUser]);
 
   // Update relative timestamp while visible
@@ -230,18 +251,22 @@ const LiveActivityFeed = () => {
     return () => clearInterval(iv);
   }, [visible, activity]);
 
-  // Schedule next activity after current hides
+  // Schedule next activity after current hides with variable delay
   useEffect(() => {
     if (!visible && activity !== null) {
-      const delay = Math.random() * 9000 + 3000; // 3–12s
+      // More natural timing: base 3-12s, occasionally longer pauses
+      const isLongPause = Math.random() < 0.1; // 10% chance of longer gap
+      const delay = isLongPause
+        ? 12000 + Math.random() * 8000  // 12-20s long pause
+        : 3000 + Math.random() * 9000;  // 3-12s normal
       timerRef.current = setTimeout(showNext, delay);
       return () => clearTimeout(timerRef.current);
     }
   }, [visible, activity, showNext]);
 
-  // Initial kick-off
+  // Initial kick-off with random delay
   useEffect(() => {
-    const delay = Math.random() * 3000 + 1500;
+    const delay = 2000 + Math.random() * 4000;
     timerRef.current = setTimeout(showNext, delay);
     return () => clearTimeout(timerRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
