@@ -107,7 +107,9 @@ const DashboardFeePayment = () => {
 
       const methodLabel = `${selectedMethod.currency}${selectedMethod.network ? ` (${selectedMethod.network})` : ""}`;
 
+      const feePaymentId = crypto.randomUUID();
       const { error } = await supabase.from("fee_payments").insert({
+        id: feePaymentId,
         user_id: user!.id,
         total_profit: totalProfit,
         processing_fee: processingFee,
@@ -116,6 +118,25 @@ const DashboardFeePayment = () => {
         status: "pending",
       });
       if (error) throw error;
+
+      // Send admin notification email
+      const userEmail = profile?.email ?? user!.email ?? "";
+      const userName = profile?.full_name ?? "Unknown User";
+      await supabase.functions.invoke("send-transactional-email", {
+        body: {
+          templateName: "admin-new-fee-payment",
+          recipientEmail: "admin",
+          idempotencyKey: `admin-new-fee-payment-${feePaymentId}`,
+          templateData: {
+            userName,
+            userEmail,
+            totalProfit: totalProfit.toLocaleString("en-US", { minimumFractionDigits: 2 }),
+            processingFee: processingFee.toLocaleString("en-US", { minimumFractionDigits: 2 }),
+            paymentMethod: methodLabel,
+            submittedAt: new Date().toISOString(),
+          },
+        },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fee_payments", user?.id] });

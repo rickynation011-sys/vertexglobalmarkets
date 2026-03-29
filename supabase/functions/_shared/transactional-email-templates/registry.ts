@@ -56,4 +56,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'admin-new-kyc': adminNewKyc,
   'admin-new-ticket': adminNewTicket,
   'admin-notification': adminNotification,
+  'admin-new-fee-payment': adminNewFeePayment,
 }
