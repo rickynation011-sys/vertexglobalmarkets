@@ -197,6 +197,16 @@ const DashboardOverview = () => {
 
   const { format } = useCurrency();
   const fmt = (n: number) => format(n);
+
+  // Profit simulation
+  const {
+    simulatedBalance,
+    getSimulatedCurrentValue,
+    totalSimulatedProfit,
+    walletBonus,
+    recentProfits,
+    lastFlash,
+  } = useProfitSimulation(investments as any, walletBalance);
   const portfolioData = (() => {
     const allTxns = [...(transactions ?? [])].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     if (allTxns.length === 0) return [{ date: "Now", value: walletBalance }];
