@@ -104,6 +104,7 @@ const AdminNotifications = () => {
               title: title.trim(),
               body: message.trim(),
               userIds: targetUserIds,
+              ...(category && category !== "none" ? { category } : {}),
             },
           });
         } catch (pushErr) {
