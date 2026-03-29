@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, BadgeCheck } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchTraders, type LandingTrader } from "@/lib/landing-api";
 import traderDaniel from "@/assets/profiles/trader-daniel.jpg";
@@ -53,11 +53,16 @@ const TopTradersSection = () => {
             const initials = t.name.split(" ").map((w) => w[0]).join("");
             return (
               <motion.div key={t.name + i} className="group flex flex-col items-center p-5 md:p-6 rounded-2xl bg-card border border-border hover:border-primary/40 hover:shadow-[0_0_24px_hsl(var(--primary)/0.15)] transition-all duration-300 hover:scale-[1.03]" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}>
-                {t.photo_url ? (
-                  <img src={t.photo_url} alt={t.name} loading="lazy" width={80} height={80} className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover border-2 border-primary/20 mb-3" />
-                ) : (
-                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center text-xl md:text-2xl font-bold text-primary mb-3">{initials}</div>
-                )}
+                <div className="relative">
+                  {t.photo_url ? (
+                    <img src={t.photo_url} alt={t.name} loading="lazy" width={80} height={80} className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover border-2 border-primary/20 mb-3" />
+                  ) : (
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center text-xl md:text-2xl font-bold text-primary mb-3">{initials}</div>
+                  )}
+                  <div className="absolute -bottom-0.5 -right-0.5 h-6 w-6 rounded-full bg-primary flex items-center justify-center border-2 border-card" title="Verified Trader">
+                    <BadgeCheck className="h-3.5 w-3.5 text-primary-foreground" />
+                  </div>
+                </div>
                 <h3 className="font-display font-semibold text-foreground text-sm md:text-base text-center">{t.name}</h3>
                 <p className="text-xs text-muted-foreground mt-1">{t.flag} {t.country}</p>
                 <div className="mt-3 flex items-center gap-1.5"><TrendingUp className="h-4 w-4 text-success" /><span className="text-success font-bold text-lg">{t.win_rate}%</span></div>

@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowDownLeft, ArrowUpRight, Wallet, Shield, Copy, TrendingUp, AlertCircle } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Wallet, Shield, Copy, TrendingUp, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +33,7 @@ const DashboardWallet = () => {
   const [withdrawMethodId, setWithdrawMethodId] = useState("");
   const [withdrawWallet, setWithdrawWallet] = useState("");
   const [showFeeDialog, setShowFeeDialog] = useState(false);
+  const [showWithdrawalSuccess, setShowWithdrawalSuccess] = useState<{ amount: number; method: string } | null>(null);
   const navigate = useNavigate();
 
   const { data: profile } = useQuery({
@@ -251,7 +254,9 @@ const DashboardWallet = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions", user?.id] });
-      toast.success("Withdrawal request submitted for review.");
+      const amt = parseFloat(withdrawAmount);
+      const method = selectedWithdrawMethod ? `${selectedWithdrawMethod.currency}${selectedWithdrawMethod.network ? ` (${selectedWithdrawMethod.network})` : ""}` : "";
+      setShowWithdrawalSuccess({ amount: amt, method });
       setWithdrawAmount("");
       setWithdrawMethodId("");
       setWithdrawWallet("");
@@ -510,6 +515,63 @@ const DashboardWallet = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Last Successful Withdrawals */}
+      {completedWithdrawals.length > 0 && (
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-success" />
+              Recent Successful Withdrawals
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-0">
+              {completedWithdrawals.slice(0, 5).map((tx) => (
+                <div key={tx.id} className="flex items-center justify-between py-3 border-b border-border/50 last:border-0">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-success/10 flex items-center justify-center">
+                      <ArrowUpRight className="h-4 w-4 text-success" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Withdrawal Completed</p>
+                      <p className="text-xs text-muted-foreground">{tx.method} · {new Date(tx.created_at).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-success">{fmt(Number(tx.amount))}</p>
+                    <Badge variant="outline" className="text-[10px] text-success border-success/30">completed</Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Withdrawal Success Popup */}
+      <Dialog open={!!showWithdrawalSuccess} onOpenChange={() => setShowWithdrawalSuccess(null)}>
+        <DialogContent className="sm:max-w-md text-center">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", duration: 0.5 }}
+            className="flex flex-col items-center gap-4 py-4"
+          >
+            <div className="h-16 w-16 rounded-full bg-success/10 flex items-center justify-center">
+              <CheckCircle2 className="h-8 w-8 text-success" />
+            </div>
+            <h3 className="text-xl font-display font-bold text-foreground">Withdrawal Submitted!</h3>
+            <p className="text-muted-foreground text-sm">
+              Your withdrawal of <span className="font-bold text-foreground">{showWithdrawalSuccess ? fmt(showWithdrawalSuccess.amount) : ""}</span> via {showWithdrawalSuccess?.method} has been submitted for review.
+            </p>
+            <p className="text-xs text-muted-foreground">You'll receive an email confirmation once processed.</p>
+            <Button onClick={() => setShowWithdrawalSuccess(null)} className="mt-2 bg-gradient-brand text-primary-foreground">
+              Got it
+            </Button>
+          </motion.div>
+        </DialogContent>
+      </Dialog>
 
       <WithdrawalFeeDialog
         open={showFeeDialog}
