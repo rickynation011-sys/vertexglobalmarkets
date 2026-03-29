@@ -131,6 +131,21 @@ const AdminFeePayments = () => {
         <p className="text-muted-foreground text-sm">Manage withdrawal processing fee payments</p>
       </div>
 
+      {/* Pending alert banner */}
+      {payments.filter(p => p.status === "pending").length > 0 && (
+        <Card className="bg-warning/5 border-warning/30">
+          <CardContent className="p-4 flex items-center gap-3">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-warning"></span>
+            </span>
+            <p className="text-sm font-medium text-warning">
+              {payments.filter(p => p.status === "pending").length} payment{payments.filter(p => p.status === "pending").length !== 1 ? "s" : ""} awaiting review
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="bg-card border-border"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Pending</p><p className="text-2xl font-display font-bold text-warning">{payments.filter(p => p.status === "pending").length}</p></CardContent></Card>
         <Card className="bg-card border-border"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Approved</p><p className="text-2xl font-display font-bold text-success">{payments.filter(p => p.status === "approved").length}</p></CardContent></Card>
@@ -173,10 +188,20 @@ const AdminFeePayments = () => {
                 {filtered.length === 0 ? (
                   <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">No fee payments found</td></tr>
                 ) : filtered.map((p) => (
-                  <tr key={p.id} className="border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors">
+                  <tr key={p.id} className={`border-b border-border/50 last:border-0 transition-colors ${p.status === "pending" ? "bg-warning/5 hover:bg-warning/10" : "hover:bg-muted/30"}`}>
                     <td className="p-4">
-                      <p className="font-medium text-foreground">{p.profile?.full_name ?? "Unknown"}</p>
-                      <p className="text-xs text-muted-foreground">{p.profile?.email ?? p.user_id.slice(0, 8)}</p>
+                      <div className="flex items-center gap-2">
+                        {p.status === "pending" && (
+                          <span className="relative flex h-2 w-2 shrink-0">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-warning"></span>
+                          </span>
+                        )}
+                        <div>
+                          <p className="font-medium text-foreground">{p.profile?.full_name ?? "Unknown"}</p>
+                          <p className="text-xs text-muted-foreground">{p.profile?.email ?? p.user_id.slice(0, 8)}</p>
+                        </div>
+                      </div>
                     </td>
                     <td className="p-4 font-medium text-foreground">{fmt(Number(p.total_profit))}</td>
                     <td className="p-4 font-bold text-primary">{fmt(Number(p.processing_fee))}</td>

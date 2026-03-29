@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
 
 const mainItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
@@ -40,6 +42,18 @@ export function AdminSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
+
+  const { data: pendingFeeCount = 0 } = useQuery({
+    queryKey: ["admin-pending-fee-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("fee_payments")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending");
+      return count ?? 0;
+    },
+    refetchInterval: 30000,
+  });
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -71,9 +85,14 @@ export function AdminSidebar() {
               {mainItems.map((item) => (
                 <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton asChild>
-                    <NavLink to={item.url} end={item.url === "/admin"} className="hover:bg-muted/50" activeClassName="bg-muted text-primary font-medium">
+                    <NavLink to={item.url} end={item.url === "/admin"} className="hover:bg-muted/50 relative" activeClassName="bg-muted text-primary font-medium">
                       <item.icon className="mr-2 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
+                      {item.url === "/admin/fee-payments" && pendingFeeCount > 0 && (
+                        <Badge className="ml-auto h-5 min-w-[20px] px-1.5 text-[10px] font-bold bg-destructive text-destructive-foreground rounded-full">
+                          {pendingFeeCount}
+                        </Badge>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
