@@ -444,10 +444,32 @@ const DashboardOverview = () => {
             </div>
           </CardHeader>
           <CardContent>
-            {recentTx.length === 0 ? (
+            {recentTx.length === 0 && recentProfits.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">No recent activity</p>
             ) : (
               <div className="space-y-0">
+                {/* Simulated profit entries first */}
+                {recentProfits.slice(0, 3).map(sp => {
+                  const secsAgo = Math.floor((Date.now() - sp.timestamp) / 1000);
+                  const timeLabel = secsAgo < 5 ? "just now" : secsAgo < 60 ? `${secsAgo}s ago` : `${Math.floor(secsAgo / 60)}m ago`;
+                  return (
+                    <div key={sp.id} className="flex items-center justify-between py-2.5 border-b border-border/50 last:border-0">
+                      <div className="flex items-center gap-2">
+                        <div className="h-7 w-7 rounded-full flex items-center justify-center bg-success/10">
+                          <TrendingUp className="h-3.5 w-3.5 text-success" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-foreground">{sp.label}</p>
+                          <p className="text-[10px] text-muted-foreground">{timeLabel}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-semibold text-success">+{fmt(sp.amount)}</p>
+                        <Badge variant="outline" className="text-[9px] px-1 py-0 border-success/30 text-success">completed</Badge>
+                      </div>
+                    </div>
+                  );
+                })}
                 {recentTx.map(tx => (
                   <div key={tx.id} className="flex items-center justify-between py-2.5 border-b border-border/50 last:border-0">
                     <div className="flex items-center gap-2">
