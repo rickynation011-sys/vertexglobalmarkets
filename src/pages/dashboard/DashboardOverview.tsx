@@ -18,6 +18,8 @@ import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { useProfitSimulation } from "@/hooks/useProfitSimulation";
 import AnimatedBalance from "@/components/dashboard/AnimatedBalance";
+import BalanceSparkline from "@/components/dashboard/BalanceSparkline";
+import MilestoneConfetti from "@/components/dashboard/MilestoneConfetti";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useMarketPrices } from "@/hooks/useMarketPrices";
