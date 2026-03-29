@@ -240,6 +240,28 @@ const AdminUsers = () => {
                         <td className="p-4">
                           <Badge className={`text-xs ${statusColors[u.status] ?? "bg-muted text-muted-foreground"}`}>{u.status}</Badge>
                         </td>
+                        <td className="p-4">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                {emailVerification[u.user_id]?.email_confirmed_at ? (
+                                  <Badge className="bg-success/10 text-success text-xs gap-1">
+                                    <MailCheck className="h-3 w-3" /> Verified
+                                  </Badge>
+                                ) : (
+                                  <Badge className="bg-warning/10 text-warning text-xs gap-1">
+                                    <MailX className="h-3 w-3" /> Unverified
+                                  </Badge>
+                                )}
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {emailVerification[u.user_id]?.email_confirmed_at
+                                  ? `Verified on ${new Date(emailVerification[u.user_id].email_confirmed_at!).toLocaleString()}`
+                                  : "Email not yet verified"}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </td>
                         <td className="p-4 font-medium text-foreground">
                           ${Number(u.wallet_balance).toLocaleString("en-US", { minimumFractionDigits: 2 })}
                         </td>
