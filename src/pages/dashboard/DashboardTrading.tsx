@@ -355,6 +355,11 @@ const DashboardTrading = () => {
             </CardContent>
           </Card>
 
+          {/* Order Book */}
+          <div className="mt-4">
+            <OrderBook price={livePrice} decimals={decimals} pair={selectedPair} />
+          </div>
+
           {/* Open Positions */}
           <Card className="bg-card border-border mt-4">
             <CardHeader className="pb-2">
@@ -488,6 +493,15 @@ const DashboardTrading = () => {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Price Alerts */}
+          <PriceAlerts
+            currentPrices={Object.fromEntries(MARKET_PAIRS.map(p => {
+              const asset = marketAssets.find(a => a.displayName === p.displayName);
+              return [p.displayName, asset?.price ?? p.basePrice];
+            }))}
+            pairs={MARKET_PAIRS.map(p => p.displayName)}
+          />
 
           {/* Recent Market Activity */}
           <Card className="bg-card border-border">
