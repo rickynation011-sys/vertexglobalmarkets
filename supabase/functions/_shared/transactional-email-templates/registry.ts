@@ -31,6 +31,7 @@ import { template as investmentMatured } from './investment-matured.tsx'
 import { template as referralBonus } from './referral-bonus.tsx'
 import { template as passwordChanged } from './password-changed.tsx'
 import { template as adminNotification } from './admin-notification.tsx'
+import { template as adminNewFeePayment } from './admin-new-fee-payment.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'welcome': welcome,
