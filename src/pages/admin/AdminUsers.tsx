@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Search, Ban, Loader2, CheckCircle, DollarSign, ShieldCheck, Plus, Minus, Trash2 } from "lucide-react";
+import { Search, Ban, Loader2, CheckCircle, DollarSign, ShieldCheck, Plus, Minus, Trash2, MailCheck, MailX } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
