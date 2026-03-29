@@ -248,6 +248,9 @@ const DashboardOverview = () => {
         </div>
       </div>
 
+      {/* Milestone Confetti */}
+      <MilestoneConfetti milestone={milestone} format={fmt} />
+
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/wallet")}>
@@ -258,8 +261,11 @@ const DashboardOverview = () => {
                 <DollarSign className="h-4 w-4" />
               </div>
             </div>
-            <div className="text-lg font-display font-bold text-foreground">
-              <AnimatedBalance value={simulatedBalance} format={fmt} flash={lastFlash?.type === "profit" ? lastFlash : null} />
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-lg font-display font-bold text-foreground">
+                <AnimatedBalance value={simulatedBalance} format={fmt} flash={lastFlash?.type === "profit" ? lastFlash : null} />
+              </div>
+              <BalanceSparkline data={balanceHistory} />
             </div>
           </CardContent>
         </Card>
