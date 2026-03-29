@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { title, body, userIds } = await req.json();
+    const { title, body, userIds, category } = await req.json();
 
     if (!title || !body || !userIds || !Array.isArray(userIds)) {
       return new Response(
@@ -131,17 +131,43 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch FCM tokens for target users
+    // Check notification preferences - filter out users who disabled push for this category
+    let eligibleUserIds = userIds;
+    if (category) {
+      const pushColumn = `${category}_push`;
+      const validColumns = [
+        "trade_executed_push",
+        "deposit_withdrawal_push",
+        "market_news_push",
+      ];
+      if (validColumns.includes(pushColumn)) {
+        const { data: prefs } = await adminClient
+          .from("notification_preferences")
+          .select("user_id, " + pushColumn)
+          .in("user_id", userIds);
+
+        if (prefs && prefs.length > 0) {
+          const disabledUsers = new Set(
+            prefs
+              .filter((p: any) => p[pushColumn] === false)
+              .map((p: any) => p.user_id)
+          );
+          eligibleUserIds = userIds.filter((id: string) => !disabledUsers.has(id));
+        }
+      }
+    }
+
+    // Fetch FCM tokens for eligible users
     const { data: tokens, error: tokenError } = await adminClient
       .from("fcm_tokens")
       .select("token")
-      .in("user_id", userIds);
+      .in("user_id", eligibleUserIds);
 
     if (tokenError) throw tokenError;
 
     if (!tokens || tokens.length === 0) {
       return new Response(
-        JSON.stringify({ success: true, sent: 0, message: "No FCM tokens found for target users" }),
+        JSON.stringify({ success: true, sent: 0, message: "No eligible FCM tokens found" }),
         {
           status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
