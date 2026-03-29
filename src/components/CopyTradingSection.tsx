@@ -15,6 +15,63 @@ type Trader = {
   description: string;
 };
 
+/** Generate a 6-point sparkline representing 6 months of cumulative P&L */
+const generateSparkline = (monthlyReturn: number): number[] => {
+  const points: number[] = [0];
+  for (let i = 1; i <= 5; i++) {
+    const prev = points[i - 1];
+    // Each month adds roughly monthlyReturn% with realistic variance
+    const gain = monthlyReturn * (0.4 + Math.random() * 1.2);
+    // Occasional dip month (20% chance)
+    const dip = Math.random() < 0.2 ? -monthlyReturn * 0.6 * Math.random() : 0;
+    points.push(prev + gain + dip);
+  }
+  return points;
+};
+
+const MiniSparkline = ({ data }: { data: number[] }) => {
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  const h = 32;
+  const w = 80;
+  const pts = data.map((v, i) => ({
+    x: (i / (data.length - 1)) * w,
+    y: h - ((v - min) / range) * (h - 4) - 2,
+  }));
+  const d = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  const positive = data[data.length - 1] >= data[0];
+
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="overflow-visible">
+      <defs>
+        <linearGradient id={`sg-${positive ? "up" : "dn"}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={positive ? "hsl(var(--success))" : "hsl(var(--destructive))"} stopOpacity="0.3" />
+          <stop offset="100%" stopColor={positive ? "hsl(var(--success))" : "hsl(var(--destructive))"} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path
+        d={`${d} L${w},${h} L0,${h} Z`}
+        fill={`url(#sg-${positive ? "up" : "dn"})`}
+      />
+      <path
+        d={d}
+        fill="none"
+        stroke={positive ? "hsl(var(--success))" : "hsl(var(--destructive))"}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle
+        cx={pts[pts.length - 1].x}
+        cy={pts[pts.length - 1].y}
+        r="2"
+        fill={positive ? "hsl(var(--success))" : "hsl(var(--destructive))"}
+      />
+    </svg>
+  );
+};
+
 const BASE_TRADERS: Trader[] = [
   { name: "Alex Morgan", avatar: "AM", winRate: 92, totalProfit: "$284K", followers: 1243, monthlyReturn: 8.5, riskLevel: "Low", description: "Conservative forex & crypto strategy" },
   { name: "Sarah Chen", avatar: "SC", winRate: 88, totalProfit: "$512K", followers: 2105, monthlyReturn: 12.3, riskLevel: "Medium", description: "Aggressive momentum trading" },
@@ -39,6 +96,7 @@ const CopyTradingSection = () => {
       ...t,
       followers: t.followers + Math.round((Math.random() - 0.5) * 40),
       winRate: t.winRate + (Math.random() > 0.5 ? 1 : -1) * Math.round(Math.random()),
+      sparkline: generateSparkline(t.monthlyReturn),
     })), []
   );
 
@@ -94,7 +152,7 @@ const CopyTradingSection = () => {
               </div>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="grid grid-cols-3 gap-3 mb-3">
                 <div className="text-center p-2 rounded-lg bg-muted/30">
                   <div className="flex items-center justify-center gap-1">
                     <TrendingUp className="h-3 w-3 text-success" />
@@ -113,6 +171,12 @@ const CopyTradingSection = () => {
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-0.5">Followers</p>
                 </div>
+              </div>
+
+              {/* 6-Month P&L Sparkline */}
+              <div className="flex items-center justify-between mb-4 px-1">
+                <span className="text-[10px] text-muted-foreground">6-Month P&L</span>
+                <MiniSparkline data={trader.sparkline} />
               </div>
 
               {/* Profit & CTA */}
