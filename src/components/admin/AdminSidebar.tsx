@@ -43,20 +43,22 @@ export function AdminSidebar() {
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
 
-  const { data: pendingCounts = { fees: 0, deposits: 0, withdrawals: 0, kyc: 0 } } = useQuery({
+  const { data: pendingCounts = { fees: 0, deposits: 0, withdrawals: 0, kyc: 0, tickets: 0 } } = useQuery({
     queryKey: ["admin-pending-counts"],
     queryFn: async () => {
-      const [feeRes, depRes, wdRes, kycRes] = await Promise.all([
+      const [feeRes, depRes, wdRes, kycRes, ticketRes] = await Promise.all([
         supabase.from("fee_payments").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("transactions").select("id", { count: "exact", head: true }).eq("status", "pending").eq("type", "deposit"),
         supabase.from("transactions").select("id", { count: "exact", head: true }).eq("status", "pending").eq("type", "withdrawal"),
         supabase.from("kyc_verifications").select("id", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("support_tickets").select("id", { count: "exact", head: true }).in("status", ["pending", "open"]),
       ]);
       return {
         fees: feeRes.count ?? 0,
         deposits: depRes.count ?? 0,
         withdrawals: wdRes.count ?? 0,
         kyc: kycRes.count ?? 0,
+        tickets: ticketRes.count ?? 0,
       };
     },
     refetchInterval: 30000,
@@ -67,6 +69,7 @@ export function AdminSidebar() {
     "/admin/deposits": pendingCounts.deposits,
     "/admin/withdrawals": pendingCounts.withdrawals,
     "/admin/fee-payments": pendingCounts.fees,
+    "/admin/tickets": pendingCounts.tickets,
   };
 
   const handleLogout = async () => {
