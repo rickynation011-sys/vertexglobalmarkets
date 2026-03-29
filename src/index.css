@@ -59,6 +59,9 @@
     --success: 145 60% 45%;
     --warning: 40 90% 55%;
     --info: 215 60% 50%;
+    --gold: 45 90% 55%;
+    --gold-foreground: 220 20% 4%;
+    --shadow-gold-glow: 0 0 30px hsl(45 90% 55% / 0.15);
   }
 }
 
