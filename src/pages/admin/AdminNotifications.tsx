@@ -161,6 +161,7 @@ const AdminNotifications = () => {
       setChannelPush(false);
       setChannelInApp(true);
       setChannelEmail(false);
+      setCategory("");
       queryClient.invalidateQueries({ queryKey: ["admin-notifications"] });
     },
     onError: (err: Error) => toast.error(err.message),
