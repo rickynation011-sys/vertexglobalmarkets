@@ -1,22 +1,37 @@
 import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
+import invAlexander from "@/assets/profiles/inv-alexander.jpg";
+import invVictoria from "@/assets/profiles/inv-victoria.jpg";
+import invSebastian from "@/assets/profiles/inv-sebastian.jpg";
+import invIsabella from "@/assets/profiles/inv-isabella.jpg";
+import invWilliam from "@/assets/profiles/inv-william.jpg";
+import invCharlotte from "@/assets/profiles/inv-charlotte.jpg";
+import invHenrik from "@/assets/profiles/inv-henrik.jpg";
+import invEmma from "@/assets/profiles/inv-emma.jpg";
+import invDavid from "@/assets/profiles/inv-david.jpg";
+import invOlivia from "@/assets/profiles/inv-olivia.jpg";
+import invMarcus from "@/assets/profiles/inv-marcus.jpg";
+import invSophie from "@/assets/profiles/inv-sophie.jpg";
+import invThomas from "@/assets/profiles/inv-thomas.jpg";
+import invRachel from "@/assets/profiles/inv-rachel.jpg";
+import invLiam from "@/assets/profiles/inv-liam.jpg";
 
 const investors = [
-  { name: "Alexander Hughes", country: "🇺🇸 USA", portfolio: "$12.5M", profit: "$1.8M" },
-  { name: "Victoria Stone", country: "🇬🇧 UK", portfolio: "$10.2M", profit: "$1.5M" },
-  { name: "Sebastian Müller", country: "🇩🇪 Germany", portfolio: "$9.8M", profit: "$1.4M" },
-  { name: "Isabella Romano", country: "🇮🇹 Italy", portfolio: "$8.7M", profit: "$1.2M" },
-  { name: "William Chen", country: "🇸🇬 Singapore", portfolio: "$8.1M", profit: "$1.1M" },
-  { name: "Charlotte Dubois", country: "🇫🇷 France", portfolio: "$7.6M", profit: "$980K" },
-  { name: "Henrik Larsson", country: "🇸🇪 Sweden", portfolio: "$7.2M", profit: "$920K" },
-  { name: "Emma Thompson", country: "🇦🇺 Australia", portfolio: "$6.9M", profit: "$870K" },
-  { name: "David Kim", country: "🇰🇷 South Korea", portfolio: "$6.5M", profit: "$840K" },
-  { name: "Olivia van der Berg", country: "🇳🇱 Netherlands", portfolio: "$6.1M", profit: "$790K" },
-  { name: "Marcus Silva", country: "🇧🇷 Brazil", portfolio: "$5.8M", profit: "$750K" },
-  { name: "Sophie Andersen", country: "🇩🇰 Denmark", portfolio: "$5.4M", profit: "$710K" },
-  { name: "Thomas Weber", country: "🇨🇭 Switzerland", portfolio: "$5.1M", profit: "$680K" },
-  { name: "Rachel Nakamura", country: "🇯🇵 Japan", portfolio: "$4.8M", profit: "$640K" },
-  { name: "Liam O'Brien", country: "🇮🇪 Ireland", portfolio: "$4.5M", profit: "$600K" },
+  { name: "Alexander Hughes", country: "🇺🇸 USA", portfolio: "$12.5M", profit: "$1.8M", photo: invAlexander },
+  { name: "Victoria Stone", country: "🇬🇧 UK", portfolio: "$10.2M", profit: "$1.5M", photo: invVictoria },
+  { name: "Sebastian Müller", country: "🇩🇪 Germany", portfolio: "$9.8M", profit: "$1.4M", photo: invSebastian },
+  { name: "Isabella Romano", country: "🇮🇹 Italy", portfolio: "$8.7M", profit: "$1.2M", photo: invIsabella },
+  { name: "William Chen", country: "🇸🇬 Singapore", portfolio: "$8.1M", profit: "$1.1M", photo: invWilliam },
+  { name: "Charlotte Dubois", country: "🇫🇷 France", portfolio: "$7.6M", profit: "$980K", photo: invCharlotte },
+  { name: "Henrik Larsson", country: "🇸🇪 Sweden", portfolio: "$7.2M", profit: "$920K", photo: invHenrik },
+  { name: "Emma Thompson", country: "🇦🇺 Australia", portfolio: "$6.9M", profit: "$870K", photo: invEmma },
+  { name: "David Kim", country: "🇰🇷 South Korea", portfolio: "$6.5M", profit: "$840K", photo: invDavid },
+  { name: "Olivia van der Berg", country: "🇳🇱 Netherlands", portfolio: "$6.1M", profit: "$790K", photo: invOlivia },
+  { name: "Marcus Silva", country: "🇧🇷 Brazil", portfolio: "$5.8M", profit: "$750K", photo: invMarcus },
+  { name: "Sophie Andersen", country: "🇩🇰 Denmark", portfolio: "$5.4M", profit: "$710K", photo: invSophie },
+  { name: "Thomas Weber", country: "🇨🇭 Switzerland", portfolio: "$5.1M", profit: "$680K", photo: invThomas },
+  { name: "Rachel Nakamura", country: "🇯🇵 Japan", portfolio: "$4.8M", profit: "$640K", photo: invRachel },
+  { name: "Liam O'Brien", country: "🇮🇪 Ireland", portfolio: "$4.5M", profit: "$600K", photo: invLiam },
 ];
 
 const rankColors: Record<number, string> = {
@@ -75,9 +90,14 @@ const InvestorsLeaderboard = () => (
                   </td>
                   <td className="px-4 md:px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary">
-                        {inv.name.split(" ").map((w) => w[0]).join("")}
-                      </div>
+                      <img
+                        src={inv.photo}
+                        alt={inv.name}
+                        loading="lazy"
+                        width={32}
+                        height={32}
+                        className="w-8 h-8 rounded-full object-cover border border-primary/20"
+                      />
                       <span className="font-medium text-foreground">{inv.name}</span>
                     </div>
                   </td>
