@@ -12,7 +12,7 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 const DashboardLayout = () => {
   const { user } = useAuth();
-  usePushNotifications();
+  const { PushPromptDialog } = usePushNotifications();
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
