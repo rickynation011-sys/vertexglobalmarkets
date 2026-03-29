@@ -98,12 +98,26 @@ const AdminDeposits = () => {
 
   const handleReject = async (id: string) => {
     setActionLoading(id);
+    const tx = deposits.find(d => d.id === id);
     const { error } = await supabase
       .from("transactions")
       .update({ status: "rejected", reviewed_by: user?.id ?? null, updated_at: new Date().toISOString() })
       .eq("id", id);
     setActionLoading(null);
     if (error) { toast.error("Failed to reject"); return; }
+
+    // Send deposit rejected email to user
+    if (tx?.profile?.email) {
+      supabase.functions.invoke('send-transactional-email', {
+        body: {
+          templateName: 'deposit-confirmation',
+          recipientEmail: tx.profile.email,
+          idempotencyKey: `deposit-rejected-${id}`,
+          templateData: { name: tx.profile.full_name || undefined, amount: tx.amount.toLocaleString(), method: tx.method, status: 'rejected' },
+        },
+      });
+    }
+
     toast.success("Deposit rejected");
     fetchDeposits();
   };

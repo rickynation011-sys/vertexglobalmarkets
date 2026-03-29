@@ -36,7 +36,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "vertexglobalmarkets"
+const SITE_NAME = "Vertex Global Markets Support"
 const SENDER_DOMAIN = "notify.vertexglobalmarkets.com"
 const ROOT_DOMAIN = "vertexglobalmarkets.com"
 const FROM_DOMAIN = "vertexglobalmarkets.com" // Domain shown in From address (may be root or sender subdomain)
@@ -256,7 +256,7 @@ async function handleWebhook(req: Request): Promise<Response> {
       run_id,
       message_id: messageId,
       to: payload.data.email,
-      from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+      from: `${SITE_NAME} <support@${FROM_DOMAIN}>`,
       sender_domain: SENDER_DOMAIN,
       subject: EMAIL_SUBJECTS[emailType] || 'Notification',
       html,
