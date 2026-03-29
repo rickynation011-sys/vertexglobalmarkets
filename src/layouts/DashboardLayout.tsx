@@ -8,9 +8,11 @@ import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 const DashboardLayout = () => {
   const { user } = useAuth();
+  usePushNotifications();
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
