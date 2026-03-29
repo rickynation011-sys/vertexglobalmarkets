@@ -35,14 +35,14 @@ export const SignupEmail = ({
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Confirm your email to get started with Vertex Global Markets</Preview>
+    <Preview>Confirm your email to get started with Vexter Global Markets</Preview>
     <Body style={main}>
       <Container style={wrapper}>
         {/* Header */}
         <Section style={header}>
-          <Img src={LOGO_URL} alt="Vertex Global Markets" width="48" height="48" style={logo} />
+          <Img src={LOGO_URL} alt="Vexter Global Markets" width="48" height="48" style={logo} />
           <Text style={brandName}>
-            <span style={{ color: '#3CB371' }}>Vertex</span>{' '}
+            <span style={{ color: '#3CB371' }}>Vexter</span>{' '}
             <span style={{ color: '#4A90D9' }}>Global</span>{' '}
             <span style={{ color: '#8B5CF6' }}>Markets</span>
           </Text>
@@ -52,34 +52,34 @@ export const SignupEmail = ({
         <Section style={body}>
           <Heading style={h1}>Confirm Your Email Address</Heading>
           <Text style={text}>
-            Welcome to Vertex Global Markets! To complete your registration and access our advanced trading and investment platform, please verify your email address by clicking the button below.
+            Hello{recipient ? ` ${recipient}` : ''},
           </Text>
-          <Text style={textMuted}>
-            Your registered email: <Link href={`mailto:${recipient}`} style={link}>{recipient}</Link>
+          <Text style={text}>
+            Welcome to Vexter Global Markets.
+          </Text>
+          <Text style={text}>
+            To complete your registration and secure your account, please confirm your email address by clicking the button below:
           </Text>
           <Section style={buttonContainer}>
             <Button style={button} href={confirmationUrl}>
-              Verify Email Address
+              Confirm Email
             </Button>
           </Section>
-          <Text style={trustText}>
-            🔒 This is a secure, encrypted verification link.
+          <Text style={textMuted}>
+            If you did not create this account, please ignore this email.
           </Text>
         </Section>
 
         {/* Footer */}
         <Section style={footer}>
           <Hr style={hr} />
-          <Text style={footerBrand}>Vertex Global Markets</Text>
-          <Text style={footerText}>
-            Powered by next-generation trading infrastructure
+          <Text style={text}>
+            Thank you,
           </Text>
+          <Text style={footerBrand}>Vexter Global Markets Team</Text>
           <Text style={footerText}>
             Need help? Contact us at{' '}
             <Link href={`mailto:${SUPPORT_EMAIL}`} style={footerLink}>{SUPPORT_EMAIL}</Link>
-          </Text>
-          <Text style={footerDisclaimer}>
-            If you did not create an account, you can safely ignore this email.
           </Text>
         </Section>
       </Container>
