@@ -119,6 +119,7 @@ const App = () => (
               <Route path="/signals" element={<Signals />} />
               <Route path="/plans" element={<Plans />} />
               <Route path="/real-estate" element={<RealEstate />} />
+              <Route path="/regulation-compliance" element={<RegulationCompliance />} />
               <Route path="/markets/forex" element={<MarketForex />} />
               <Route path="/markets/crypto" element={<MarketCrypto />} />
               <Route path="/markets/stocks" element={<MarketStocks />} />
