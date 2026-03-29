@@ -589,6 +589,7 @@ export type Database = {
           bonus_currency: string
           created_at: string
           id: string
+          level: number
           referred_user_id: string
           referrer_id: string
           status: string
@@ -599,6 +600,7 @@ export type Database = {
           bonus_currency?: string
           created_at?: string
           id?: string
+          level?: number
           referred_user_id: string
           referrer_id: string
           status?: string
@@ -609,6 +611,7 @@ export type Database = {
           bonus_currency?: string
           created_at?: string
           id?: string
+          level?: number
           referred_user_id?: string
           referrer_id?: string
           status?: string
