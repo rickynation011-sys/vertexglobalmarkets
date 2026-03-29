@@ -136,4 +136,22 @@
     0% { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
+
+  @keyframes flash-up {
+    0% { background-color: hsl(var(--success) / 0.3); color: hsl(var(--success)); }
+    100% { background-color: transparent; color: inherit; }
+  }
+
+  @keyframes flash-down {
+    0% { background-color: hsl(var(--destructive) / 0.3); color: hsl(var(--destructive)); }
+    100% { background-color: transparent; color: inherit; }
+  }
+
+  .ticker-flash-up {
+    animation: flash-up 0.6s ease-out forwards;
+  }
+
+  .ticker-flash-down {
+    animation: flash-down 0.6s ease-out forwards;
+  }
 }
