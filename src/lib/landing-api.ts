@@ -46,7 +46,7 @@ export const fetchTraders = async (): Promise<LandingTrader[]> => {
     .eq("is_active", true)
     .order("sort_order");
   if (error) throw error;
-  return (data ?? []) as LandingTrader[];
+  return (data ?? []) as unknown as LandingTrader[];
 };
 
 export const fetchAllTraders = async (): Promise<LandingTrader[]> => {
@@ -55,7 +55,7 @@ export const fetchAllTraders = async (): Promise<LandingTrader[]> => {
     .select("*")
     .order("sort_order");
   if (error) throw error;
-  return (data ?? []) as LandingTrader[];
+  return (data ?? []) as unknown as LandingTrader[];
 };
 
 export const upsertTrader = async (trader: Partial<LandingTrader> & { name: string; country: string; flag: string }) => {
@@ -76,7 +76,7 @@ export const fetchInvestors = async (): Promise<LandingInvestor[]> => {
     .eq("is_active", true)
     .order("sort_order");
   if (error) throw error;
-  return (data ?? []) as LandingInvestor[];
+  return (data ?? []) as unknown as LandingInvestor[];
 };
 
 export const fetchAllInvestors = async (): Promise<LandingInvestor[]> => {
@@ -85,7 +85,7 @@ export const fetchAllInvestors = async (): Promise<LandingInvestor[]> => {
     .select("*")
     .order("sort_order");
   if (error) throw error;
-  return (data ?? []) as LandingInvestor[];
+  return (data ?? []) as unknown as LandingInvestor[];
 };
 
 export const upsertInvestor = async (inv: Partial<LandingInvestor> & { name: string; country: string }) => {
@@ -106,7 +106,7 @@ export const fetchTestimonials = async (): Promise<LandingTestimonial[]> => {
     .eq("is_active", true)
     .order("sort_order");
   if (error) throw error;
-  return (data ?? []) as LandingTestimonial[];
+  return (data ?? []) as unknown as LandingTestimonial[];
 };
 
 export const fetchAllTestimonials = async (): Promise<LandingTestimonial[]> => {
@@ -115,7 +115,7 @@ export const fetchAllTestimonials = async (): Promise<LandingTestimonial[]> => {
     .select("*")
     .order("sort_order");
   if (error) throw error;
-  return (data ?? []) as LandingTestimonial[];
+  return (data ?? []) as unknown as LandingTestimonial[];
 };
 
 export const upsertTestimonial = async (t: Partial<LandingTestimonial> & { name: string; country: string; review: string }) => {
