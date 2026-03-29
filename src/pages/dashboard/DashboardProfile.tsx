@@ -1,10 +1,18 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, Camera, Mail, Phone, Globe, LogOut, Lock, Shield, KeyRound, Eye, EyeOff } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { User, Camera, Mail, Phone, Globe, LogOut, Lock, Shield, KeyRound, Eye, EyeOff, Clock } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+
+const COMMON_TIMEZONES = Intl.supportedValuesOf("timeZone");
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -44,6 +52,7 @@ const DashboardProfile = () => {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [country, setCountry] = useState("");
+  const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
   const [uploading, setUploading] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -57,6 +66,7 @@ const DashboardProfile = () => {
       setFullName(profile.full_name ?? "");
       setPhone(profile.phone ?? "");
       setCountry(profile.country ?? "");
+      setTimezone((profile as any).timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone);
     }
   }, [profile]);
 
@@ -64,7 +74,7 @@ const DashboardProfile = () => {
     mutationFn: async () => {
       const { error } = await supabase
         .from("profiles")
-        .update({ full_name: fullName, phone, country })
+        .update({ full_name: fullName, phone, country, timezone } as any)
         .eq("user_id", user!.id);
       if (error) throw error;
     },
@@ -261,7 +271,21 @@ const DashboardProfile = () => {
                 maxLength={100}
               />
             </div>
-          </div>
+            <div>
+              <label className="text-sm text-muted-foreground flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5" /> Timezone
+              </label>
+              <Select value={timezone} onValueChange={setTimezone}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select timezone" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {COMMON_TIMEZONES.map((tz) => (
+                    <SelectItem key={tz} value={tz}>{tz.replace(/_/g, " ")}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           <Button
             size="sm"
             className="bg-gradient-brand text-primary-foreground font-semibold"
