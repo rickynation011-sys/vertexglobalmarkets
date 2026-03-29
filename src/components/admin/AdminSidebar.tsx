@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, ShieldCheck, ArrowUpDown, Settings,
-  FileText, Bell, LogOut, Shield, TrendingUp, Wallet, Signal, Copy, ArrowDownLeft, ArrowUpRight, Ticket, DollarSign, Link2, Globe
+  FileText, Bell, LogOut, Shield, TrendingUp, Wallet, Signal, Copy, ArrowDownLeft, ArrowUpRight, Ticket, DollarSign, Link2, Globe, Mail
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import logo from "@/assets/logo-symbol.png";
@@ -30,6 +30,7 @@ const mainItems = [
 
 const systemItems = [
   { title: "Landing Page", url: "/admin/landing", icon: Globe },
+  { title: "Email Dashboard", url: "/admin/email-dashboard", icon: Mail },
   { title: "Notifications", url: "/admin/notifications", icon: Bell },
   { title: "Platform Settings", url: "/admin/settings", icon: Settings },
   { title: "Content", url: "/admin/content", icon: FileText },
