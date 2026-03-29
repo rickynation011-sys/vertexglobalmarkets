@@ -66,6 +66,19 @@ const AdminUsers = () => {
     }
     setUserRoles(rolesMap);
     setLoading(false);
+
+    // Fetch email verification status
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const res = await supabase.functions.invoke("get-email-verification-status");
+        if (res.data && !res.error) {
+          setEmailVerification(res.data);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch email verification status", e);
+    }
   };
 
   useEffect(() => { fetchProfiles(); }, []);
