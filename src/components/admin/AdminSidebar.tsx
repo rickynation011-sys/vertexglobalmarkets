@@ -43,17 +43,28 @@ export function AdminSidebar() {
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
 
-  const { data: pendingFeeCount = 0 } = useQuery({
-    queryKey: ["admin-pending-fee-count"],
+  const { data: pendingCounts = { fees: 0, deposits: 0, withdrawals: 0 } } = useQuery({
+    queryKey: ["admin-pending-counts"],
     queryFn: async () => {
-      const { count } = await supabase
-        .from("fee_payments")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "pending");
-      return count ?? 0;
+      const [feeRes, depRes, wdRes] = await Promise.all([
+        supabase.from("fee_payments").select("id", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("transactions").select("id", { count: "exact", head: true }).eq("status", "pending").eq("type", "deposit"),
+        supabase.from("transactions").select("id", { count: "exact", head: true }).eq("status", "pending").eq("type", "withdrawal"),
+      ]);
+      return {
+        fees: feeRes.count ?? 0,
+        deposits: depRes.count ?? 0,
+        withdrawals: wdRes.count ?? 0,
+      };
     },
     refetchInterval: 30000,
   });
+
+  const badgeMap: Record<string, number> = {
+    "/admin/deposits": pendingCounts.deposits,
+    "/admin/withdrawals": pendingCounts.withdrawals,
+    "/admin/fee-payments": pendingCounts.fees,
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -88,9 +99,9 @@ export function AdminSidebar() {
                     <NavLink to={item.url} end={item.url === "/admin"} className="hover:bg-muted/50 relative" activeClassName="bg-muted text-primary font-medium">
                       <item.icon className="mr-2 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
-                      {item.url === "/admin/fee-payments" && pendingFeeCount > 0 && (
+                      {(badgeMap[item.url] ?? 0) > 0 && (
                         <Badge className="ml-auto h-5 min-w-[20px] px-1.5 text-[10px] font-bold bg-destructive text-destructive-foreground rounded-full">
-                          {pendingFeeCount}
+                          {badgeMap[item.url]}
                         </Badge>
                       )}
                     </NavLink>
