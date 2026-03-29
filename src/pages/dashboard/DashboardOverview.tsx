@@ -209,6 +209,8 @@ const DashboardOverview = () => {
     walletBonus,
     recentProfits,
     lastFlash,
+    balanceHistory,
+    milestone,
   } = useProfitSimulation(investments as any, walletBalance);
   const portfolioData = (() => {
     const allTxns = [...(transactions ?? [])].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
