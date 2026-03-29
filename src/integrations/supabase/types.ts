@@ -257,6 +257,126 @@ export type Database = {
         }
         Relationships: []
       }
+      landing_investors: {
+        Row: {
+          country: string
+          created_at: string
+          id: string
+          is_active: boolean
+          monthly_profit: string
+          name: string
+          photo_url: string | null
+          portfolio_value: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          monthly_profit?: string
+          name: string
+          photo_url?: string | null
+          portfolio_value?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          monthly_profit?: string
+          name?: string
+          photo_url?: string | null
+          portfolio_value?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      landing_testimonials: {
+        Row: {
+          country: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          photo_url: string | null
+          rating: number
+          review: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          photo_url?: string | null
+          rating?: number
+          review: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          photo_url?: string | null
+          rating?: number
+          review?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      landing_traders: {
+        Row: {
+          country: string
+          created_at: string
+          flag: string
+          id: string
+          is_active: boolean
+          name: string
+          photo_url: string | null
+          sort_order: number
+          total_profit: string
+          updated_at: string
+          win_rate: number
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          flag?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          photo_url?: string | null
+          sort_order?: number
+          total_profit?: string
+          updated_at?: string
+          win_rate?: number
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          flag?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          photo_url?: string | null
+          sort_order?: number
+          total_profit?: string
+          updated_at?: string
+          win_rate?: number
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           channel_email: boolean
