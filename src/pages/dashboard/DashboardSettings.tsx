@@ -11,6 +11,30 @@ import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import TwoFactorSetup from "@/components/dashboard/TwoFactorSetup";
 
+type NotificationPrefs = {
+  trade_executed_in_app: boolean;
+  trade_executed_email: boolean;
+  trade_executed_push: boolean;
+  deposit_withdrawal_in_app: boolean;
+  deposit_withdrawal_email: boolean;
+  deposit_withdrawal_push: boolean;
+  market_news_in_app: boolean;
+  market_news_email: boolean;
+  market_news_push: boolean;
+};
+
+const defaultPrefs: NotificationPrefs = {
+  trade_executed_in_app: true,
+  trade_executed_email: true,
+  trade_executed_push: true,
+  deposit_withdrawal_in_app: true,
+  deposit_withdrawal_email: true,
+  deposit_withdrawal_push: true,
+  market_news_in_app: true,
+  market_news_email: true,
+  market_news_push: true,
+};
+
 const DashboardSettings = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
