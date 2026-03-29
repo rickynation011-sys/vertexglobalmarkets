@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUp, ArrowDown, Wifi, WifiOff, TrendingUp, TrendingDown, Users, BarChart3 } from "lucide-react";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import OrderBook from "@/components/dashboard/OrderBook";
+import PriceAlerts from "@/components/dashboard/PriceAlerts";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
