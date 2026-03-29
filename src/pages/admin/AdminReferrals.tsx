@@ -102,6 +102,45 @@ const AdminReferrals = () => {
     onError: () => toast.error("Failed to save settings"),
   });
 
+  const approveMutation = useMutation({
+    mutationFn: async (referralId: string) => {
+      const ref = referrals?.find(r => r.id === referralId);
+      if (!ref) throw new Error("Referral not found");
+
+      // Update referral status
+      const { error } = await supabase.from("referrals").update({ status: "completed", bonus_amount: ref.bonus_amount }).eq("id", referralId);
+      if (error) throw error;
+
+      // Credit the referrer's wallet
+      const { data: referrerProfile } = await supabase.from("profiles").select("wallet_balance, email, full_name").eq("user_id", ref.referrer_id).single();
+      if (referrerProfile) {
+        await supabase.from("profiles").update({ wallet_balance: Number(referrerProfile.wallet_balance) + Number(ref.bonus_amount) }).eq("user_id", ref.referrer_id);
+
+        // Send referral bonus email
+        if (referrerProfile.email) {
+          const referredProfile = profiles?.find(p => p.user_id === ref.referred_user_id);
+          await supabase.functions.invoke('send-transactional-email', {
+            body: {
+              templateName: 'referral-bonus',
+              recipientEmail: referrerProfile.email,
+              idempotencyKey: `referral-bonus-${referralId}`,
+              templateData: {
+                name: referrerProfile.full_name || undefined,
+                bonusAmount: Number(ref.bonus_amount).toFixed(2),
+                referredUser: referredProfile?.full_name || referredProfile?.email || 'a new user',
+              },
+            },
+          });
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin_referrals"] });
+      toast.success("Referral approved and bonus credited");
+    },
+    onError: () => toast.error("Failed to approve referral"),
+  });
+
   const totalReferrals = referrals?.length ?? 0;
   const totalBonusPaid = referrals?.reduce((s, r) => s + Number(r.bonus_amount), 0) ?? 0;
 

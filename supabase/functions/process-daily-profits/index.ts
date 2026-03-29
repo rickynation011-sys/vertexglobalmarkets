@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
     // Get all active investments
     const { data: investments, error: fetchErr } = await supabase
       .from("investments")
-      .select("id, user_id, amount, current_value, daily_rate, ends_at")
+      .select("id, user_id, amount, current_value, daily_rate, ends_at, plan_name")
       .eq("status", "active")
       .gt("daily_rate", 0);
 
