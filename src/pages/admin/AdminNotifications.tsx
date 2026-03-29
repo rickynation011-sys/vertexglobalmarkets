@@ -82,6 +82,48 @@ const AdminNotifications = () => {
         sent_by: user?.id || null,
       });
       if (error) throw error;
+
+      // Send email notifications if email channel is enabled
+      if (channelEmail) {
+        let recipients: Array<{ email: string; full_name: string | null }> = [];
+
+        if (target === "individual" && targetUserId) {
+          const { data } = await supabase
+            .from("profiles")
+            .select("email, full_name")
+            .eq("user_id", targetUserId)
+            .single();
+          if (data?.email) recipients.push(data);
+        } else {
+          // For "all" and other group targets, fetch all profiles with emails
+          const { data } = await supabase
+            .from("profiles")
+            .select("email, full_name")
+            .not("email", "is", null);
+          if (data) recipients = data.filter((p) => p.email);
+        }
+
+        // Send emails in parallel (max 10 concurrent to avoid overwhelming)
+        const batchSize = 10;
+        for (let i = 0; i < recipients.length; i += batchSize) {
+          const batch = recipients.slice(i, i + batchSize);
+          await Promise.all(
+            batch.map((recipient) =>
+              supabase.functions.invoke("send-transactional-email", {
+                body: {
+                  templateName: "admin-notification",
+                  recipientEmail: recipient.email,
+                  templateData: {
+                    title: title.trim(),
+                    message: message.trim(),
+                    recipientName: recipient.full_name || "Valued Client",
+                  },
+                },
+              })
+            )
+          );
+        }
+      }
     },
     onSuccess: () => {
       toast.success("Notification sent successfully");
