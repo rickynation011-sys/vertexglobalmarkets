@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo-symbol.png";
 
@@ -12,8 +12,23 @@ const navItems = [
   { label: "About", href: "/about" },
 ];
 
+const useOnlineCount = (base = 1247) => {
+  const [count, setCount] = useState(base);
+  useEffect(() => {
+    const id = setInterval(() => {
+      setCount(prev => {
+        const drift = Math.round((Math.random() - 0.48) * 7);
+        return Math.max(base - 60, Math.min(base + 80, prev + drift));
+      });
+    }, 3000 + Math.random() * 2000);
+    return () => clearInterval(id);
+  }, [base]);
+  return count;
+};
+
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const onlineCount = useOnlineCount();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass">
@@ -28,6 +43,15 @@ const Navbar = () => {
         </Link>
 
         <div className="hidden md:flex items-center gap-6">
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground mr-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+            </span>
+            <Users size={12} />
+            <span className="font-medium tabular-nums">{onlineCount.toLocaleString()}</span>
+            <span className="hidden lg:inline">online</span>
+          </span>
           {navItems.map((item) => (
             <Link
               key={item.href}
