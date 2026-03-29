@@ -6,6 +6,7 @@ import StatsSection from "@/components/StatsSection";
 import FeaturesSection from "@/components/FeaturesSection";
 import MarketsOverview from "@/components/MarketsOverview";
 import AutoTradingSection from "@/components/AutoTradingSection";
+import CopyTradingSection from "@/components/CopyTradingSection";
 import TopTradersSection from "@/components/TopTradersSection";
 import InvestorsLeaderboard from "@/components/InvestorsLeaderboard";
 import ExtendedTestimonials from "@/components/ExtendedTestimonials";
@@ -43,6 +44,7 @@ const Index = () => {
       <FeaturesSection />
       <MarketsOverview />
       <AutoTradingSection />
+      <CopyTradingSection />
       <TopTradersSection />
       <InvestorsLeaderboard />
       <SecuritySection />
