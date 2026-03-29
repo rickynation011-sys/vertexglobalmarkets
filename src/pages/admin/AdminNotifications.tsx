@@ -19,6 +19,7 @@ const AdminNotifications = () => {
   const [channelPush, setChannelPush] = useState(false);
   const [channelInApp, setChannelInApp] = useState(true);
   const [channelEmail, setChannelEmail] = useState(false);
+  const [category, setCategory] = useState("");
 
   // Fetch all profiles for individual user selection
   const { data: profiles } = useQuery({
