@@ -215,6 +215,7 @@ const AdminUsers = () => {
                 <tr className="border-b border-border">
                   <th className="text-left p-4 text-muted-foreground font-medium">User</th>
                   <th className="text-left p-4 text-muted-foreground font-medium">Status</th>
+                  <th className="text-left p-4 text-muted-foreground font-medium">Email Verified</th>
                   <th className="text-left p-4 text-muted-foreground font-medium">Balance</th>
                   <th className="text-left p-4 text-muted-foreground font-medium">Roles</th>
                   <th className="text-left p-4 text-muted-foreground font-medium">Country</th>
@@ -225,7 +226,7 @@ const AdminUsers = () => {
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-8 text-center text-muted-foreground">No users found</td>
+                    <td colSpan={8} className="p-8 text-center text-muted-foreground">No users found</td>
                   </tr>
                 ) : (
                   filtered.map((u) => {
