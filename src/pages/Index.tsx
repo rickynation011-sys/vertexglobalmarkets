@@ -15,6 +15,7 @@ import TestimonialsSection from "@/components/TestimonialsSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 import LiveActivityFeed from "@/components/LiveActivityFeed";
+import TrustIndicators from "@/components/TrustIndicators";
 
 const Index = () => {
   return (
@@ -37,6 +38,7 @@ const Index = () => {
       <Navbar />
       <HeroSection />
       <MarketTicker />
+      <TrustIndicators />
       <StatsSection />
       <FeaturesSection />
       <MarketsOverview />

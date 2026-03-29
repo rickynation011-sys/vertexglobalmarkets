@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { Trophy } from "lucide-react";
+import { Trophy, BadgeCheck } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchInvestors, type LandingInvestor } from "@/lib/landing-api";
 import invAlexander from "@/assets/profiles/inv-alexander.jpg";
@@ -81,11 +81,18 @@ const InvestorsLeaderboard = () => {
                     </td>
                     <td className="px-4 md:px-6 py-4">
                       <div className="flex items-center gap-3">
-                        {inv.photo_url ? (
-                          <img src={inv.photo_url} alt={inv.name} loading="lazy" width={32} height={32} className="w-8 h-8 rounded-full object-cover border border-primary/20" />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary">{initials}</div>
-                        )}
+                        <div className="relative">
+                          {inv.photo_url ? (
+                            <img src={inv.photo_url} alt={inv.name} loading="lazy" width={32} height={32} className="w-8 h-8 rounded-full object-cover border border-primary/20" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary">{initials}</div>
+                          )}
+                          {isTop3 && (
+                            <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-primary flex items-center justify-center border border-card" title="Verified Investor">
+                              <BadgeCheck className="h-2.5 w-2.5 text-primary-foreground" />
+                            </div>
+                          )}
+                        </div>
                         <span className="font-medium text-foreground">{inv.name}</span>
                       </div>
                     </td>

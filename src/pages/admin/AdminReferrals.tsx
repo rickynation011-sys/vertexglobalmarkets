@@ -282,6 +282,7 @@ const AdminReferrals = () => {
                    <tr className="border-b border-border text-muted-foreground">
                      <th className="text-left py-2 px-2">Referrer</th>
                      <th className="text-left py-2 px-2">Referred User</th>
+                     <th className="text-left py-2 px-2">Level</th>
                      <th className="text-left py-2 px-2">Status</th>
                      <th className="text-right py-2 px-2">Bonus</th>
                      <th className="text-right py-2 px-2">Date</th>
@@ -293,6 +294,26 @@ const AdminReferrals = () => {
                     <tr key={ref.id} className="border-b border-border/50">
                       <td className="py-2 px-2">{getProfileName(ref.referrer_id)}</td>
                       <td className="py-2 px-2">{getProfileName(ref.referred_user_id)}</td>
+                      <td className="py-2 px-2">
+                        <Select
+                          value={String((ref as any).level || 1)}
+                          onValueChange={async (val) => {
+                            const { error } = await supabase.from("referrals").update({ level: parseInt(val) } as any).eq("id", ref.id);
+                            if (error) { toast.error("Failed to update level"); return; }
+                            queryClient.invalidateQueries({ queryKey: ["admin_referrals"] });
+                            toast.success(`Level updated to ${val}`);
+                          }}
+                        >
+                          <SelectTrigger className="w-20 h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">L1 (10%)</SelectItem>
+                            <SelectItem value="2">L2 (5%)</SelectItem>
+                            <SelectItem value="3">L3 (2%)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </td>
                       <td className="py-2 px-2">
                         <Badge variant={ref.status === "completed" ? "default" : "secondary"}>{ref.status}</Badge>
                       </td>
