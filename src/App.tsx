@@ -14,6 +14,7 @@ import ForgotPassword from "./pages/ForgotPassword.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import MfaChallenge from "./pages/MfaChallenge.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
+import VerifyEmail from "./pages/VerifyEmail.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
 import PageTransition from "./components/PageTransition.tsx";
 
@@ -101,6 +102,7 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/mfa-challenge" element={<MfaChallenge />} />
               <Route path="/unsubscribe" element={<Unsubscribe />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
 
               {/* Static pages */}
               <Route path="/markets" element={<Markets />} />

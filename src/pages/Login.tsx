@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, EyeOff, Mail, Lock, Loader2, Wand2, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Loader2, Wand2, CheckCircle, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo-symbol.png";
 
@@ -17,8 +17,39 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [magicLoading, setMagicLoading] = useState(false);
   const [magicSent, setMagicSent] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+
+  const handleResendConfirmation = async () => {
+    const resendEmail = email.trim();
+    if (!resendEmail) {
+      toast({ title: "Enter your email first", variant: "destructive" });
+      return;
+    }
+    if (resendCooldown > 0) return;
+    setResendLoading(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: resendEmail,
+      options: { emailRedirectTo: window.location.origin },
+    });
+    setResendLoading(false);
+    if (error) {
+      toast({ title: "Failed to resend", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Confirmation email sent!", description: "Check your inbox." });
+      setResendCooldown(60);
+    }
+  };
+  
+  React.useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,6 +159,16 @@ const Login = () => {
                   {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Sign In
                 </Button>
+                {/* Resend confirmation email */}
+                <button
+                  type="button"
+                  onClick={handleResendConfirmation}
+                  disabled={resendLoading || resendCooldown > 0}
+                  className="w-full text-sm text-muted-foreground hover:text-primary flex items-center justify-center gap-1.5 mt-2 disabled:opacity-50"
+                >
+                  {resendLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                  {resendCooldown > 0 ? `Resend confirmation in ${resendCooldown}s` : "Resend confirmation email"}
+                </button>
               </form>
             </TabsContent>
 
