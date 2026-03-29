@@ -23,10 +23,27 @@ const Login = () => {
   const location = useLocation();
   const { toast } = useToast();
 
-  // Resend cooldown timer
-  useState(() => {
-    if (resendCooldown <= 0) return;
-  });
+  const handleResendConfirmation = async () => {
+    const resendEmail = email.trim();
+    if (!resendEmail) {
+      toast({ title: "Enter your email first", variant: "destructive" });
+      return;
+    }
+    if (resendCooldown > 0) return;
+    setResendLoading(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: resendEmail,
+      options: { emailRedirectTo: window.location.origin },
+    });
+    setResendLoading(false);
+    if (error) {
+      toast({ title: "Failed to resend", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Confirmation email sent!", description: "Check your inbox." });
+      setResendCooldown(60);
+    }
+  };
   
   React.useEffect(() => {
     if (resendCooldown <= 0) return;
