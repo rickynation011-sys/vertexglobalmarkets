@@ -4,10 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Search, Ban, Loader2, CheckCircle, DollarSign, ShieldCheck, Plus, Minus, Trash2 } from "lucide-react";
+import { Search, Ban, Loader2, CheckCircle, DollarSign, ShieldCheck, Plus, Minus, Trash2, MailCheck, MailX } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Tables, Enums } from "@/integrations/supabase/types";
 
 type Profile = Tables<"profiles">;
@@ -28,6 +29,7 @@ const roleColors: Record<string, string> = {
 const AdminUsers = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [userRoles, setUserRoles] = useState<Record<string, AppRole[]>>({});
+  const [emailVerification, setEmailVerification] = useState<Record<string, { email_confirmed_at: string | null }>>({});
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
@@ -64,6 +66,19 @@ const AdminUsers = () => {
     }
     setUserRoles(rolesMap);
     setLoading(false);
+
+    // Fetch email verification status
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const res = await supabase.functions.invoke("get-email-verification-status");
+        if (res.data && !res.error) {
+          setEmailVerification(res.data);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch email verification status", e);
+    }
   };
 
   useEffect(() => { fetchProfiles(); }, []);
@@ -200,6 +215,7 @@ const AdminUsers = () => {
                 <tr className="border-b border-border">
                   <th className="text-left p-4 text-muted-foreground font-medium">User</th>
                   <th className="text-left p-4 text-muted-foreground font-medium">Status</th>
+                  <th className="text-left p-4 text-muted-foreground font-medium">Email Verified</th>
                   <th className="text-left p-4 text-muted-foreground font-medium">Balance</th>
                   <th className="text-left p-4 text-muted-foreground font-medium">Roles</th>
                   <th className="text-left p-4 text-muted-foreground font-medium">Country</th>
@@ -210,7 +226,7 @@ const AdminUsers = () => {
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-8 text-center text-muted-foreground">No users found</td>
+                    <td colSpan={8} className="p-8 text-center text-muted-foreground">No users found</td>
                   </tr>
                 ) : (
                   filtered.map((u) => {
@@ -223,6 +239,28 @@ const AdminUsers = () => {
                         </td>
                         <td className="p-4">
                           <Badge className={`text-xs ${statusColors[u.status] ?? "bg-muted text-muted-foreground"}`}>{u.status}</Badge>
+                        </td>
+                        <td className="p-4">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                {emailVerification[u.user_id]?.email_confirmed_at ? (
+                                  <Badge className="bg-success/10 text-success text-xs gap-1">
+                                    <MailCheck className="h-3 w-3" /> Verified
+                                  </Badge>
+                                ) : (
+                                  <Badge className="bg-warning/10 text-warning text-xs gap-1">
+                                    <MailX className="h-3 w-3" /> Unverified
+                                  </Badge>
+                                )}
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {emailVerification[u.user_id]?.email_confirmed_at
+                                  ? `Verified on ${new Date(emailVerification[u.user_id].email_confirmed_at!).toLocaleString()}`
+                                  : "Email not yet verified"}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </td>
                         <td className="p-4 font-medium text-foreground">
                           ${Number(u.wallet_balance).toLocaleString("en-US", { minimumFractionDigits: 2 })}
