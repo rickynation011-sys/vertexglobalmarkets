@@ -1,5 +1,6 @@
 import StaticPageLayout from "@/layouts/StaticPageLayout";
 import SEO from "@/components/SEO";
+import { ShieldCheck } from "lucide-react";
 
 const RegulationCompliance = () => {
   return (
@@ -10,9 +11,17 @@ const RegulationCompliance = () => {
         path="/regulation-compliance"
       />
       <div className="container mx-auto px-4 py-20 max-w-3xl">
-        <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-12">
-          Regulation and Compliance
-        </h1>
+        <div className="flex flex-col items-center text-center mb-12">
+          <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+            <ShieldCheck className="h-7 w-7 text-primary" />
+          </div>
+          <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
+            Regulation and Compliance
+          </h1>
+          <p className="text-muted-foreground text-base md:text-lg max-w-xl">
+            Commitment to transparency, security, and responsible trading
+          </p>
+        </div>
 
         <div className="space-y-10 text-muted-foreground leading-relaxed">
           <p>
