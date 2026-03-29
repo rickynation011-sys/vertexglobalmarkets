@@ -70,7 +70,8 @@ const AdminNotifications = () => {
 
       const { data: { user } } = await supabase.auth.getUser();
 
-      const { error } = await supabase.from("notifications").insert({
+      // 1. Insert notification record
+      const { data: notifData, error } = await supabase.from("notifications").insert({
         title: title.trim(),
         message: message.trim(),
         target,
@@ -80,10 +81,36 @@ const AdminNotifications = () => {
         channel_email: channelEmail,
         status: "sent",
         sent_by: user?.id || null,
-      });
+      }).select("id").single();
       if (error) throw error;
 
-      // Send email notifications if email channel is enabled
+      // 2. Determine target user IDs for push and email
+      let targetUserIds: string[] = [];
+      if (target === "individual" && targetUserId) {
+        targetUserIds = [targetUserId];
+      } else {
+        const { data: allProfiles } = await supabase
+          .from("profiles")
+          .select("user_id, email, full_name");
+        if (allProfiles) targetUserIds = allProfiles.map((p) => p.user_id);
+      }
+
+      // 3. Send push notifications if enabled
+      if (channelPush && targetUserIds.length > 0) {
+        try {
+          await supabase.functions.invoke("send-push-notification", {
+            body: {
+              title: title.trim(),
+              body: message.trim(),
+              userIds: targetUserIds,
+            },
+          });
+        } catch (pushErr) {
+          console.error("Push notification failed:", pushErr);
+        }
+      }
+
+      // 4. Send email notifications if enabled
       if (channelEmail) {
         let recipients: Array<{ email: string; full_name: string | null }> = [];
 
@@ -95,7 +122,6 @@ const AdminNotifications = () => {
             .single();
           if (data?.email) recipients.push(data);
         } else {
-          // For "all" and other group targets, fetch all profiles with emails
           const { data } = await supabase
             .from("profiles")
             .select("email, full_name")
@@ -103,7 +129,6 @@ const AdminNotifications = () => {
           if (data) recipients = data.filter((p) => p.email);
         }
 
-        // Send emails in parallel (max 10 concurrent to avoid overwhelming)
         const batchSize = 10;
         for (let i = 0; i < recipients.length; i += batchSize) {
           const batch = recipients.slice(i, i + batchSize);
