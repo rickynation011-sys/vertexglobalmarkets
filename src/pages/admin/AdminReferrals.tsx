@@ -279,13 +279,14 @@ const AdminReferrals = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-border text-muted-foreground">
-                    <th className="text-left py-2 px-2">Referrer</th>
-                    <th className="text-left py-2 px-2">Referred User</th>
-                    <th className="text-left py-2 px-2">Status</th>
-                    <th className="text-right py-2 px-2">Bonus</th>
-                    <th className="text-right py-2 px-2">Date</th>
-                  </tr>
+                   <tr className="border-b border-border text-muted-foreground">
+                     <th className="text-left py-2 px-2">Referrer</th>
+                     <th className="text-left py-2 px-2">Referred User</th>
+                     <th className="text-left py-2 px-2">Status</th>
+                     <th className="text-right py-2 px-2">Bonus</th>
+                     <th className="text-right py-2 px-2">Date</th>
+                     <th className="text-right py-2 px-2">Action</th>
+                   </tr>
                 </thead>
                 <tbody>
                   {(referrals ?? []).map(ref => (
@@ -295,8 +296,15 @@ const AdminReferrals = () => {
                       <td className="py-2 px-2">
                         <Badge variant={ref.status === "completed" ? "default" : "secondary"}>{ref.status}</Badge>
                       </td>
-                      <td className="py-2 px-2 text-right">${Number(ref.bonus_amount).toFixed(2)}</td>
-                      <td className="py-2 px-2 text-right text-muted-foreground">{new Date(ref.created_at).toLocaleDateString()}</td>
+                       <td className="py-2 px-2 text-right">${Number(ref.bonus_amount).toFixed(2)}</td>
+                       <td className="py-2 px-2 text-right text-muted-foreground">{new Date(ref.created_at).toLocaleDateString()}</td>
+                       <td className="py-2 px-2 text-right">
+                         {ref.status === "pending" && (
+                           <Button size="sm" variant="outline" onClick={() => approveMutation.mutate(ref.id)} disabled={approveMutation.isPending}>
+                             Approve
+                           </Button>
+                         )}
+                       </td>
                     </tr>
                   ))}
                 </tbody>
