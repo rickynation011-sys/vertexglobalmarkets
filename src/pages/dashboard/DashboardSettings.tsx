@@ -11,6 +11,30 @@ import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import TwoFactorSetup from "@/components/dashboard/TwoFactorSetup";
 
+type NotificationPrefs = {
+  trade_executed_in_app: boolean;
+  trade_executed_email: boolean;
+  trade_executed_push: boolean;
+  deposit_withdrawal_in_app: boolean;
+  deposit_withdrawal_email: boolean;
+  deposit_withdrawal_push: boolean;
+  market_news_in_app: boolean;
+  market_news_email: boolean;
+  market_news_push: boolean;
+};
+
+const defaultPrefs: NotificationPrefs = {
+  trade_executed_in_app: true,
+  trade_executed_email: true,
+  trade_executed_push: true,
+  deposit_withdrawal_in_app: true,
+  deposit_withdrawal_email: true,
+  deposit_withdrawal_push: true,
+  market_news_in_app: true,
+  market_news_email: true,
+  market_news_push: true,
+};
+
 const DashboardSettings = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -127,28 +151,108 @@ const DashboardSettings = () => {
         </CardContent>
       </Card>
 
-      <Card className="bg-card border-border">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium flex items-center gap-2"><Bell className="h-4 w-4" /> Notifications</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {[
-            { label: "Trade Executed", desc: "Get notified when a trade is executed" },
-            { label: "Deposit/Withdrawal", desc: "Transaction confirmations" },
-            { label: "Market News", desc: "Important market updates" },
-          ].map((n) => (
-            <div key={n.label} className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-foreground">{n.label}</p>
-                <p className="text-xs text-muted-foreground">{n.desc}</p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <NotificationPreferencesCard userId={user?.id} />
     </div>
   );
 };
+
+const notifCategories = [
+  {
+    label: "Trade Executed",
+    desc: "Get notified when a trade is executed",
+    keys: { in_app: "trade_executed_in_app", email: "trade_executed_email", push: "trade_executed_push" } as const,
+  },
+  {
+    label: "Deposit / Withdrawal",
+    desc: "Transaction confirmations",
+    keys: { in_app: "deposit_withdrawal_in_app", email: "deposit_withdrawal_email", push: "deposit_withdrawal_push" } as const,
+  },
+  {
+    label: "Market News",
+    desc: "Important market updates",
+    keys: { in_app: "market_news_in_app", email: "market_news_email", push: "market_news_push" } as const,
+  },
+];
+
+function NotificationPreferencesCard({ userId }: { userId?: string }) {
+  const queryClient = useQueryClient();
+
+  const { data: prefs, isLoading } = useQuery({
+    queryKey: ["notification-preferences", userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("notification_preferences" as any)
+        .select("*")
+        .eq("user_id", userId!)
+        .single();
+      if (error && error.code === "PGRST116") {
+        // No row yet – insert default
+        const { data: inserted } = await supabase
+          .from("notification_preferences" as any)
+          .insert({ user_id: userId, ...defaultPrefs } as any)
+          .select("*")
+          .single();
+        return (inserted as any as NotificationPrefs) ?? defaultPrefs;
+      }
+      return (data as any as NotificationPrefs) ?? defaultPrefs;
+    },
+    enabled: !!userId,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (updates: Partial<NotificationPrefs>) => {
+      const { error } = await supabase
+        .from("notification_preferences" as any)
+        .update(updates as any)
+        .eq("user_id", userId!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notification-preferences", userId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const handleToggle = (key: keyof NotificationPrefs, value: boolean) => {
+    updateMutation.mutate({ [key]: value });
+  };
+
+  const current = prefs ?? defaultPrefs;
+
+  return (
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium flex items-center gap-2">
+          <Bell className="h-4 w-4" /> Notification Preferences
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        {notifCategories.map((cat) => (
+          <div key={cat.label} className="space-y-2">
+            <div>
+              <p className="text-sm font-medium text-foreground">{cat.label}</p>
+              <p className="text-xs text-muted-foreground">{cat.desc}</p>
+            </div>
+            <div className="flex items-center gap-6 pl-2">
+              {(["in_app", "email", "push"] as const).map((channel) => {
+                const key = cat.keys[channel];
+                return (
+                  <label key={channel} className="flex items-center gap-2 cursor-pointer">
+                    <Switch
+                      checked={current[key]}
+                      onCheckedChange={(v) => handleToggle(key, v)}
+                      disabled={isLoading}
+                    />
+                    <span className="text-xs text-muted-foreground capitalize">{channel.replace("_", "-")}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default DashboardSettings;

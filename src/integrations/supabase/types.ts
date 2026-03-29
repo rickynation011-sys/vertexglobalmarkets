@@ -401,6 +401,54 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          deposit_withdrawal_email: boolean
+          deposit_withdrawal_in_app: boolean
+          deposit_withdrawal_push: boolean
+          id: string
+          market_news_email: boolean
+          market_news_in_app: boolean
+          market_news_push: boolean
+          trade_executed_email: boolean
+          trade_executed_in_app: boolean
+          trade_executed_push: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deposit_withdrawal_email?: boolean
+          deposit_withdrawal_in_app?: boolean
+          deposit_withdrawal_push?: boolean
+          id?: string
+          market_news_email?: boolean
+          market_news_in_app?: boolean
+          market_news_push?: boolean
+          trade_executed_email?: boolean
+          trade_executed_in_app?: boolean
+          trade_executed_push?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deposit_withdrawal_email?: boolean
+          deposit_withdrawal_in_app?: boolean
+          deposit_withdrawal_push?: boolean
+          id?: string
+          market_news_email?: boolean
+          market_news_in_app?: boolean
+          market_news_push?: boolean
+          trade_executed_email?: boolean
+          trade_executed_in_app?: boolean
+          trade_executed_push?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           channel_email: boolean
