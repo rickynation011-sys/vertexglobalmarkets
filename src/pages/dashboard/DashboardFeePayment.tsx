@@ -100,9 +100,10 @@ const DashboardFeePayment = () => {
         .upload(filePath, proofFile);
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from("ticket-attachments")
-        .getPublicUrl(filePath);
+        .createSignedUrl(filePath, 60 * 60 * 24 * 365); // 1 year
+      if (signedUrlError) throw signedUrlError;
 
       const methodLabel = `${selectedMethod.currency}${selectedMethod.network ? ` (${selectedMethod.network})` : ""}`;
 
@@ -111,7 +112,7 @@ const DashboardFeePayment = () => {
         total_profit: totalProfit,
         processing_fee: processingFee,
         payment_method: methodLabel,
-        proof_url: urlData.publicUrl,
+        proof_url: signedUrlData.signedUrl,
         status: "pending",
       });
       if (error) throw error;
