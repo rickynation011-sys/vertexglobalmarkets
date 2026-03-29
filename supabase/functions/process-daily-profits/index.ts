@@ -43,6 +43,31 @@ Deno.serve(async (req) => {
       // Check if investment has expired
       if (new Date(inv.ends_at) < new Date()) {
         await supabase.from("investments").update({ status: "completed" }).eq("id", inv.id);
+
+        // Send investment-matured email
+        const { data: userProfile } = await supabase
+          .from("profiles")
+          .select("email, full_name, wallet_balance")
+          .eq("user_id", inv.user_id)
+          .single();
+
+        if (userProfile?.email) {
+          const profit = (Number(inv.current_value) - Number(inv.amount)).toFixed(2);
+          await supabase.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "investment-matured",
+              recipientEmail: userProfile.email,
+              idempotencyKey: `investment-matured-${inv.id}`,
+              templateData: {
+                name: userProfile.full_name || undefined,
+                planName: inv.plan_name,
+                amount: Number(inv.amount).toLocaleString(),
+                profit,
+                totalValue: Number(inv.current_value).toLocaleString(),
+              },
+            },
+          });
+        }
         continue;
       }
 
