@@ -110,10 +110,10 @@ const AdminDeposits = () => {
     if (tx?.profile?.email) {
       supabase.functions.invoke('send-transactional-email', {
         body: {
-          templateName: 'deposit-confirmation',
+          templateName: 'deposit-rejected',
           recipientEmail: tx.profile.email,
           idempotencyKey: `deposit-rejected-${id}`,
-          templateData: { name: tx.profile.full_name || undefined, amount: tx.amount.toLocaleString(), method: tx.method, status: 'rejected' },
+          templateData: { name: tx.profile.full_name || undefined, amount: tx.amount.toLocaleString(), method: tx.method },
         },
       });
     }

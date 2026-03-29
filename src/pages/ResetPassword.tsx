@@ -37,11 +37,23 @@ const ResetPassword = () => {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password });
+    const { data: updateData, error } = await supabase.auth.updateUser({ password });
     setLoading(false);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
+      // Send password changed confirmation email
+      const userEmail = updateData?.user?.email;
+      if (userEmail) {
+        supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: 'password-changed',
+            recipientEmail: userEmail,
+            idempotencyKey: `password-changed-${updateData.user.id}-${Date.now()}`,
+            templateData: { name: updateData.user.user_metadata?.full_name || undefined },
+          },
+        });
+      }
       setSuccess(true);
       setTimeout(() => navigate("/login"), 3000);
     }
