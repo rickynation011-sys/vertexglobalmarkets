@@ -29,31 +29,31 @@ import testHugo from "@/assets/profiles/test-hugo.jpg";
 import testYuki from "@/assets/profiles/test-yuki.jpg";
 
 const testimonials = [
-  { name: "Emily Watson", country: "🇺🇸 USA", text: "Was skeptical at first but it's been pretty consistent so far. Three months in and no complaints.", photo: testEmily },
-  { name: "Raj Patel", country: "🇮🇳 India", text: "The signals are honestly better than what I was paying for elsewhere. Saved me a lot of guesswork.", photo: testRaj },
-  { name: "Marie Lefevre", country: "🇫🇷 France", text: "I barely knew anything about trading when I started. Copy trading made it easy to just... follow someone who knows what they're doing.", photo: testMarie },
-  { name: "Kenji Tanaka", country: "🇯🇵 Japan", text: "Everything loads fast, trades go through quick. That's all I really need.", photo: testKenji },
-  { name: "Anna Kowalski", country: "🇵🇱 Poland", text: "Picked the balanced plan and it's been doing well. Not crazy returns but steady, which I prefer.", photo: testAnna },
-  { name: "Carlos Mendez", country: "🇲🇽 Mexico", text: "Had an issue with a deposit once. Support sorted it out same day, which was nice.", photo: testCarlos },
-  { name: "Sarah Mitchell", country: "🇬🇧 UK", text: "Used to have accounts on like three different platforms. Moved everything here and honestly wish I did it sooner.", photo: testSarah },
-  { name: "Ahmed Hassan", country: "🇦🇪 UAE", text: "I check the leaderboard way too often haha. It's weirdly motivating seeing where you rank.", photo: testAhmed },
-  { name: "Lisa Johansson", country: "🇸🇪 Sweden", text: "No hidden fees, no weird charges. What you see is what you get. Refreshing.", photo: testLisa },
-  { name: "Tomás García", country: "🇪🇸 Spain", text: "Told a friend about it, he signed up, and we both got a bonus. Pretty cool referral setup.", photo: testTomas },
-  { name: "Chen Wei", country: "🇨🇳 China", text: "The charts are really good. Not as bloated as some terminal software I've tried. Clean and fast.", photo: testChen },
-  { name: "Fatima Al-Rashid", country: "🇸🇦 Saudi Arabia", text: "I feel safe using this platform. The 2FA and verification steps actually make a difference.", photo: testFatima },
-  { name: "Patrick O'Connor", country: "🇮🇪 Ireland", text: "Woke up and my daily profit was already processed. Love that I don't have to do anything manually.", photo: testPatrick },
-  { name: "Julia Schneider", country: "🇩🇪 Germany", text: "Security was my biggest concern. The encryption and 2FA put my mind at ease.", photo: testJulia },
-  { name: "Dmitri Volkov", country: "🇷🇺 Russia", text: "Started copying one of the top traders here. Not gonna lie, the results have been solid.", photo: testDmitri },
-  { name: "Priya Sharma", country: "🇮🇳 India", text: "Works great on my phone. I mostly trade during my commute and it handles everything fine.", photo: testPriya },
-  { name: "Marco Bianchi", country: "🇮🇹 Italy", text: "For what you're getting, the pricing is fair. I've paid more for way less on other platforms.", photo: testMarco },
-  { name: "Kim Soo-Yeon", country: "🇰🇷 South Korea", text: "The market signals have been pretty spot on. Not perfect every time, but overall really helpful.", photo: testKim },
-  { name: "Eva Lindqvist", country: "🇳🇴 Norway", text: "Withdrew my profits last week. It actually went through fast, which I wasn't expecting tbh.", photo: testEva },
-  { name: "Robert van Dijk", country: "🇳🇱 Netherlands", text: "I like the calculator tool. Helps me figure out what to expect before I commit money.", photo: testRobert },
-  { name: "Amara Osei", country: "🇬🇭 Ghana", text: "Not many platforms work well for us here in West Africa. This one does. Really appreciate that.", photo: testAmara },
-  { name: "Daniel Fischer", country: "🇦🇹 Austria", text: "I spread my investments across a few different categories. The diversification options are solid.", photo: testDanielF },
-  { name: "Sophie Martin", country: "🇨🇦 Canada", text: "KYC took like 10 minutes. Way faster than I expected. The whole setup was smooth.", photo: testSophieM },
-  { name: "Hugo Ferreira", country: "🇧🇷 Brazil", text: "The dashboard is clean, easy to read. I don't need a manual to figure things out.", photo: testHugo },
-  { name: "Yuki Yamamoto", country: "🇯🇵 Japan", text: "Real estate investments on a trading platform? That was new to me. Tried it and it's actually working out.", photo: testYuki },
+  { name: "Emily Watson", country: "🇺🇸 USA", text: "Was skeptical at first but it's been pretty consistent so far. Three months in and no complaints.", photo: testEmily, rating: 5 },
+  { name: "Raj Patel", country: "🇮🇳 India", text: "The signals are honestly better than what I was paying for elsewhere. Saved me a lot of guesswork.", photo: testRaj, rating: 5 },
+  { name: "Marie Lefevre", country: "🇫🇷 France", text: "I barely knew anything about trading when I started. Copy trading made it easy to just... follow someone who knows what they're doing.", photo: testMarie, rating: 4 },
+  { name: "Kenji Tanaka", country: "🇯🇵 Japan", text: "Everything loads fast, trades go through quick. That's all I really need.", photo: testKenji, rating: 5 },
+  { name: "Anna Kowalski", country: "🇵🇱 Poland", text: "Picked the balanced plan and it's been doing well. Not crazy returns but steady, which I prefer.", photo: testAnna, rating: 4 },
+  { name: "Carlos Mendez", country: "🇲🇽 Mexico", text: "Had an issue with a deposit once. Support sorted it out same day, which was nice.", photo: testCarlos, rating: 4 },
+  { name: "Sarah Mitchell", country: "🇬🇧 UK", text: "Used to have accounts on like three different platforms. Moved everything here and honestly wish I did it sooner.", photo: testSarah, rating: 5 },
+  { name: "Ahmed Hassan", country: "🇦🇪 UAE", text: "I check the leaderboard way too often haha. It's weirdly motivating seeing where you rank.", photo: testAhmed, rating: 5 },
+  { name: "Lisa Johansson", country: "🇸🇪 Sweden", text: "No hidden fees, no weird charges. What you see is what you get. Refreshing.", photo: testLisa, rating: 5 },
+  { name: "Tomás García", country: "🇪🇸 Spain", text: "Told a friend about it, he signed up, and we both got a bonus. Pretty cool referral setup.", photo: testTomas, rating: 4 },
+  { name: "Chen Wei", country: "🇨🇳 China", text: "The charts are really good. Not as bloated as some terminal software I've tried. Clean and fast.", photo: testChen, rating: 5 },
+  { name: "Fatima Al-Rashid", country: "🇸🇦 Saudi Arabia", text: "I feel safe using this platform. The 2FA and verification steps actually make a difference.", photo: testFatima, rating: 5 },
+  { name: "Patrick O'Connor", country: "🇮🇪 Ireland", text: "Woke up and my daily profit was already processed. Love that I don't have to do anything manually.", photo: testPatrick, rating: 5 },
+  { name: "Julia Schneider", country: "🇩🇪 Germany", text: "Security was my biggest concern. The encryption and 2FA put my mind at ease.", photo: testJulia, rating: 4 },
+  { name: "Dmitri Volkov", country: "🇷🇺 Russia", text: "Started copying one of the top traders here. Not gonna lie, the results have been solid.", photo: testDmitri, rating: 5 },
+  { name: "Priya Sharma", country: "🇮🇳 India", text: "Works great on my phone. I mostly trade during my commute and it handles everything fine.", photo: testPriya, rating: 4 },
+  { name: "Marco Bianchi", country: "🇮🇹 Italy", text: "For what you're getting, the pricing is fair. I've paid more for way less on other platforms.", photo: testMarco, rating: 5 },
+  { name: "Kim Soo-Yeon", country: "🇰🇷 South Korea", text: "The market signals have been pretty spot on. Not perfect every time, but overall really helpful.", photo: testKim, rating: 4 },
+  { name: "Eva Lindqvist", country: "🇳🇴 Norway", text: "Withdrew my profits last week. It actually went through fast, which I wasn't expecting tbh.", photo: testEva, rating: 5 },
+  { name: "Robert van Dijk", country: "🇳🇱 Netherlands", text: "I like the calculator tool. Helps me figure out what to expect before I commit money.", photo: testRobert, rating: 4 },
+  { name: "Amara Osei", country: "🇬🇭 Ghana", text: "Not many platforms work well for us here in West Africa. This one does. Really appreciate that.", photo: testAmara, rating: 5 },
+  { name: "Daniel Fischer", country: "🇦🇹 Austria", text: "I spread my investments across a few different categories. The diversification options are solid.", photo: testDanielF, rating: 4 },
+  { name: "Sophie Martin", country: "🇨🇦 Canada", text: "KYC took like 10 minutes. Way faster than I expected. The whole setup was smooth.", photo: testSophieM, rating: 5 },
+  { name: "Hugo Ferreira", country: "🇧🇷 Brazil", text: "The dashboard is clean, easy to read. I don't need a manual to figure things out.", photo: testHugo, rating: 5 },
+  { name: "Yuki Yamamoto", country: "🇯🇵 Japan", text: "Real estate investments on a trading platform? That was new to me. Tried it and it's actually working out.", photo: testYuki, rating: 4 },
 ];
 
 const ITEMS_PER_VIEW = 3;
@@ -104,7 +104,7 @@ const ExtendedTestimonials = () => {
                 >
                   <div className="flex gap-1 mb-4">
                     {Array.from({ length: 5 }).map((_, j) => (
-                      <Star key={j} className="h-4 w-4 fill-warning text-warning" />
+                      <Star key={j} className={`h-4 w-4 ${j < t.rating ? "fill-warning text-warning" : "text-muted-foreground/30"}`} />
                     ))}
                   </div>
                   <p className="text-foreground leading-relaxed mb-6 italic flex-1">"{t.text}"</p>
