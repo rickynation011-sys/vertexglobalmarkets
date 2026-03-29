@@ -5,8 +5,9 @@ const RegulationCompliance = () => {
   return (
     <StaticPageLayout>
       <SEO
-        title="Regulation and Compliance | Vertex Global Markets"
+        title="Regulation and Compliance"
         description="Learn about Vertex Global Markets' commitment to transparency, operational integrity, and user security in digital asset trading."
+        path="/regulation-compliance"
       />
       <div className="container mx-auto px-4 py-20 max-w-3xl">
         <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-12">
