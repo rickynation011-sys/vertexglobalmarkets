@@ -25,6 +25,7 @@ const DashboardLayout = () => {
 
   return (
     <CurrencyProvider>
+      {PushPromptDialog}
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-background">
           <DashboardSidebar />
