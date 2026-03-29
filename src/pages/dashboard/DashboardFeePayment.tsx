@@ -119,24 +119,32 @@ const DashboardFeePayment = () => {
       });
       if (error) throw error;
 
-      // Send admin notification email
+      // Send admin notification emails
       const userEmail = profile?.email ?? user!.email ?? "";
       const userName = profile?.full_name ?? "Unknown User";
-      await supabase.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "admin-new-fee-payment",
-          recipientEmail: "admin",
-          idempotencyKey: `admin-new-fee-payment-${feePaymentId}`,
-          templateData: {
-            userName,
-            userEmail,
-            totalProfit: totalProfit.toLocaleString("en-US", { minimumFractionDigits: 2 }),
-            processingFee: processingFee.toLocaleString("en-US", { minimumFractionDigits: 2 }),
-            paymentMethod: methodLabel,
-            submittedAt: new Date().toISOString(),
-          },
-        },
-      });
+      const { data: adminRoles } = await supabase.from("user_roles").select("user_id").eq("role", "admin");
+      if (adminRoles?.length) {
+        const { data: adminProfiles } = await supabase.from("profiles").select("email").in("user_id", adminRoles.map(r => r.user_id));
+        for (const admin of adminProfiles ?? []) {
+          if (admin.email) {
+            supabase.functions.invoke("send-transactional-email", {
+              body: {
+                templateName: "admin-new-fee-payment",
+                recipientEmail: admin.email,
+                idempotencyKey: `admin-fee-payment-${feePaymentId}-${admin.email}`,
+                templateData: {
+                  userName,
+                  userEmail,
+                  totalProfit: totalProfit.toLocaleString("en-US", { minimumFractionDigits: 2 }),
+                  processingFee: processingFee.toLocaleString("en-US", { minimumFractionDigits: 2 }),
+                  paymentMethod: methodLabel,
+                  submittedAt: new Date().toISOString(),
+                },
+              },
+            });
+          }
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fee_payments", user?.id] });
