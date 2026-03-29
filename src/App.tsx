@@ -82,6 +82,7 @@ import AdminTickets from "./pages/admin/AdminTickets.tsx";
 import AdminFeePayments from "./pages/admin/AdminFeePayments.tsx";
 import AdminReferrals from "./pages/admin/AdminReferrals.tsx";
 import AdminLandingContent from "./pages/admin/AdminLandingContent.tsx";
+import AdminEmailDashboard from "./pages/admin/AdminEmailDashboard.tsx";
 
 const queryClient = new QueryClient();
 
@@ -172,7 +173,7 @@ const App = () => (
                   <Route path="settings" element={<AdminSettings />} />
                   <Route path="content" element={<AdminContent />} />
                   <Route path="notifications" element={<AdminNotifications />} />
-                  <Route path="notifications" element={<AdminNotifications />} />
+                  <Route path="email-dashboard" element={<AdminEmailDashboard />} />
                 </Route>
               </Route>
 
