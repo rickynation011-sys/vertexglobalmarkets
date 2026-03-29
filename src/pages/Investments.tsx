@@ -35,29 +35,36 @@ const Investments = () => (
           </p>
         </div>
 
+        {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-20">
           {stats.map((s) => (
             <div key={s.label} className="text-center">
-              <p className="text-3xl font-display font-bold text-gradient-brand">{s.value}</p>
+              <p className="text-3xl font-display font-bold text-gold">{s.value}</p>
               <p className="text-sm text-muted-foreground mt-1">{s.label}</p>
             </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        {/* Categories Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-12">
           {strategies.map((s) => (
-            <Card key={s.title} className="bg-card border-border hover:border-primary/30 transition-colors">
-              <CardContent className="p-6">
-                <s.icon className="h-8 w-8 text-primary mb-4" />
-                <h3 className="font-display font-semibold text-foreground mb-2">{s.title}</h3>
-                <p className="text-sm text-muted-foreground">{s.description}</p>
+            <Card
+              key={s.title}
+              className="flex flex-col rounded-2xl border-border bg-gradient-to-b from-card to-background transition-all duration-300 hover:scale-[1.03] hover:border-gold/40 hover:shadow-[0_0_30px_hsl(var(--gold)/0.12)]"
+            >
+              <CardContent className="flex flex-col flex-1 p-5 md:p-6">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gold/10">
+                  <s.icon className="h-6 w-6 text-gold" />
+                </div>
+                <h3 className="font-display font-semibold text-foreground mb-2 text-sm md:text-base">{s.title}</h3>
+                <p className="text-xs md:text-sm text-muted-foreground">{s.description}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
         <div className="text-center">
-          <Button size="lg" className="bg-gradient-brand text-primary-foreground font-semibold" asChild>
+          <Button size="lg" className="bg-gold text-gold-foreground hover:bg-gold/90 font-semibold" asChild>
             <Link to="/register">Start Investing</Link>
           </Button>
           <p className="text-xs text-muted-foreground mt-4">*Capital at risk. Please invest responsibly.</p>

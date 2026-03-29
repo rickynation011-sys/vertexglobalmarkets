@@ -3,36 +3,44 @@ import StaticPageLayout from "@/layouts/StaticPageLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { CheckCircle, Shield, Clock, TrendingUp } from "lucide-react";
+import { CheckCircle, Shield, Clock, TrendingUp, Gem, Rocket, Crown, Landmark } from "lucide-react";
 
 const plans = [
   {
     name: "Starter Growth",
+    icon: Gem,
     minInvestment: "$500",
     duration: "30 days",
-    expectedReturn: "5-8%",
+    dailyRate: "0.17–0.27%",
+    expectedReturn: "5–8%",
     features: ["Capital protection guarantee", "Daily interest accrual", "Withdraw anytime after maturity", "Email performance reports"],
   },
   {
     name: "Balanced Portfolio",
+    icon: Rocket,
     minInvestment: "$2,500",
     duration: "90 days",
-    expectedReturn: "12-18%",
+    dailyRate: "0.13–0.20%",
+    expectedReturn: "12–18%",
     features: ["Diversified asset allocation", "AI rebalancing", "Weekly performance reports", "Priority withdrawal processing", "Dedicated account manager"],
     popular: true,
   },
   {
     name: "Aggressive Growth",
+    icon: Crown,
     minInvestment: "$10,000",
     duration: "180 days",
-    expectedReturn: "20-35%",
+    dailyRate: "0.11–0.19%",
+    expectedReturn: "20–35%",
     features: ["High-yield strategies", "Leveraged positions", "Daily analytics dashboard", "VIP support line", "Custom risk parameters", "Early withdrawal option"],
   },
   {
     name: "Institutional",
+    icon: Landmark,
     minInvestment: "$50,000",
     duration: "365 days",
-    expectedReturn: "25-45%",
+    dailyRate: "0.07–0.12%",
+    expectedReturn: "25–45%",
     features: ["Custom portfolio construction", "Direct market access", "Quarterly strategy reviews", "Tax optimization support", "Dedicated trading desk", "API integration"],
   },
 ];
@@ -57,41 +65,81 @@ const Plans = () => (
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+        {/* Plans Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-20">
           {plans.map((plan) => (
-            <Card key={plan.name} className={`bg-card border-border relative ${plan.popular ? "border-primary ring-1 ring-primary/30" : ""}`}>
+            <Card
+              key={plan.name}
+              className={`relative flex flex-col rounded-2xl border bg-gradient-to-b from-card to-background transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_30px_hsl(var(--gold)/0.12)] ${
+                plan.popular
+                  ? "border-gold ring-1 ring-gold/30"
+                  : "border-border hover:border-gold/40"
+              }`}
+            >
               {plan.popular && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">Most Popular</span>
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gold text-gold-foreground text-[10px] md:text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap z-10">
+                  Most Popular
+                </span>
               )}
-              <CardContent className="p-6">
-                <h3 className="text-lg font-display font-bold text-foreground text-center mb-2">{plan.name}</h3>
-                <p className="text-3xl font-display font-bold text-gradient-brand text-center my-3">{plan.expectedReturn}</p>
-                <p className="text-xs text-muted-foreground text-center mb-1">Expected Return</p>
-                <div className="border-t border-border my-4 pt-4 space-y-2 text-sm text-muted-foreground">
-                  <p>Min. Investment: <span className="text-foreground font-medium">{plan.minInvestment}</span></p>
-                  <p>Duration: <span className="text-foreground font-medium">{plan.duration}</span></p>
+              <CardContent className="flex flex-col flex-1 p-4 md:p-6 pt-6 md:pt-8">
+                {/* Icon */}
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gold/10">
+                  <plan.icon className="h-6 w-6 text-gold" />
                 </div>
-                <ul className="space-y-2 mb-6">
+
+                {/* Name */}
+                <h3 className="text-sm md:text-lg font-display font-bold text-foreground text-center mb-1">
+                  {plan.name}
+                </h3>
+
+                {/* Min investment */}
+                <p className="text-xs text-muted-foreground text-center mb-3">
+                  {plan.minInvestment} min
+                </p>
+
+                {/* Daily rate */}
+                <p className="text-xl md:text-2xl font-display font-bold text-center text-success mb-1">
+                  {plan.dailyRate}
+                </p>
+                <p className="text-[10px] md:text-xs text-muted-foreground text-center mb-4">
+                  daily · {plan.expectedReturn} total · {plan.duration}
+                </p>
+
+                {/* Features */}
+                <ul className="space-y-1.5 mb-6 flex-1">
                   {plan.features.map((f) => (
-                    <li key={f} className="text-xs text-muted-foreground flex items-start gap-2">
-                      <CheckCircle className="h-3 w-3 text-primary shrink-0 mt-0.5" /> {f}
+                    <li key={f} className="text-[10px] md:text-xs text-muted-foreground flex items-start gap-1.5">
+                      <CheckCircle className="h-3 w-3 text-gold shrink-0 mt-0.5" /> {f}
                     </li>
                   ))}
                 </ul>
-                <Button className={`w-full ${plan.popular ? "bg-gradient-brand text-primary-foreground font-semibold" : ""}`} variant={plan.popular ? "default" : "outline"} asChild>
-                  <Link to="/register">Invest Now</Link>
+
+                {/* Button pinned to bottom */}
+                <Button
+                  className={`w-full mt-auto ${
+                    plan.popular
+                      ? "bg-gold text-gold-foreground hover:bg-gold/90 font-semibold"
+                      : "border-gold/30 text-gold hover:bg-gold/10"
+                  }`}
+                  variant={plan.popular ? "default" : "outline"}
+                  asChild
+                >
+                  <Link to="/register">Get Started</Link>
                 </Button>
               </CardContent>
             </Card>
           ))}
         </div>
 
+        {/* Benefits */}
         <h2 className="text-2xl font-display font-bold text-foreground text-center mb-10">Why Invest With Us</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
           {benefits.map((b) => (
-            <Card key={b.title} className="bg-card border-border">
+            <Card key={b.title} className="rounded-2xl border-border bg-gradient-to-b from-card to-background hover:border-gold/30 transition-colors">
               <CardContent className="p-6 text-center">
-                <b.icon className="h-8 w-8 text-primary mx-auto mb-3" />
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gold/10">
+                  <b.icon className="h-6 w-6 text-gold" />
+                </div>
                 <h3 className="font-display font-semibold text-foreground mb-2">{b.title}</h3>
                 <p className="text-sm text-muted-foreground">{b.description}</p>
               </CardContent>
