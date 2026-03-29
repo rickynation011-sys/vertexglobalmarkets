@@ -151,26 +151,7 @@ const DashboardSettings = () => {
         </CardContent>
       </Card>
 
-      <Card className="bg-card border-border">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium flex items-center gap-2"><Bell className="h-4 w-4" /> Notifications</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {[
-            { label: "Trade Executed", desc: "Get notified when a trade is executed" },
-            { label: "Deposit/Withdrawal", desc: "Transaction confirmations" },
-            { label: "Market News", desc: "Important market updates" },
-          ].map((n) => (
-            <div key={n.label} className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-foreground">{n.label}</p>
-                <p className="text-xs text-muted-foreground">{n.desc}</p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <NotificationPreferencesCard userId={user?.id} />
     </div>
   );
 };
