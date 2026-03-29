@@ -29,6 +29,7 @@ const roleColors: Record<string, string> = {
 const AdminUsers = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [userRoles, setUserRoles] = useState<Record<string, AppRole[]>>({});
+  const [emailVerification, setEmailVerification] = useState<Record<string, { email_confirmed_at: string | null }>>({});
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
