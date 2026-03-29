@@ -21,6 +21,7 @@ const footerLinks = {
     { label: "Terms of Service", href: "/terms" },
     { label: "Privacy Policy", href: "/privacy" },
     { label: "Risk Disclosure", href: "/risk-disclosure" },
+    { label: "Regulation & Compliance", href: "/regulation-compliance" },
     { label: "Compliance", href: "/compliance" },
     { label: "Security", href: "/security" },
   ],
@@ -64,7 +65,13 @@ const Footer = () => {
           ))}
         </div>
 
-        <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="border-t border-border pt-6 pb-2 text-center">
+          <p className="text-xs text-muted-foreground/60 mb-4">
+            Trading involves risk and may not be suitable for all users.
+          </p>
+        </div>
+
+        <div className="border-t border-border pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground">
             © 2026 Vertex Global Markets. All rights reserved.
           </p>

@@ -34,6 +34,7 @@ import Investments from "./pages/Investments.tsx";
 import Signals from "./pages/Signals.tsx";
 import Plans from "./pages/Plans.tsx";
 import RealEstate from "./pages/RealEstate.tsx";
+import RegulationCompliance from "./pages/RegulationCompliance.tsx";
 import MarketForex from "./pages/markets/MarketForex.tsx";
 import MarketCrypto from "./pages/markets/MarketCrypto.tsx";
 import MarketStocks from "./pages/markets/MarketStocks.tsx";
@@ -118,6 +119,7 @@ const App = () => (
               <Route path="/signals" element={<Signals />} />
               <Route path="/plans" element={<Plans />} />
               <Route path="/real-estate" element={<RealEstate />} />
+              <Route path="/regulation-compliance" element={<RegulationCompliance />} />
               <Route path="/markets/forex" element={<MarketForex />} />
               <Route path="/markets/crypto" element={<MarketCrypto />} />
               <Route path="/markets/stocks" element={<MarketStocks />} />
