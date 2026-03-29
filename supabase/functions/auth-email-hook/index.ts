@@ -17,7 +17,7 @@ const corsHeaders = {
 }
 
 const EMAIL_SUBJECTS: Record<string, string> = {
-  signup: 'Confirm Your Email Address – Vertex Global Markets',
+  signup: 'Confirm Your Email Address – Vexter Global Markets',
   invite: "You've been invited",
   magiclink: 'Your login link',
   recovery: 'Reset your password',
