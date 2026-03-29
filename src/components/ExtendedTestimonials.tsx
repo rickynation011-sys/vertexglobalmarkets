@@ -104,7 +104,7 @@ const ExtendedTestimonials = () => {
                 >
                   <div className="flex gap-1 mb-4">
                     {Array.from({ length: 5 }).map((_, j) => (
-                      <Star key={j} className="h-4 w-4 fill-warning text-warning" />
+                      <Star key={j} className={`h-4 w-4 ${j < t.rating ? "fill-warning text-warning" : "text-muted-foreground/30"}`} />
                     ))}
                   </div>
                   <p className="text-foreground leading-relaxed mb-6 italic flex-1">"{t.text}"</p>
