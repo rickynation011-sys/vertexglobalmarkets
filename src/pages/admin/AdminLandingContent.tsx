@@ -359,7 +359,7 @@ function LiveActivityTab() {
     queryKey: ["landing-activity-config"],
     queryFn: async () => {
       const { data } = await supabase.from(SETTINGS_TABLE).select("*").eq("key", "landing_activity_config").single();
-      return data?.value as { enabled: boolean; frequency_seconds: number } | null;
+      return (data as any)?.value as { enabled: boolean; frequency_seconds: number } | null;
     },
   });
 
