@@ -5,6 +5,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+/**
+ * Timezone-aware daily profit processor.
+ * Runs every 10 minutes via cron. For each user with active investments,
+ * checks if it's currently 1:00 AM in their local timezone and processes
+ * profits only once per calendar day (tracked via last_profit_processed_date).
+ */
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -15,51 +21,122 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Get all active investments
-    const { data: investments, error: fetchErr } = await supabase
+    const nowUtc = new Date();
+
+    // Get distinct user_ids with active investments, joined with their timezone & last processed date
+    const { data: activeUsers, error: usersErr } = await supabase
       .from("investments")
-      .select("id, user_id, amount, current_value, daily_rate, ends_at, plan_name")
+      .select("user_id")
       .eq("status", "active")
       .gt("daily_rate", 0);
 
-    if (fetchErr) throw fetchErr;
-    if (!investments || investments.length === 0) {
-      // Log empty run
+    if (usersErr) throw usersErr;
+    if (!activeUsers || activeUsers.length === 0) {
       await supabase.from("profit_processing_logs").insert({
-        processed_count: 0,
-        total_profit: 0,
-        status: "success",
-        triggered_by: req.headers.get("x-trigger") || "manual",
+        processed_count: 0, total_profit: 0, status: "success",
+        triggered_by: req.headers.get("x-trigger") || "cron",
       });
-      return new Response(JSON.stringify({ message: "No active investments to process" }), {
+      return new Response(JSON.stringify({ message: "No active investments" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    // Deduplicate user_ids
+    const uniqueUserIds = [...new Set(activeUsers.map((u: any) => u.user_id))];
+
+    // Fetch profiles for these users (timezone + last_profit_processed_date)
+    const { data: profiles, error: profErr } = await supabase
+      .from("profiles")
+      .select("user_id, email, full_name, wallet_balance, timezone, last_profit_processed_date")
+      .in("user_id", uniqueUserIds);
+
+    if (profErr) throw profErr;
+
+    const profileMap = new Map<string, any>();
+    for (const p of profiles ?? []) {
+      profileMap.set(p.user_id, p);
+    }
+
+    // Determine which users are eligible (it's 1:00 AM in their timezone, not yet processed today)
+    const eligibleUserIds: string[] = [];
+
+    for (const userId of uniqueUserIds) {
+      const profile = profileMap.get(userId);
+      if (!profile) continue;
+
+      const tz = profile.timezone || "UTC";
+      let localHour: number;
+      let localDateStr: string;
+
+      try {
+        const formatter = new Intl.DateTimeFormat("en-US", {
+          timeZone: tz,
+          hour: "numeric",
+          hour12: false,
+        });
+        localHour = parseInt(formatter.format(nowUtc), 10);
+
+        const dateFormatter = new Intl.DateTimeFormat("en-CA", {
+          timeZone: tz,
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        });
+        localDateStr = dateFormatter.format(nowUtc); // YYYY-MM-DD
+      } catch {
+        // Invalid timezone, fall back to UTC
+        localHour = nowUtc.getUTCHours();
+        localDateStr = nowUtc.toISOString().slice(0, 10);
+      }
+
+      // Check: is it the 1 AM hour? (covers 1:00-1:09 since cron runs every 10 min)
+      if (localHour !== 1) continue;
+
+      // Check: not already processed today
+      if (profile.last_profit_processed_date === localDateStr) continue;
+
+      eligibleUserIds.push(userId);
+    }
+
+    if (eligibleUserIds.length === 0) {
+      await supabase.from("profit_processing_logs").insert({
+        processed_count: 0, total_profit: 0, status: "success",
+        triggered_by: req.headers.get("x-trigger") || "cron",
+      });
+      return new Response(JSON.stringify({ message: "No users eligible at this time" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Fetch active investments for eligible users
+    const { data: investments, error: invErr } = await supabase
+      .from("investments")
+      .select("id, user_id, amount, current_value, daily_rate, ends_at, plan_name")
+      .eq("status", "active")
+      .gt("daily_rate", 0)
+      .in("user_id", eligibleUserIds);
+
+    if (invErr) throw invErr;
+
     let processed = 0;
     let totalProfit = 0;
+    const processedUserIds = new Set<string>();
 
-    for (const inv of investments) {
+    for (const inv of investments ?? []) {
       // Check if investment has expired
-      if (new Date(inv.ends_at) < new Date()) {
+      if (new Date(inv.ends_at) < nowUtc) {
         await supabase.from("investments").update({ status: "completed" }).eq("id", inv.id);
 
-        // Send investment-matured email
-        const { data: userProfile } = await supabase
-          .from("profiles")
-          .select("email, full_name, wallet_balance")
-          .eq("user_id", inv.user_id)
-          .single();
-
-        if (userProfile?.email) {
+        const profile = profileMap.get(inv.user_id);
+        if (profile?.email) {
           const profit = (Number(inv.current_value) - Number(inv.amount)).toFixed(2);
           await supabase.functions.invoke("send-transactional-email", {
             body: {
               templateName: "investment-matured",
-              recipientEmail: userProfile.email,
+              recipientEmail: profile.email,
               idempotencyKey: `investment-matured-${inv.id}`,
               templateData: {
-                name: userProfile.full_name || undefined,
+                name: profile.full_name || undefined,
                 planName: inv.plan_name,
                 amount: Number(inv.amount).toLocaleString(),
                 profit,
@@ -68,15 +145,14 @@ Deno.serve(async (req) => {
             },
           });
         }
+        processedUserIds.add(inv.user_id);
         continue;
       }
 
-      // Calculate daily profit: amount * (annual_rate / 365)
+      // Calculate daily profit
       const dailyProfit = Number(inv.amount) * (Number(inv.daily_rate) / 365);
-
       if (dailyProfit <= 0) continue;
 
-      // Update investment current_value
       const newValue = Number(inv.current_value) + dailyProfit;
       const returnPct = ((newValue - Number(inv.amount)) / Number(inv.amount)) * 100;
 
@@ -85,20 +161,17 @@ Deno.serve(async (req) => {
         return_pct: returnPct,
       }).eq("id", inv.id);
 
-      // Add to user wallet_balance
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("wallet_balance")
-        .eq("user_id", inv.user_id)
-        .single();
-
+      // Update wallet balance
+      const profile = profileMap.get(inv.user_id);
       if (profile) {
+        const currentBalance = Number(profile.wallet_balance) + dailyProfit;
         await supabase.from("profiles").update({
-          wallet_balance: Number(profile.wallet_balance) + dailyProfit,
+          wallet_balance: currentBalance,
         }).eq("user_id", inv.user_id);
+        // Update local cache so subsequent investments for same user use correct balance
+        profile.wallet_balance = currentBalance;
       }
 
-      // Log the profit
       await supabase.from("profit_logs").insert({
         user_id: inv.user_id,
         investment_id: inv.id,
@@ -107,31 +180,48 @@ Deno.serve(async (req) => {
 
       totalProfit += dailyProfit;
       processed++;
+      processedUserIds.add(inv.user_id);
     }
 
-    // Log the processing run
+    // Mark all processed users with today's date to prevent duplicate processing
+    for (const userId of processedUserIds) {
+      const profile = profileMap.get(userId);
+      const tz = profile?.timezone || "UTC";
+      let localDateStr: string;
+      try {
+        const dateFormatter = new Intl.DateTimeFormat("en-CA", {
+          timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit",
+        });
+        localDateStr = dateFormatter.format(nowUtc);
+      } catch {
+        localDateStr = nowUtc.toISOString().slice(0, 10);
+      }
+      await supabase.from("profiles").update({
+        last_profit_processed_date: localDateStr,
+      }).eq("user_id", userId);
+    }
+
     await supabase.from("profit_processing_logs").insert({
       processed_count: processed,
       total_profit: totalProfit,
       status: "success",
-      triggered_by: req.headers.get("x-trigger") || "manual",
+      triggered_by: req.headers.get("x-trigger") || "cron",
     });
 
-    return new Response(JSON.stringify({ message: `Processed ${processed} investments`, totalProfit }), {
+    return new Response(JSON.stringify({
+      message: `Processed ${processed} investments for ${processedUserIds.size} users`,
+      totalProfit,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    // Try to log the error
     try {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const supabase = createClient(supabaseUrl, serviceRoleKey);
       await supabase.from("profit_processing_logs").insert({
-        processed_count: 0,
-        total_profit: 0,
-        status: "error",
-        error_message: error.message,
-        triggered_by: "manual",
+        processed_count: 0, total_profit: 0, status: "error",
+        error_message: error.message, triggered_by: "cron",
       });
     } catch (_) { /* ignore logging errors */ }
 
