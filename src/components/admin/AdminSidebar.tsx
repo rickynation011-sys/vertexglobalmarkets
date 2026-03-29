@@ -43,17 +43,28 @@ export function AdminSidebar() {
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
 
-  const { data: pendingFeeCount = 0 } = useQuery({
-    queryKey: ["admin-pending-fee-count"],
+  const { data: pendingCounts = { fees: 0, deposits: 0, withdrawals: 0 } } = useQuery({
+    queryKey: ["admin-pending-counts"],
     queryFn: async () => {
-      const { count } = await supabase
-        .from("fee_payments")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "pending");
-      return count ?? 0;
+      const [feeRes, depRes, wdRes] = await Promise.all([
+        supabase.from("fee_payments").select("id", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("transactions").select("id", { count: "exact", head: true }).eq("status", "pending").eq("type", "deposit"),
+        supabase.from("transactions").select("id", { count: "exact", head: true }).eq("status", "pending").eq("type", "withdrawal"),
+      ]);
+      return {
+        fees: feeRes.count ?? 0,
+        deposits: depRes.count ?? 0,
+        withdrawals: wdRes.count ?? 0,
+      };
     },
     refetchInterval: 30000,
   });
+
+  const badgeMap: Record<string, number> = {
+    "/admin/deposits": pendingCounts.deposits,
+    "/admin/withdrawals": pendingCounts.withdrawals,
+    "/admin/fee-payments": pendingCounts.fees,
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
