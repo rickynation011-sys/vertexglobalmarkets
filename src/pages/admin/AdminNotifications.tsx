@@ -85,15 +85,36 @@ const AdminNotifications = () => {
       }).select("id").single();
       if (error) throw error;
 
-      // 2. Determine target user IDs for push and email
+      // 2. Determine target user IDs for push, email, and in-app
       let targetUserIds: string[] = [];
+      let allProfilesData: Array<{ user_id: string; email: string | null; full_name: string | null }> = [];
       if (target === "individual" && targetUserId) {
         targetUserIds = [targetUserId];
+        const { data } = await supabase
+          .from("profiles")
+          .select("user_id, email, full_name")
+          .eq("user_id", targetUserId);
+        if (data) allProfilesData = data;
       } else {
         const { data: allProfiles } = await supabase
           .from("profiles")
           .select("user_id, email, full_name");
-        if (allProfiles) targetUserIds = allProfiles.map((p) => p.user_id);
+        if (allProfiles) {
+          allProfilesData = allProfiles;
+          targetUserIds = allProfiles.map((p) => p.user_id);
+        }
+      }
+
+      // 2b. Create user_notifications records for in-app delivery
+      if (channelInApp && notifData?.id && targetUserIds.length > 0) {
+        const userNotifRecords = targetUserIds.map((uid) => ({
+          user_id: uid,
+          notification_id: notifData.id,
+        }));
+        // Insert in batches of 50
+        for (let i = 0; i < userNotifRecords.length; i += 50) {
+          await supabase.from("user_notifications").insert(userNotifRecords.slice(i, i + 50));
+        }
       }
 
       // 3. Send push notifications if enabled
