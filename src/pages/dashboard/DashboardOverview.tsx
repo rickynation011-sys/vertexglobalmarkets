@@ -218,7 +218,7 @@ const DashboardOverview = () => {
           <h1 className="text-2xl font-display font-bold text-foreground">Welcome back, {firstName} 👋</h1>
           <p className="text-muted-foreground text-sm">Here's your portfolio overview</p>
           <p className="text-muted-foreground text-xs flex items-center gap-1 mt-0.5">
-            <Timer className="h-3 w-3" /> Daily profit is processed at 1:00 AM (your local time)
+            <Timer className="h-3 w-3" /> Daily profit is processed at 1:00 AM ({(profile as any)?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone})
           </p>
         </div>
         <div className="flex gap-2">
