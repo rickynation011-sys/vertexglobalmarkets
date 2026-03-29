@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -38,9 +39,15 @@ const fallbackInvestors = [
 
 const rankColors: Record<number, string> = { 1: "text-yellow-400", 2: "text-gray-300", 3: "text-amber-600" };
 
+// Shuffle and keep top entries varied
+const shuffleInvestors = <T extends Record<string, any>>(items: T[]): T[] => {
+  return [...items].sort(() => Math.random() - 0.5);
+};
+
 const InvestorsLeaderboard = () => {
   const { data: dbInvestors } = useQuery({ queryKey: ["landing-investors"], queryFn: fetchInvestors, staleTime: 60000 });
-  const investors = dbInvestors && dbInvestors.length > 0 ? dbInvestors : fallbackInvestors;
+  const raw = dbInvestors && dbInvestors.length > 0 ? dbInvestors : fallbackInvestors;
+  const investors = useMemo(() => shuffleInvestors(raw), [raw]);
 
   return (
     <section className="py-24 relative">

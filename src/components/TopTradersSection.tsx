@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { TrendingUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -26,9 +27,19 @@ const fallbackTraders = [
   { name: "Nathan Brooks", country: "Canada", flag: "🇨🇦", win_rate: 90, total_profit: "$920K", photo_url: traderNathan },
 ];
 
+// Add slight win_rate variation (+/- 1) and shuffle order
+const addVariation = <T extends { win_rate?: number }>(items: T[]): T[] => {
+  const shuffled = [...items].sort(() => Math.random() - 0.5);
+  return shuffled.map(item => ({
+    ...item,
+    win_rate: item.win_rate != null ? item.win_rate + (Math.random() > 0.5 ? 1 : -1) * Math.round(Math.random()) : item.win_rate,
+  }));
+};
+
 const TopTradersSection = () => {
   const { data: dbTraders } = useQuery({ queryKey: ["landing-traders"], queryFn: fetchTraders, staleTime: 60000 });
-  const traders = dbTraders && dbTraders.length > 0 ? dbTraders : fallbackTraders;
+  const raw = dbTraders && dbTraders.length > 0 ? dbTraders : fallbackTraders;
+  const traders = useMemo(() => addVariation(raw), [raw]);
 
   return (
     <section className="py-24 relative">

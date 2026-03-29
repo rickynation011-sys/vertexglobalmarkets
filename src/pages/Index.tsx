@@ -14,10 +14,12 @@ import PlatformFeaturesSection from "@/components/PlatformFeaturesSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
+import LiveActivityFeed from "@/components/LiveActivityFeed";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
+      <LiveActivityFeed />
       <SEO
         title="Global Trading & Investment Platform"
         description="Trade forex, crypto, stocks, commodities and more with advanced strategies and professional-grade tools. Join 500K+ traders on Vertex Global Markets."
