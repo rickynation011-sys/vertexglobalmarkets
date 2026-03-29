@@ -252,14 +252,30 @@ const AdminNotifications = () => {
             </div>
           )}
 
-          <div>
-            <label className="text-sm text-muted-foreground">Message</label>
-            <Textarea
-              placeholder="Write your notification message..."
-              className="mt-1 min-h-[100px]"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm text-muted-foreground">Category (for preference filtering)</label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select category (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="trade_executed">Trade Executed</SelectItem>
+                  <SelectItem value="deposit_withdrawal">Deposit / Withdrawal</SelectItem>
+                  <SelectItem value="market_news">Market News</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground">Message</label>
+              <Textarea
+                placeholder="Write your notification message..."
+                className="mt-1 min-h-[100px]"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+              />
+            </div>
           </div>
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4 flex-wrap">
