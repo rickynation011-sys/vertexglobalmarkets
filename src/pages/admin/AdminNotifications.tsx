@@ -138,18 +138,11 @@ const AdminNotifications = () => {
         let recipients: Array<{ email: string; full_name: string | null }> = [];
 
         if (target === "individual" && targetUserId) {
-          const { data } = await supabase
-            .from("profiles")
-            .select("email, full_name")
-            .eq("user_id", targetUserId)
-            .single();
-          if (data?.email) recipients.push(data);
+          const match = allProfilesData.find((p) => p.user_id === targetUserId);
+          if (match?.email) recipients.push({ email: match.email, full_name: match.full_name });
         } else {
-          const { data } = await supabase
-            .from("profiles")
-            .select("email, full_name")
-            .not("email", "is", null);
-          if (data) recipients = data.filter((p) => p.email);
+          recipients = allProfilesData
+            .filter((p): p is typeof p & { email: string } => !!p.email);
         }
 
         const batchSize = 10;
