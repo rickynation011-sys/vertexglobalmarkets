@@ -159,6 +159,16 @@ const Login = () => {
                   {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Sign In
                 </Button>
+                {/* Resend confirmation email */}
+                <button
+                  type="button"
+                  onClick={handleResendConfirmation}
+                  disabled={resendLoading || resendCooldown > 0}
+                  className="w-full text-sm text-muted-foreground hover:text-primary flex items-center justify-center gap-1.5 mt-2 disabled:opacity-50"
+                >
+                  {resendLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                  {resendCooldown > 0 ? `Resend confirmation in ${resendCooldown}s` : "Resend confirmation email"}
+                </button>
               </form>
             </TabsContent>
 
