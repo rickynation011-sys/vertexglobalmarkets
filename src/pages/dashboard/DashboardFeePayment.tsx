@@ -94,7 +94,7 @@ const DashboardFeePayment = () => {
 
       // Upload proof
       const fileExt = proofFile.name.split(".").pop();
-      const filePath = `fee-proofs/${user!.id}/${Date.now()}.${fileExt}`;
+      const filePath = `${user!.id}/fee-proofs/${Date.now()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
         .from("ticket-attachments")
         .upload(filePath, proofFile);
