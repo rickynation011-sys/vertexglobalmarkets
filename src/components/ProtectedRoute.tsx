@@ -16,6 +16,11 @@ const ProtectedRoute = () => {
     return <Navigate to="/login" replace />;
   }
 
+  // Redirect unverified users to the verification page
+  if (!user.email_confirmed_at) {
+    return <Navigate to="/verify-email" replace />;
+  }
+
   return <Outlet />;
 };
 
