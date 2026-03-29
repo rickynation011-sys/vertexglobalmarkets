@@ -3,7 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 // Google OAuth2 token for FCM v1 API
@@ -23,7 +23,6 @@ async function getAccessToken(serviceAccount: any): Promise<string> {
   const textEncoder = new TextEncoder();
   const signingInput = `${header}.${payload}`;
 
-  // Import private key
   const pemContents = serviceAccount.private_key
     .replace(/-----BEGIN PRIVATE KEY-----/g, "")
     .replace(/-----END PRIVATE KEY-----/g, "")
@@ -81,23 +80,22 @@ Deno.serve(async (req) => {
 
     const serviceAccount = JSON.parse(serviceAccountJson);
 
-    // Auth check
+    // Auth check — validate JWT manually
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      return new Response(JSON.stringify({ error: "Missing or invalid Authorization header" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    // Use anon key client with the caller's JWT to verify identity
     const supabase = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: claims, error: claimsError } = await supabase.auth.getClaims(
-      authHeader.replace("Bearer ", "")
-    );
-    if (claimsError || !claims?.claims) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -108,7 +106,7 @@ Deno.serve(async (req) => {
 
     // Check admin role
     const { data: isAdmin } = await adminClient.rpc("has_role", {
-      _user_id: claims.claims.sub,
+      _user_id: user.id,
       _role: "admin",
     });
 
@@ -131,7 +129,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Check notification preferences - filter out users who disabled push for this category
+    // Check notification preferences
     let eligibleUserIds = userIds;
     if (category) {
       const pushColumn = `${category}_push`;
@@ -157,7 +155,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Fetch FCM tokens for eligible users
+    // Fetch FCM tokens
     const { data: tokens, error: tokenError } = await adminClient
       .from("fcm_tokens")
       .select("token")
@@ -183,7 +181,6 @@ Deno.serve(async (req) => {
     let failed = 0;
     const staleTokens: string[] = [];
 
-    // Send to each token
     for (const { token } of tokens) {
       try {
         const resp = await fetch(
@@ -215,7 +212,6 @@ Deno.serve(async (req) => {
           sent++;
         } else {
           const errData = await resp.json();
-          // Token is stale/invalid — mark for cleanup
           if (
             errData?.error?.code === 404 ||
             errData?.error?.code === 410 ||
