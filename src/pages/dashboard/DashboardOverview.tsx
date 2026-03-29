@@ -18,6 +18,8 @@ import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { useProfitSimulation } from "@/hooks/useProfitSimulation";
 import AnimatedBalance from "@/components/dashboard/AnimatedBalance";
+import BalanceSparkline from "@/components/dashboard/BalanceSparkline";
+import MilestoneConfetti from "@/components/dashboard/MilestoneConfetti";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useMarketPrices } from "@/hooks/useMarketPrices";
@@ -207,6 +209,8 @@ const DashboardOverview = () => {
     walletBonus,
     recentProfits,
     lastFlash,
+    balanceHistory,
+    milestone,
   } = useProfitSimulation(investments as any, walletBalance);
   const portfolioData = (() => {
     const allTxns = [...(transactions ?? [])].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
@@ -244,6 +248,9 @@ const DashboardOverview = () => {
         </div>
       </div>
 
+      {/* Milestone Confetti */}
+      <MilestoneConfetti milestone={milestone} format={fmt} />
+
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/wallet")}>
@@ -254,8 +261,11 @@ const DashboardOverview = () => {
                 <DollarSign className="h-4 w-4" />
               </div>
             </div>
-            <div className="text-lg font-display font-bold text-foreground">
-              <AnimatedBalance value={simulatedBalance} format={fmt} flash={lastFlash?.type === "profit" ? lastFlash : null} />
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-lg font-display font-bold text-foreground">
+                <AnimatedBalance value={simulatedBalance} format={fmt} flash={lastFlash?.type === "profit" ? lastFlash : null} />
+              </div>
+              <BalanceSparkline data={balanceHistory} />
             </div>
           </CardContent>
         </Card>

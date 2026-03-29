@@ -18,11 +18,11 @@ type Investment = {
   ends_at: string;
 };
 
+const MILESTONES = [100, 500, 1000, 2500, 5000, 10000];
+
 /**
  * Simulates gradual profit growth for active investments.
- * - Ticks every 5-8s with slight random variation
- * - Generates "Daily Profit" and "Trade Profit" entries
- * - Adds realistic fluctuation (not perfectly linear)
+ * Tracks balance history for sparkline and milestone confetti triggers.
  */
 export function useProfitSimulation(
   investments: Investment[] | undefined,
@@ -32,7 +32,6 @@ export function useProfitSimulation(
     (i) => i.status === "active"
   );
 
-  // Simulated bonus on top of real values
   const [bonusMap, setBonusMap] = useState<Record<string, number>>({});
   const [walletBonus, setWalletBonus] = useState(0);
   const [recentProfits, setRecentProfits] = useState<SimulatedProfit[]>([]);
@@ -41,41 +40,49 @@ export function useProfitSimulation(
     amount: number;
     ts: number;
   } | null>(null);
+  const [balanceHistory, setBalanceHistory] = useState<number[]>([]);
+  const [milestone, setMilestone] = useState<number | null>(null);
   const tickRef = useRef(0);
+  const passedMilestones = useRef<Set<number>>(new Set());
 
   const tick = useCallback(() => {
     if (activeInvestments.length === 0) return;
 
-    // Pick a random active investment to generate profit from
     const inv =
       activeInvestments[Math.floor(Math.random() * activeInvestments.length)];
 
-    // Calculate a micro-increment based on daily rate
-    // daily_rate is e.g. 2.5 meaning 2.5% total return
-    // Spread across ~720 ticks/day (every ~2min real, but we compress time)
     const baseIncrement =
       (Number(inv.amount) * (Number(inv.daily_rate) / 100)) / 200;
 
-    // Add fluctuation: -30% to +80% variation
     const fluctuation = 0.7 + Math.random() * 1.1;
     const increment = Math.max(0.01, baseIncrement * fluctuation);
-
-    // Round to 2 decimals
     const roundedIncrement = Math.round(increment * 100) / 100;
 
-    // Update bonus for this investment
     setBonusMap((prev) => ({
       ...prev,
       [inv.id]: (prev[inv.id] || 0) + roundedIncrement,
     }));
 
-    // Add to wallet bonus
-    setWalletBonus((prev) => prev + roundedIncrement);
+    setWalletBonus((prev) => {
+      const newBonus = prev + roundedIncrement;
+      // Check milestones
+      for (const m of MILESTONES) {
+        if (newBonus >= m && !passedMilestones.current.has(m)) {
+          passedMilestones.current.add(m);
+          setMilestone(m);
+        }
+      }
+      return newBonus;
+    });
 
-    // Flash indicator
     setLastFlash({ type: "profit", amount: roundedIncrement, ts: Date.now() });
 
-    // Generate a profit entry ~40% of the time
+    // Track balance history for sparkline (keep last 30 points)
+    setBalanceHistory((prev) => {
+      const newVal = walletBalance + walletBonus + roundedIncrement;
+      return [...prev.slice(-29), newVal];
+    });
+
     if (Math.random() < 0.4) {
       const labels = [
         `Daily Profit — ${inv.plan_name}`,
@@ -93,16 +100,15 @@ export function useProfitSimulation(
           amount: roundedIncrement,
           timestamp: Date.now(),
         },
-        ...prev.slice(0, 19), // keep last 20
+        ...prev.slice(0, 19),
       ]);
     }
-  }, [activeInvestments]);
+  }, [activeInvestments, walletBalance, walletBonus]);
 
   useEffect(() => {
     if (activeInvestments.length === 0) return;
 
     const scheduleNext = () => {
-      // Random delay between 5-8 seconds
       const delay = 5000 + Math.random() * 3000;
       return setTimeout(() => {
         tick();
@@ -110,7 +116,6 @@ export function useProfitSimulation(
       }, delay);
     };
 
-    // Initial delay 2-4s
     const initialDelay = 2000 + Math.random() * 2000;
     const initialTimeout = setTimeout(() => {
       tick();
@@ -130,7 +135,20 @@ export function useProfitSimulation(
     return () => clearTimeout(t);
   }, [lastFlash]);
 
-  // Compute simulated values
+  // Clear milestone after 4s
+  useEffect(() => {
+    if (!milestone) return;
+    const t = setTimeout(() => setMilestone(null), 4000);
+    return () => clearTimeout(t);
+  }, [milestone]);
+
+  // Initialize sparkline with current balance
+  useEffect(() => {
+    if (balanceHistory.length === 0 && walletBalance > 0) {
+      setBalanceHistory([walletBalance]);
+    }
+  }, [walletBalance, balanceHistory.length]);
+
   const simulatedBalance = walletBalance + walletBonus;
 
   const getSimulatedCurrentValue = (inv: Investment) =>
@@ -148,5 +166,7 @@ export function useProfitSimulation(
     walletBonus,
     recentProfits,
     lastFlash,
+    balanceHistory,
+    milestone,
   };
 }
