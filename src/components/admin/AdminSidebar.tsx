@@ -99,9 +99,9 @@ export function AdminSidebar() {
                     <NavLink to={item.url} end={item.url === "/admin"} className="hover:bg-muted/50 relative" activeClassName="bg-muted text-primary font-medium">
                       <item.icon className="mr-2 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
-                      {item.url === "/admin/fee-payments" && pendingFeeCount > 0 && (
+                      {(badgeMap[item.url] ?? 0) > 0 && (
                         <Badge className="ml-auto h-5 min-w-[20px] px-1.5 text-[10px] font-bold bg-destructive text-destructive-foreground rounded-full">
-                          {pendingFeeCount}
+                          {badgeMap[item.url]}
                         </Badge>
                       )}
                     </NavLink>
