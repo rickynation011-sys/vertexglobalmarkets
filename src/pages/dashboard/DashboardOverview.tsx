@@ -253,7 +253,9 @@ const DashboardOverview = () => {
                 <DollarSign className="h-4 w-4" />
               </div>
             </div>
-            <div className="text-lg font-display font-bold text-foreground">{fmt(walletBalance)}</div>
+            <div className="text-lg font-display font-bold text-foreground">
+              <AnimatedBalance value={simulatedBalance} format={fmt} flash={lastFlash?.type === "profit" ? lastFlash : null} />
+            </div>
           </CardContent>
         </Card>
         <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/portfolio")}>
@@ -264,10 +266,12 @@ const DashboardOverview = () => {
                 <TrendingUp className="h-4 w-4" />
               </div>
             </div>
-            <div className="text-lg font-display font-bold text-foreground">{fmt(totalProfit)}</div>
-            <div className={`flex items-center gap-1 text-xs mt-0.5 ${totalProfit >= 0 ? "text-success" : "text-destructive"}`}>
-              {totalProfit >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-              {totalProfit >= 0 ? "Profit" : "Loss"}
+            <div className="text-lg font-display font-bold text-foreground">
+              <AnimatedBalance value={totalProfit + totalSimulatedProfit} format={fmt} />
+            </div>
+            <div className={`flex items-center gap-1 text-xs mt-0.5 ${(totalProfit + totalSimulatedProfit) >= 0 ? "text-success" : "text-destructive"}`}>
+              {(totalProfit + totalSimulatedProfit) >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+              {(totalProfit + totalSimulatedProfit) >= 0 ? "Profit" : "Loss"}
             </div>
           </CardContent>
         </Card>
