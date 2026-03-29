@@ -16,6 +16,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
+import { useProfitSimulation } from "@/hooks/useProfitSimulation";
+import AnimatedBalance from "@/components/dashboard/AnimatedBalance";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useMarketPrices } from "@/hooks/useMarketPrices";
@@ -59,12 +61,13 @@ function useCountdown(targetDate: string) {
   return timeLeft;
 }
 
-function ActiveInvestmentRow({ inv }: { inv: any }) {
+function ActiveInvestmentRow({ inv, getSimulatedValue }: { inv: any; getSimulatedValue?: (inv: any) => number }) {
   const timeLeft = useCountdown(inv.ends_at);
   const startMs = new Date(inv.started_at).getTime();
   const endMs = new Date(inv.ends_at).getTime();
   const elapsed = Math.min(100, Math.max(0, ((Date.now() - startMs) / (endMs - startMs)) * 100));
-  const profit = Number(inv.current_value) - Number(inv.amount);
+  const currentValue = getSimulatedValue ? getSimulatedValue(inv) : Number(inv.current_value);
+  const profit = currentValue - Number(inv.amount);
   const { format } = useCurrency();
   const fmt = (n: number) => format(n);
 
@@ -85,7 +88,7 @@ function ActiveInvestmentRow({ inv }: { inv: any }) {
       </div>
       <Progress value={elapsed} className="h-1.5" />
       <div className="flex justify-between text-[10px] text-muted-foreground">
-        <span>Current: {fmt(Number(inv.current_value))}</span>
+        <span>Current: {fmt(currentValue)}</span>
         <span>{elapsed.toFixed(0)}% complete</span>
       </div>
     </div>
@@ -195,6 +198,16 @@ const DashboardOverview = () => {
 
   const { format } = useCurrency();
   const fmt = (n: number) => format(n);
+
+  // Profit simulation
+  const {
+    simulatedBalance,
+    getSimulatedCurrentValue,
+    totalSimulatedProfit,
+    walletBonus,
+    recentProfits,
+    lastFlash,
+  } = useProfitSimulation(investments as any, walletBalance);
   const portfolioData = (() => {
     const allTxns = [...(transactions ?? [])].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     if (allTxns.length === 0) return [{ date: "Now", value: walletBalance }];
@@ -241,7 +254,9 @@ const DashboardOverview = () => {
                 <DollarSign className="h-4 w-4" />
               </div>
             </div>
-            <div className="text-lg font-display font-bold text-foreground">{fmt(walletBalance)}</div>
+            <div className="text-lg font-display font-bold text-foreground">
+              <AnimatedBalance value={simulatedBalance} format={fmt} flash={lastFlash?.type === "profit" ? lastFlash : null} />
+            </div>
           </CardContent>
         </Card>
         <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/portfolio")}>
@@ -252,10 +267,12 @@ const DashboardOverview = () => {
                 <TrendingUp className="h-4 w-4" />
               </div>
             </div>
-            <div className="text-lg font-display font-bold text-foreground">{fmt(totalProfit)}</div>
-            <div className={`flex items-center gap-1 text-xs mt-0.5 ${totalProfit >= 0 ? "text-success" : "text-destructive"}`}>
-              {totalProfit >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-              {totalProfit >= 0 ? "Profit" : "Loss"}
+            <div className="text-lg font-display font-bold text-foreground">
+              <AnimatedBalance value={totalProfit + totalSimulatedProfit} format={fmt} />
+            </div>
+            <div className={`flex items-center gap-1 text-xs mt-0.5 ${(totalProfit + totalSimulatedProfit) >= 0 ? "text-success" : "text-destructive"}`}>
+              {(totalProfit + totalSimulatedProfit) >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+              {(totalProfit + totalSimulatedProfit) >= 0 ? "Profit" : "Loss"}
             </div>
           </CardContent>
         </Card>
@@ -382,7 +399,7 @@ const DashboardOverview = () => {
           </CardHeader>
           <CardContent className="space-y-2">
             {activeInvestments.slice(0, 5).map((inv) => (
-              <ActiveInvestmentRow key={inv.id} inv={inv} />
+              <ActiveInvestmentRow key={inv.id} inv={inv} getSimulatedValue={getSimulatedCurrentValue} />
             ))}
             {activeInvestments.length > 5 && (
               <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground" onClick={() => navigate("/dashboard/investments")}>
@@ -428,10 +445,32 @@ const DashboardOverview = () => {
             </div>
           </CardHeader>
           <CardContent>
-            {recentTx.length === 0 ? (
+            {recentTx.length === 0 && recentProfits.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">No recent activity</p>
             ) : (
               <div className="space-y-0">
+                {/* Simulated profit entries first */}
+                {recentProfits.slice(0, 3).map(sp => {
+                  const secsAgo = Math.floor((Date.now() - sp.timestamp) / 1000);
+                  const timeLabel = secsAgo < 5 ? "just now" : secsAgo < 60 ? `${secsAgo}s ago` : `${Math.floor(secsAgo / 60)}m ago`;
+                  return (
+                    <div key={sp.id} className="flex items-center justify-between py-2.5 border-b border-border/50 last:border-0">
+                      <div className="flex items-center gap-2">
+                        <div className="h-7 w-7 rounded-full flex items-center justify-center bg-success/10">
+                          <TrendingUp className="h-3.5 w-3.5 text-success" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-foreground">{sp.label}</p>
+                          <p className="text-[10px] text-muted-foreground">{timeLabel}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-semibold text-success">+{fmt(sp.amount)}</p>
+                        <Badge variant="outline" className="text-[9px] px-1 py-0 border-success/30 text-success">completed</Badge>
+                      </div>
+                    </div>
+                  );
+                })}
                 {recentTx.map(tx => (
                   <div key={tx.id} className="flex items-center justify-between py-2.5 border-b border-border/50 last:border-0">
                     <div className="flex items-center gap-2">
