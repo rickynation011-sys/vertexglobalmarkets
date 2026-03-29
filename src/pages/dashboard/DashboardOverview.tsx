@@ -16,6 +16,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
+import { useProfitSimulation } from "@/hooks/useProfitSimulation";
+import AnimatedBalance from "@/components/dashboard/AnimatedBalance";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useMarketPrices } from "@/hooks/useMarketPrices";
