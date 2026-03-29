@@ -286,6 +286,7 @@ const DashboardProfile = () => {
                 </SelectContent>
               </Select>
             </div>
+          </div>
           <Button
             size="sm"
             className="bg-gradient-brand text-primary-foreground font-semibold"
