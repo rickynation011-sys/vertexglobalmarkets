@@ -15,6 +15,7 @@ import ResetPassword from "./pages/ResetPassword.tsx";
 import MfaChallenge from "./pages/MfaChallenge.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
+import PageTransition from "./components/PageTransition.tsx";
 
 // Static pages
 import Markets from "./pages/Markets.tsx";
@@ -90,88 +91,90 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/mfa-challenge" element={<MfaChallenge />} />
-            <Route path="/unsubscribe" element={<Unsubscribe />} />
+          <PageTransition>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/mfa-challenge" element={<MfaChallenge />} />
+              <Route path="/unsubscribe" element={<Unsubscribe />} />
 
-            {/* Static pages */}
-            <Route path="/markets" element={<Markets />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/careers" element={<Careers />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/risk-disclosure" element={<RiskDisclosure />} />
-            <Route path="/compliance" element={<Compliance />} />
-            <Route path="/security" element={<Security />} />
-            <Route path="/press" element={<Press />} />
-            <Route path="/trading" element={<Trading />} />
-            <Route path="/investments" element={<Investments />} />
-            <Route path="/signals" element={<Signals />} />
-            <Route path="/plans" element={<Plans />} />
-            <Route path="/real-estate" element={<RealEstate />} />
-            <Route path="/markets/forex" element={<MarketForex />} />
-            <Route path="/markets/crypto" element={<MarketCrypto />} />
-            <Route path="/markets/stocks" element={<MarketStocks />} />
-            <Route path="/markets/commodities" element={<MarketCommodities />} />
-            <Route path="/markets/indices" element={<MarketIndices />} />
-            <Route path="/markets/real-estate" element={<MarketRealEstate />} />
-            <Route path="/markets/etfs" element={<MarketETFs />} />
+              {/* Static pages */}
+              <Route path="/markets" element={<Markets />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/careers" element={<Careers />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/risk-disclosure" element={<RiskDisclosure />} />
+              <Route path="/compliance" element={<Compliance />} />
+              <Route path="/security" element={<Security />} />
+              <Route path="/press" element={<Press />} />
+              <Route path="/trading" element={<Trading />} />
+              <Route path="/investments" element={<Investments />} />
+              <Route path="/signals" element={<Signals />} />
+              <Route path="/plans" element={<Plans />} />
+              <Route path="/real-estate" element={<RealEstate />} />
+              <Route path="/markets/forex" element={<MarketForex />} />
+              <Route path="/markets/crypto" element={<MarketCrypto />} />
+              <Route path="/markets/stocks" element={<MarketStocks />} />
+              <Route path="/markets/commodities" element={<MarketCommodities />} />
+              <Route path="/markets/indices" element={<MarketIndices />} />
+              <Route path="/markets/real-estate" element={<MarketRealEstate />} />
+              <Route path="/markets/etfs" element={<MarketETFs />} />
 
-            {/* User dashboard - protected */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard" element={<DashboardLayout />}>
-                <Route index element={<DashboardOverview />} />
-                <Route path="portfolio" element={<DashboardPortfolio />} />
-                <Route path="investments" element={<DashboardInvestments />} />
-                <Route path="trading" element={<DashboardTrading />} />
-                <Route path="wallet" element={<DashboardWallet />} />
-                <Route path="signals" element={<DashboardSignals />} />
-                <Route path="copy-trading" element={<DashboardCopyTrading />} />
-                <Route path="history" element={<DashboardHistory />} />
-                <Route path="settings" element={<DashboardSettings />} />
-                <Route path="kyc" element={<DashboardKYC />} />
-                <Route path="contact" element={<DashboardContact />} />
-                <Route path="profile" element={<DashboardProfile />} />
-                <Route path="notifications" element={<DashboardNotifications />} />
-                <Route path="fee-payment" element={<DashboardFeePayment />} />
-                <Route path="referrals" element={<DashboardReferrals />} />
+              {/* User dashboard - protected */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/dashboard" element={<DashboardLayout />}>
+                  <Route index element={<DashboardOverview />} />
+                  <Route path="portfolio" element={<DashboardPortfolio />} />
+                  <Route path="investments" element={<DashboardInvestments />} />
+                  <Route path="trading" element={<DashboardTrading />} />
+                  <Route path="wallet" element={<DashboardWallet />} />
+                  <Route path="signals" element={<DashboardSignals />} />
+                  <Route path="copy-trading" element={<DashboardCopyTrading />} />
+                  <Route path="history" element={<DashboardHistory />} />
+                  <Route path="settings" element={<DashboardSettings />} />
+                  <Route path="kyc" element={<DashboardKYC />} />
+                  <Route path="contact" element={<DashboardContact />} />
+                  <Route path="profile" element={<DashboardProfile />} />
+                  <Route path="notifications" element={<DashboardNotifications />} />
+                  <Route path="fee-payment" element={<DashboardFeePayment />} />
+                  <Route path="referrals" element={<DashboardReferrals />} />
+                </Route>
               </Route>
-            </Route>
 
-            {/* Admin - separate login and role-protected */}
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route element={<AdminRoute />}>
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<AdminDashboard />} />
-                <Route path="users" element={<AdminUsers />} />
-                <Route path="kyc" element={<AdminKYC />} />
-                <Route path="deposits" element={<AdminDeposits />} />
-                <Route path="withdrawals" element={<AdminWithdrawals />} />
-                <Route path="transactions" element={<AdminTransactions />} />
-                <Route path="investments" element={<AdminInvestments />} />
-                <Route path="deposit-methods" element={<AdminDepositMethods />} />
-                <Route path="signals" element={<AdminSignals />} />
-                <Route path="copy-trading" element={<AdminCopyTrading />} />
-                <Route path="tickets" element={<AdminTickets />} />
-                <Route path="fee-payments" element={<AdminFeePayments />} />
-                <Route path="referrals" element={<AdminReferrals />} />
-                <Route path="landing" element={<AdminLandingContent />} />
-                <Route path="settings" element={<AdminSettings />} />
-                <Route path="content" element={<AdminContent />} />
-                <Route path="notifications" element={<AdminNotifications />} />
-                <Route path="notifications" element={<AdminNotifications />} />
+              {/* Admin - separate login and role-protected */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route element={<AdminRoute />}>
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="users" element={<AdminUsers />} />
+                  <Route path="kyc" element={<AdminKYC />} />
+                  <Route path="deposits" element={<AdminDeposits />} />
+                  <Route path="withdrawals" element={<AdminWithdrawals />} />
+                  <Route path="transactions" element={<AdminTransactions />} />
+                  <Route path="investments" element={<AdminInvestments />} />
+                  <Route path="deposit-methods" element={<AdminDepositMethods />} />
+                  <Route path="signals" element={<AdminSignals />} />
+                  <Route path="copy-trading" element={<AdminCopyTrading />} />
+                  <Route path="tickets" element={<AdminTickets />} />
+                  <Route path="fee-payments" element={<AdminFeePayments />} />
+                  <Route path="referrals" element={<AdminReferrals />} />
+                  <Route path="landing" element={<AdminLandingContent />} />
+                  <Route path="settings" element={<AdminSettings />} />
+                  <Route path="content" element={<AdminContent />} />
+                  <Route path="notifications" element={<AdminNotifications />} />
+                  <Route path="notifications" element={<AdminNotifications />} />
+                </Route>
               </Route>
-            </Route>
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </PageTransition>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
