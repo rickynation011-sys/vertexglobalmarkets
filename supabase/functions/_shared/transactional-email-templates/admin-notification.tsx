@@ -1,8 +1,13 @@
-/// <reference types="npm:@types/react@18.3.1" />
 import * as React from 'npm:react@18.3.1'
 import {
-  Html, Head, Body, Container, Section, Text, Hr, Img,
+  Body, Container, Head, Heading, Html, Img, Link, Preview, Section, Text, Hr,
 } from 'npm:@react-email/components@0.0.22'
+import type { TemplateEntry } from './registry.ts'
+
+const SITE_NAME = 'Vertex Global Markets'
+const SITE_URL = 'https://vertexglobalmarkets.com'
+const LOGO_URL = 'https://skzkshigufdtvcekfsqs.supabase.co/storage/v1/object/public/email-assets/logo-symbol.png'
+const SUPPORT_EMAIL = 'support@vertexglobalmarkets.com'
 
 interface Props {
   title?: string
@@ -10,46 +15,38 @@ interface Props {
   recipientName?: string
 }
 
-const brandGreen = '#3CB371'
-
 const AdminNotificationEmail = ({
   title = 'New Notification',
   message = 'You have a new notification from Vertex Global Markets.',
   recipientName = 'Valued Client',
 }: Props) => (
-  <Html>
+  <Html lang="en" dir="ltr">
     <Head />
-    <Body style={{ margin: 0, padding: 0, backgroundColor: '#f4f4f5', fontFamily: 'Arial, sans-serif' }}>
-      <Container style={{ maxWidth: 600, margin: '0 auto' }}>
-        {/* Header */}
-        <Section style={{ backgroundColor: '#0f172a', padding: '28px 32px', textAlign: 'center' as const }}>
-          <Text style={{ color: '#ffffff', fontSize: 22, fontWeight: 700, margin: 0 }}>
-            Vertex Global Markets
+    <Preview>{title} — {SITE_NAME}</Preview>
+    <Body style={main}>
+      <Container style={wrapper}>
+        <Section style={header}>
+          <Img src={LOGO_URL} alt={SITE_NAME} width="48" height="48" style={logo} />
+          <Text style={brandName}>
+            <span style={{ color: '#3CB371' }}>Vertex</span>{' '}
+            <span style={{ color: '#4A90D9' }}>Global</span>{' '}
+            <span style={{ color: '#8B5CF6' }}>Markets</span>
           </Text>
         </Section>
-
-        {/* Body */}
-        <Section style={{ backgroundColor: '#ffffff', padding: '32px' }}>
-          <Text style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', marginBottom: 8 }}>
-            {title}
-          </Text>
-          <Text style={{ fontSize: 14, color: '#64748b', marginBottom: 20 }}>
+        <Section style={body}>
+          <Heading style={h1}>{title}</Heading>
+          <Text style={text}>
             Hello {recipientName},
           </Text>
-          <Text style={{ fontSize: 14, color: '#334155', lineHeight: '22px', whiteSpace: 'pre-wrap' as const }}>
+          <Text style={textMessage}>
             {message}
           </Text>
-          <Hr style={{ borderColor: '#e2e8f0', margin: '24px 0' }} />
-          <Text style={{ fontSize: 12, color: '#94a3b8' }}>
-            This notification was sent by the Vertex Global Markets team. If you believe this was sent in error, please contact our support team.
-          </Text>
         </Section>
-
-        {/* Footer */}
-        <Section style={{ padding: '20px 32px', textAlign: 'center' as const }}>
-          <Text style={{ fontSize: 11, color: '#94a3b8', margin: 0 }}>
-            © {new Date().getFullYear()} Vertex Global Markets. All rights reserved.
-          </Text>
+        <Section style={footer}>
+          <Hr style={hr} />
+          <Text style={footerBrand}>{SITE_NAME}</Text>
+          <Text style={footerText}>Powered by next-generation trading infrastructure</Text>
+          <Text style={footerText}>Need help? <Link href={`mailto:${SUPPORT_EMAIL}`} style={footerLink}>{SUPPORT_EMAIL}</Link></Text>
         </Section>
       </Container>
     </Body>
@@ -65,6 +62,21 @@ export const template = {
     message: 'We have an important update regarding your account.',
     recipientName: 'John Doe',
   },
-}
+} satisfies TemplateEntry
 
 export default AdminNotificationEmail
+
+const main = { backgroundColor: '#f4f4f5', fontFamily: "'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif", padding: '20px 0' }
+const wrapper = { maxWidth: '600px', margin: '0 auto', backgroundColor: '#ffffff', borderRadius: '12px', overflow: 'hidden' as const, border: '1px solid #e5e7eb' }
+const header = { backgroundColor: '#0f172a', padding: '32px 40px', textAlign: 'center' as const }
+const logo = { margin: '0 auto 12px', borderRadius: '8px' }
+const brandName = { fontSize: '20px', fontWeight: '700' as const, margin: '0', letterSpacing: '0.5px' }
+const body = { padding: '40px 40px 32px' }
+const h1 = { fontSize: '24px', fontWeight: '700' as const, color: '#111827', margin: '0 0 16px', lineHeight: '1.3' }
+const text = { fontSize: '15px', color: '#374151', lineHeight: '1.7', margin: '0 0 16px' }
+const textMessage = { fontSize: '15px', color: '#334155', lineHeight: '1.7', margin: '0 0 16px', whiteSpace: 'pre-wrap' as const }
+const footer = { padding: '0 40px 32px' }
+const hr = { borderColor: '#e5e7eb', margin: '0 0 24px' }
+const footerBrand = { fontSize: '14px', fontWeight: '600' as const, color: '#374151', margin: '0 0 4px', textAlign: 'center' as const }
+const footerText = { fontSize: '12px', color: '#9ca3af', margin: '0 0 4px', textAlign: 'center' as const }
+const footerLink = { color: '#3CB371', textDecoration: 'underline' }
