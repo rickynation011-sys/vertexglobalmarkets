@@ -15,6 +15,7 @@ import ResetPassword from "./pages/ResetPassword.tsx";
 import MfaChallenge from "./pages/MfaChallenge.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
+import PageTransition from "./components/PageTransition.tsx";
 
 // Static pages
 import Markets from "./pages/Markets.tsx";
