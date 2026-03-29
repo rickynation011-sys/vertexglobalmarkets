@@ -8,6 +8,7 @@ import { Search, Ban, Loader2, CheckCircle, DollarSign, ShieldCheck, Plus, Minus
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Tables, Enums } from "@/integrations/supabase/types";
 
 type Profile = Tables<"profiles">;
