@@ -19,6 +19,7 @@ const AdminNotifications = () => {
   const [channelPush, setChannelPush] = useState(false);
   const [channelInApp, setChannelInApp] = useState(true);
   const [channelEmail, setChannelEmail] = useState(false);
+  const [category, setCategory] = useState("");
 
   // Fetch all profiles for individual user selection
   const { data: profiles } = useQuery({
@@ -103,6 +104,7 @@ const AdminNotifications = () => {
               title: title.trim(),
               body: message.trim(),
               userIds: targetUserIds,
+              ...(category && category !== "none" ? { category } : {}),
             },
           });
         } catch (pushErr) {
@@ -159,6 +161,7 @@ const AdminNotifications = () => {
       setChannelPush(false);
       setChannelInApp(true);
       setChannelEmail(false);
+      setCategory("");
       queryClient.invalidateQueries({ queryKey: ["admin-notifications"] });
     },
     onError: (err: Error) => toast.error(err.message),
@@ -251,14 +254,30 @@ const AdminNotifications = () => {
             </div>
           )}
 
-          <div>
-            <label className="text-sm text-muted-foreground">Message</label>
-            <Textarea
-              placeholder="Write your notification message..."
-              className="mt-1 min-h-[100px]"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm text-muted-foreground">Category (for preference filtering)</label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select category (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="trade_executed">Trade Executed</SelectItem>
+                  <SelectItem value="deposit_withdrawal">Deposit / Withdrawal</SelectItem>
+                  <SelectItem value="market_news">Market News</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm text-muted-foreground">Message</label>
+              <Textarea
+                placeholder="Write your notification message..."
+                className="mt-1 min-h-[100px]"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+              />
+            </div>
           </div>
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4 flex-wrap">
