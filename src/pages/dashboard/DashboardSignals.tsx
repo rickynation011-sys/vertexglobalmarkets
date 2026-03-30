@@ -238,8 +238,33 @@ const DashboardSignals = () => {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // Auto-expire signals that have passed their expiry date
+  useEffect(() => {
+    const expiredActive = (subscriptions ?? []).filter(
+      s => s.status === "active" && new Date(s.expires_at) <= new Date()
+    );
+    if (expiredActive.length > 0 && user) {
+      (async () => {
+        for (const sub of expiredActive) {
+          await supabase.from("signal_subscriptions").update({ status: "expired" }).eq("id", sub.id);
+          // Create expiry notification
+          const { data: notif } = await supabase.from("notifications").insert({
+            title: "Signal Subscription Expired",
+            message: `Your ${sub.plan_name} subscription has expired. Renew to continue receiving signals.`,
+            target: "specific",
+            target_user_id: user.id,
+          }).select("id").single();
+          if (notif) {
+            await supabase.from("user_notifications").insert({ user_id: user.id, notification_id: notif.id });
+          }
+        }
+        queryClient.invalidateQueries({ queryKey: ["signal_subscriptions"] });
+      })();
+    }
+  }, [subscriptions, user]);
+
   const activeSubscriptions = (subscriptions ?? []).filter(s => s.status === "active" && new Date(s.expires_at) > new Date());
-  const expiredSubscriptions = (subscriptions ?? []).filter(s => s.status === "active" && new Date(s.expires_at) <= new Date());
+  const expiredSubscriptions = (subscriptions ?? []).filter(s => s.status === "expired" || (s.status === "active" && new Date(s.expires_at) <= new Date()));
   const pendingSubscriptions = (subscriptions ?? []).filter(s => s.status === "pending");
   const hasActive = activeSubscriptions.length > 0;
 

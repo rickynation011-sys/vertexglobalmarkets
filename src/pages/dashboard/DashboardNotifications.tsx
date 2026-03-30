@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -63,6 +63,23 @@ const DashboardNotifications = () => {
     },
     enabled: !!user,
   });
+
+  // Realtime subscription for new notifications
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel("notifications-realtime")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["all-notifications"] });
+        queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "user_notifications", filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ["all-notifications"] });
+        queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, queryClient]);
 
   const filtered = notifications.filter((n) => {
     if (filter === "unread") return !n.is_read;
@@ -139,6 +156,26 @@ const DashboardNotifications = () => {
             >
               <CheckCheck className="h-3.5 w-3.5 mr-1.5" />
               Mark all read
+            </Button>
+          )}
+          {notifications.length > 0 && (
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={async () => {
+                if (!user) return;
+                // Mark all as read by upserting user_notifications
+                for (const n of notifications) {
+                  await supabase.from("user_notifications").upsert(
+                    { user_id: user.id, notification_id: n.id, is_read: true, read_at: new Date().toISOString() },
+                    { onConflict: "user_id,notification_id" }
+                  );
+                }
+                queryClient.invalidateQueries({ queryKey: ["all-notifications"] });
+                queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+              }}
+            >
+              Clear All
             </Button>
           )}
         </div>
