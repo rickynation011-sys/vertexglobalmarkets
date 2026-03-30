@@ -20,6 +20,7 @@ import TrustIndicators from "@/components/TrustIndicators";
 import TransparencySection from "@/components/TransparencySection";
 import HowItWorksSection from "@/components/HowItWorksSection";
 import ContactSupportSection from "@/components/ContactSupportSection";
+import SoftCTASection from "@/components/SoftCTASection";
 
 const Index = () => {
   return (
@@ -57,6 +58,7 @@ const Index = () => {
       <TestimonialsSection />
       <ExtendedTestimonials />
       <ContactSupportSection />
+      <SoftCTASection />
       <CTASection />
       <Footer />
     </div>
