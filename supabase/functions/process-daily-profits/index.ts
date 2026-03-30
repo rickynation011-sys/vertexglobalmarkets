@@ -136,8 +136,8 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Calculate daily profit
-      const dailyProfit = Number(inv.amount) * (Number(inv.daily_rate) / 365);
+      // Calculate daily profit: daily_rate is stored as daily percentage (e.g. 2 = 2%)
+      const dailyProfit = Number(inv.amount) * (Number(inv.daily_rate) / 100);
       if (dailyProfit <= 0) continue;
 
       const newValue = Number(inv.current_value) + dailyProfit;
