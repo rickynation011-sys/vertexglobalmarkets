@@ -16,12 +16,14 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const trigger = req.headers.get("x-trigger") || "cron";
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const nowUtc = new Date();
+    const isManual = trigger === "admin-manual";
 
     // Get distinct user_ids with active investments, joined with their timezone & last processed date
     const { data: activeUsers, error: usersErr } = await supabase
@@ -34,7 +36,7 @@ Deno.serve(async (req) => {
     if (!activeUsers || activeUsers.length === 0) {
       await supabase.from("profit_processing_logs").insert({
         processed_count: 0, total_profit: 0, status: "success",
-        triggered_by: req.headers.get("x-trigger") || "cron",
+        triggered_by: trigger,
       });
       return new Response(JSON.stringify({ message: "No active investments" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -57,7 +59,7 @@ Deno.serve(async (req) => {
       profileMap.set(p.user_id, p);
     }
 
-    // Determine which users are eligible (it's 1:00 AM in their timezone, not yet processed today)
+    // Determine which users are eligible
     const eligibleUserIds: string[] = [];
 
     for (const userId of uniqueUserIds) {
@@ -65,32 +67,30 @@ Deno.serve(async (req) => {
       if (!profile) continue;
 
       const tz = profile.timezone || "UTC";
-      let localHour: number;
       let localDateStr: string;
 
       try {
-        const formatter = new Intl.DateTimeFormat("en-US", {
-          timeZone: tz,
-          hour: "numeric",
-          hour12: false,
-        });
-        localHour = parseInt(formatter.format(nowUtc), 10);
-
         const dateFormatter = new Intl.DateTimeFormat("en-CA", {
-          timeZone: tz,
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
+          timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit",
         });
-        localDateStr = dateFormatter.format(nowUtc); // YYYY-MM-DD
+        localDateStr = dateFormatter.format(nowUtc);
       } catch {
-        // Invalid timezone, fall back to UTC
-        localHour = nowUtc.getUTCHours();
         localDateStr = nowUtc.toISOString().slice(0, 10);
       }
 
-      // Check: is it the 1 AM hour? (covers 1:00-1:09 since cron runs every 10 min)
-      if (localHour !== 1) continue;
+      // For manual admin trigger: skip timezone hour check, only check if already processed today
+      if (!isManual) {
+        let localHour: number;
+        try {
+          const formatter = new Intl.DateTimeFormat("en-US", {
+            timeZone: tz, hour: "numeric", hour12: false,
+          });
+          localHour = parseInt(formatter.format(nowUtc), 10);
+        } catch {
+          localHour = nowUtc.getUTCHours();
+        }
+        if (localHour !== 1) continue;
+      }
 
       // Check: not already processed today
       if (profile.last_profit_processed_date === localDateStr) continue;
@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
     if (eligibleUserIds.length === 0) {
       await supabase.from("profit_processing_logs").insert({
         processed_count: 0, total_profit: 0, status: "success",
-        triggered_by: req.headers.get("x-trigger") || "cron",
+        triggered_by: trigger,
       });
       return new Response(JSON.stringify({ message: "No users eligible at this time" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -224,7 +224,7 @@ Deno.serve(async (req) => {
       processed_count: processed,
       total_profit: totalProfit,
       status: "success",
-      triggered_by: req.headers.get("x-trigger") || "cron",
+      triggered_by: trigger,
     });
 
     return new Response(JSON.stringify({
@@ -240,7 +240,7 @@ Deno.serve(async (req) => {
       const supabase = createClient(supabaseUrl, serviceRoleKey);
       await supabase.from("profit_processing_logs").insert({
         processed_count: 0, total_profit: 0, status: "error",
-        error_message: error.message, triggered_by: "cron",
+        error_message: error.message, triggered_by: trigger ?? "cron",
       });
     } catch (_) { /* ignore logging errors */ }
 

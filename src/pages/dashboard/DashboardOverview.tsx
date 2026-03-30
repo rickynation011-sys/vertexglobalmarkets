@@ -111,6 +111,7 @@ const DashboardOverview = () => {
       return data;
     },
     enabled: !!user,
+    staleTime: 30000,
   });
 
   const { data: investments } = useQuery({
@@ -120,6 +121,7 @@ const DashboardOverview = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
   });
 
   const { data: transactions } = useQuery({
@@ -129,6 +131,7 @@ const DashboardOverview = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
   });
 
   const { data: profitLogs } = useQuery({
@@ -138,6 +141,7 @@ const DashboardOverview = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
   });
 
   const { data: signalSubs } = useQuery({
