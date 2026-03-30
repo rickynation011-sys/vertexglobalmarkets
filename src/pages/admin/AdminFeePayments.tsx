@@ -61,6 +61,21 @@ const AdminFeePayments = () => {
 
   useEffect(() => { fetchPayments(); }, []);
 
+  // Real-time subscription for fee_payments updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('fee-payments-admin')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'fee_payments',
+      }, () => {
+        fetchPayments();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
   const handleAction = async (id: string, action: "approved" | "rejected") => {
     setActionLoading(id);
     const { error } = await supabase
