@@ -207,6 +207,8 @@ const DashboardWallet = () => {
       toast.success("Deposit request submitted. It will be reviewed shortly.");
       setDepositAmount("");
       setDepositMethodId("");
+      setProofFile(null);
+      setProofPreview(null);
     },
     onError: (e: Error) => toast.error(e.message),
   });
