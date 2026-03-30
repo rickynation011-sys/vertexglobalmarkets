@@ -265,10 +265,8 @@ const DashboardOverview = () => {
   const firstName = profile?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "User";
   const recentTx = (transactions ?? []).slice(0, 5);
 
-  // Equity = wallet balance + active investment current values
-  const equity = walletBalance + totalCurrentValue;
-  const margin = totalInvested;
-  const freeMargin = Math.max(0, walletBalance);
+
+
 
   const kycLabel = kycStatus === "approved" ? "Verified" : kycStatus === "pending" ? "Pending" : "Not Verified";
   const kycColor = kycStatus === "approved" ? "border-success/30 text-success" : kycStatus === "pending" ? "border-warning/30 text-warning" : "border-muted-foreground/30 text-muted-foreground";
