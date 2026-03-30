@@ -58,6 +58,23 @@ const DashboardInvestments = () => {
     enabled: !!user,
   });
 
+  // Fetch dynamic plans from platform_settings (admin-editable)
+  const { data: dbPlans } = useQuery({
+    queryKey: ["investment-plans"],
+    queryFn: async () => {
+      const { data } = await supabase.from("platform_settings").select("*").like("key", "investment_plan_%");
+      return data ?? [];
+    },
+  });
+
+  // Merge: use DB plans if available, otherwise use defaults
+  const plans = (dbPlans && dbPlans.length > 0)
+    ? dbPlans.map(d => {
+        const v = d.value as any;
+        return { ...v, icon: iconMap[v.iconName] || Target, returns: `${v.annualRate}%`, popular: v.popular ?? false };
+      })
+    : defaultPlans;
+
   const investMutation = useMutation({
     mutationFn: async ({ planName, amount }: { planName: string; amount: number }) => {
       const { data, error } = await supabase.functions.invoke("create-investment", {

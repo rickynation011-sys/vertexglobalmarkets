@@ -158,6 +158,26 @@ const DashboardNotifications = () => {
               Mark all read
             </Button>
           )}
+          {notifications.length > 0 && (
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={async () => {
+                if (!user) return;
+                // Mark all as read by upserting user_notifications
+                for (const n of notifications) {
+                  await supabase.from("user_notifications").upsert(
+                    { user_id: user.id, notification_id: n.id, is_read: true, read_at: new Date().toISOString() },
+                    { onConflict: "user_id,notification_id" }
+                  );
+                }
+                queryClient.invalidateQueries({ queryKey: ["all-notifications"] });
+                queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+              }}
+            >
+              Clear All
+            </Button>
+          )}
         </div>
       </div>
 
