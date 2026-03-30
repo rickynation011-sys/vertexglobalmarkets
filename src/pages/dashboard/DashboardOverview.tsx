@@ -211,9 +211,15 @@ const DashboardOverview = () => {
   const totalCurrentValue = activeInvestments.reduce((s, i) => s + Number(i.current_value), 0);
   // Total profit = all profit logs + trade P&L (no double-counting investment unrealized gains)
   const totalProfitFromLogs = (profitLogs ?? []).reduce((s, l) => s + Number(l.amount), 0);
-  const totalProfit = totalProfitFromLogs;
+  const tradePnl = (allTrades ?? []).filter(t => t.status === "closed").reduce((s, t) => s + Number(t.pnl ?? 0), 0);
+  const totalProfit = totalProfitFromLogs + tradePnl;
   const activeSignals = (signalSubs ?? []).filter(s => new Date(s.expires_at) > new Date()).length;
   const activeCopyTrades = (copyTrades ?? []).length;
+
+  // Win rate from real closed trades
+  const closedTrades = (allTrades ?? []).filter(t => t.status === "closed");
+  const winCount = closedTrades.filter(t => Number(t.pnl ?? 0) > 0).length;
+  const winRate = closedTrades.length > 0 ? Math.round((winCount / closedTrades.length) * 100) : 0;
 
   const { format } = useCurrency();
   const fmt = (n: number) => format(n);
