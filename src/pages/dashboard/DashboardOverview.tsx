@@ -268,6 +268,7 @@ const DashboardOverview = () => {
               <BalanceSparkline data={balanceHistory} />
             </div>
           </CardContent>
+          <p className="px-4 pb-3 text-[10px] text-muted-foreground/60 leading-tight">Performance updates are based on market conditions and may vary.</p>
         </Card>
         <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/portfolio")}>
           <CardContent className="p-4">
