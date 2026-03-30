@@ -103,6 +103,26 @@ export const NotificationBell = () => {
     },
   });
 
+  const deleteNotificationMutation = useMutation({
+    mutationFn: async (notificationId: string) => {
+      if (!user) return;
+      // Mark as read and "dismissed" by upserting read status
+      await supabase.from("user_notifications").upsert(
+        {
+          user_id: user.id,
+          notification_id: notificationId,
+          is_read: true,
+          read_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,notification_id" }
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["all-notifications"] });
+    },
+  });
+
   const handleNotificationClick = (n: Notification) => {
     if (!n.is_read) markReadMutation.mutate(n.notification_id);
     setSelectedNotification({ ...n, is_read: true });
