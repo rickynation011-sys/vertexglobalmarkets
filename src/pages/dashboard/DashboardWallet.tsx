@@ -505,7 +505,7 @@ const DashboardWallet = () => {
                       <p className={`text-sm font-medium ${tx.type === "deposit" ? "text-success" : "text-foreground"}`}>
                         {tx.type === "deposit" ? "+" : "-"}{fmt(Number(tx.amount))}
                       </p>
-                      <Badge variant="outline" className={`text-[10px] ${tx.status === "completed" ? "text-success border-success/30" : tx.status === "pending" ? "text-warning border-warning/30" : tx.status === "rejected" ? "text-destructive border-destructive/30" : "text-muted-foreground"}`}>
+                      <Badge variant="outline" className={`text-[10px] ${(tx.status === "completed" || tx.status === "approved") ? "text-success border-success/30" : tx.status === "pending" ? "text-warning border-warning/30" : tx.status === "rejected" ? "text-destructive border-destructive/30" : "text-muted-foreground"}`}>
                         {tx.status}
                       </Badge>
                     </div>

@@ -476,7 +476,7 @@ const DashboardOverview = () => {
                       <p className={`text-xs font-medium ${tx.type === "deposit" ? "text-success" : "text-foreground"}`}>
                         {tx.type === "deposit" ? "+" : "-"}{fmt(Number(tx.amount))}
                       </p>
-                      <Badge variant="outline" className={`text-[9px] px-1 py-0 ${tx.status === "completed" ? "border-success/30 text-success" : tx.status === "pending" ? "border-warning/30 text-warning" : "border-muted-foreground/30"}`}>
+                      <Badge variant="outline" className={`text-[9px] px-1 py-0 ${(tx.status === "completed" || tx.status === "approved") ? "border-success/30 text-success" : tx.status === "pending" ? "border-warning/30 text-warning" : "border-muted-foreground/30"}`}>
                         {tx.status}
                       </Badge>
                     </div>
