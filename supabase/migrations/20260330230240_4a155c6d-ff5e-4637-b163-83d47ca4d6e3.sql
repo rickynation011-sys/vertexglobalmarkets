@@ -1,0 +1,1 @@
+ALTER TABLE public.user_notifications ADD COLUMN IF NOT EXISTS is_dismissed boolean NOT NULL DEFAULT false;
