@@ -47,6 +47,37 @@ const AdminProfitLoss = () => {
     },
   });
 
+  // Fetch profit processing logs
+  const { data: processingLogs } = useQuery({
+    queryKey: ["admin-processing-logs"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profit_processing_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      return data ?? [];
+    },
+  });
+
+  const handleProcessDailyProfits = async () => {
+    setProcessingProfits(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("process-daily-profits", {
+        headers: { "x-trigger": "admin-manual" },
+      });
+      if (error) throw error;
+      toast.success(data?.message || "Daily profits processed successfully!");
+      queryClient.invalidateQueries({ queryKey: ["admin-all-profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-processing-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-profit-adjustments"] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to process daily profits");
+    } finally {
+      setProcessingProfits(false);
+    }
+  };
+
   const filteredProfiles = (profiles ?? []).filter(p => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
