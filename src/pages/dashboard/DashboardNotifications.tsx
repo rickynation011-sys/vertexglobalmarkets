@@ -175,7 +175,7 @@ const DashboardNotifications = () => {
             )}
           </div>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 relative">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
@@ -188,49 +188,54 @@ const DashboardNotifications = () => {
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-border max-h-[60vh] sm:max-h-[600px] overflow-y-auto scroll-smooth pr-1">
-              {filtered.map((n) => (
-                <div
-                  key={n.id}
-                  className={`flex items-start gap-3 px-4 py-3.5 transition-colors hover:bg-muted/30 ${
-                    !n.is_read ? "bg-primary/5" : ""
-                  }`}
-                >
-                  <Checkbox
-                    checked={selectedIds.has(n.id)}
-                    onCheckedChange={() => toggleSelect(n.id)}
-                    className="mt-1"
-                  />
-                  <button
-                    className="flex-1 text-left"
-                    onClick={() => {
-                      if (!n.is_read) markReadMutation.mutate([n.id]);
-                      setSelectedNotification({ ...n, is_read: true });
-                      setDetailOpen(true);
-                    }}
+            <>
+              <div className="divide-y divide-border max-h-[60vh] sm:max-h-[600px] overflow-y-auto scroll-smooth pr-1">
+                {filtered.map((n) => (
+                  <div
+                    key={n.id}
+                    className={`flex items-start gap-3 px-4 py-3.5 transition-colors hover:bg-muted/30 ${
+                      !n.is_read ? "bg-primary/5" : ""
+                    }`}
                   >
-                    <div className="flex items-center gap-2">
-                      {!n.is_read && <span className="h-2 w-2 rounded-full bg-primary shrink-0" />}
-                      <p className={`text-sm ${!n.is_read ? "font-semibold" : "font-medium"} text-foreground`}>
-                        {n.title}
-                      </p>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <span className="text-xs text-muted-foreground/70">
-                        {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
-                      </span>
-                      <span className="text-xs text-muted-foreground/50">
-                        {format(new Date(n.created_at), "MMM d, yyyy · h:mm a")}
-                      </span>
-                    </div>
-                  </button>
-                  {!n.is_read && (
-                    <Badge className="bg-primary/10 text-primary text-[10px] shrink-0">New</Badge>
-                  )}
-                </div>
-              ))}
-            </div>
+                    <Checkbox
+                      checked={selectedIds.has(n.id)}
+                      onCheckedChange={() => toggleSelect(n.id)}
+                      className="mt-1"
+                    />
+                    <button
+                      className="flex-1 text-left"
+                      onClick={() => {
+                        if (!n.is_read) markReadMutation.mutate([n.id]);
+                        setSelectedNotification({ ...n, is_read: true });
+                        setDetailOpen(true);
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        {!n.is_read && <span className="h-2 w-2 rounded-full bg-primary shrink-0" />}
+                        <p className={`text-sm ${!n.is_read ? "font-semibold" : "font-medium"} text-foreground`}>
+                          {n.title}
+                        </p>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className="text-xs text-muted-foreground/70">
+                          {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                        </span>
+                        <span className="text-xs text-muted-foreground/50">
+                          {format(new Date(n.created_at), "MMM d, yyyy · h:mm a")}
+                        </span>
+                      </div>
+                    </button>
+                    {!n.is_read && (
+                      <Badge className="bg-primary/10 text-primary text-[10px] shrink-0">New</Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {filtered.length > 5 && (
+                <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-card to-transparent rounded-b-md" />
+              )}
+            </>
           )}
         </CardContent>
       </Card>
