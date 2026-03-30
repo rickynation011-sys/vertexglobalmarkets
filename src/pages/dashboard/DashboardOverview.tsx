@@ -382,11 +382,11 @@ const DashboardOverview = () => {
               <span className="text-[11px] text-muted-foreground uppercase tracking-wide">P&L</span>
               <TrendingUp className="h-4 w-4 text-success" />
             </div>
-            <div className={`text-lg font-display font-bold ${totalProfit >= 0 ? "text-success" : "text-destructive"}`}>
-              {totalProfit >= 0 ? "+" : ""}{fmt(totalProfit)}
+            <div className={`text-lg font-display font-bold ${displayTotalProfit >= 0 ? "text-success" : "text-destructive"}`}>
+              <AnimatedBalance value={displayTotalProfit} format={(n) => `${n >= 0 ? "+" : ""}${fmt(n)}`} flash={null} />
             </div>
-            <div className={`flex items-center gap-1 text-[10px] ${totalProfit >= 0 ? "text-success" : "text-destructive"}`}>
-              {totalProfit >= 0 ? <ArrowUp className="h-2.5 w-2.5" /> : <ArrowDown className="h-2.5 w-2.5" />}
+            <div className={`flex items-center gap-1 text-[10px] ${displayTotalProfit >= 0 ? "text-success" : "text-destructive"}`}>
+              {displayTotalProfit >= 0 ? <ArrowUp className="h-2.5 w-2.5" /> : <ArrowDown className="h-2.5 w-2.5" />}
               Total P&L
             </div>
           </CardContent>
