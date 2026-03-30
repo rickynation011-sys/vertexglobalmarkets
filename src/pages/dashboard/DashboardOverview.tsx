@@ -335,12 +335,12 @@ const DashboardOverview = () => {
               <span className="text-[11px] text-muted-foreground uppercase tracking-wide">P&L</span>
               <TrendingUp className="h-4 w-4 text-success" />
             </div>
-            <div className={`text-lg font-display font-bold ${(totalProfit + totalSimulatedProfit) >= 0 ? "text-success" : "text-destructive"}`}>
-              {(totalProfit + totalSimulatedProfit) >= 0 ? "+" : ""}{fmt(totalProfit + totalSimulatedProfit)}
+            <div className={`text-lg font-display font-bold ${totalProfit >= 0 ? "text-success" : "text-destructive"}`}>
+              {totalProfit >= 0 ? "+" : ""}{fmt(totalProfit)}
             </div>
-            <div className={`flex items-center gap-1 text-[10px] ${(totalProfit + totalSimulatedProfit) >= 0 ? "text-success" : "text-destructive"}`}>
-              {(totalProfit + totalSimulatedProfit) >= 0 ? <ArrowUp className="h-2.5 w-2.5" /> : <ArrowDown className="h-2.5 w-2.5" />}
-              Unrealized P&L
+            <div className={`flex items-center gap-1 text-[10px] ${totalProfit >= 0 ? "text-success" : "text-destructive"}`}>
+              {totalProfit >= 0 ? <ArrowUp className="h-2.5 w-2.5" /> : <ArrowDown className="h-2.5 w-2.5" />}
+              Total P&L
             </div>
           </CardContent>
         </Card>
