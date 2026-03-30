@@ -28,6 +28,7 @@ const mainItems = [
   { title: "Ticket Complaints", url: "/admin/tickets", icon: Ticket },
   { title: "Fee Payments", url: "/admin/fee-payments", icon: DollarSign },
   { title: "Referrals", url: "/admin/referrals", icon: Link2 },
+  { title: "Profit & Loss", url: "/admin/profit-loss", icon: Scale },
 ];
 
 const systemItems = [
