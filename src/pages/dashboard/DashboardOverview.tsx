@@ -281,7 +281,7 @@ const DashboardOverview = () => {
         </div>
       </div>
 
-      <MilestoneConfetti milestone={milestone} format={fmt} />
+      {/* Removed simulated milestone - only real DB data */}
 
       {/* Account Summary - Broker Style */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
