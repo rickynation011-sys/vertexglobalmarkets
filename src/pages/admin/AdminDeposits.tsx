@@ -38,6 +38,13 @@ const AdminDeposits = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [proofUrl, setProofUrl] = useState<string | null>(null);
+
+  const viewProof = async (path: string) => {
+    const { data } = await supabase.storage.from("deposit-proofs").createSignedUrl(path, 300);
+    if (data?.signedUrl) setProofUrl(data.signedUrl);
+    else toast.error("Failed to load proof");
+  };
 
   const fetchDeposits = async () => {
     const { data: txData } = await supabase
