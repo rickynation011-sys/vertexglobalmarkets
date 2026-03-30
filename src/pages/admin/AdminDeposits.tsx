@@ -198,16 +198,23 @@ const AdminDeposits = () => {
                     <td className="p-4"><Badge className={`text-xs ${statusColors[tx.status] ?? ""}`}>{tx.status}</Badge></td>
                     <td className="p-4 text-muted-foreground text-xs">{new Date(tx.created_at).toLocaleString()}</td>
                     <td className="p-4 text-right">
-                      {tx.status === "pending" && (
-                        <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-success" disabled={actionLoading === tx.id} onClick={() => handleApprove(tx)}>
-                            {actionLoading === tx.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                      <div className="flex items-center justify-end gap-1">
+                        {tx.proof_url && (
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" title="View Proof" onClick={() => viewProof(tx.proof_url!)}>
+                            <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" disabled={actionLoading === tx.id} onClick={() => handleReject(tx.id)}>
-                            <XCircle className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
+                        )}
+                        {tx.status === "pending" && (
+                          <>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-success" disabled={actionLoading === tx.id} onClick={() => handleApprove(tx)}>
+                              {actionLoading === tx.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" disabled={actionLoading === tx.id} onClick={() => handleReject(tx.id)}>
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -216,6 +223,20 @@ const AdminDeposits = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Proof Viewer Dialog */}
+      <Dialog open={!!proofUrl} onOpenChange={() => setProofUrl(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <h3 className="text-lg font-display font-bold text-foreground mb-2">Payment Proof</h3>
+          {proofUrl && (
+            proofUrl.match(/\.pdf/i) ? (
+              <iframe src={proofUrl} className="w-full h-[500px] rounded border border-border" />
+            ) : (
+              <img src={proofUrl} alt="Payment proof" className="w-full rounded border border-border" />
+            )
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
