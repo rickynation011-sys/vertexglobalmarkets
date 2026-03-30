@@ -66,11 +66,12 @@ const DashboardPortfolio = () => {
   const activeInvestments = (investments ?? []).filter(i => i.status === "active");
   const investmentValue = activeInvestments.reduce((s, i) => s + Number(i.current_value), 0);
   const investmentCost = activeInvestments.reduce((s, i) => s + Number(i.amount), 0);
-  const investmentProfit = investmentValue - investmentCost;
-  const tradePnl = (trades ?? []).reduce((s, t) => s + Number(t.pnl ?? 0), 0);
+  // Total profit from profit_logs (investment daily payouts) + closed trade P&L
+  // Do NOT add investmentProfit separately — profit_logs already track investment gains
+  const tradePnl = (trades ?? []).filter(t => t.status === "closed").reduce((s, t) => s + Number(t.pnl ?? 0), 0);
   const profitEarned = (profitLogs ?? []).reduce((s, l) => s + Number(l.amount), 0);
   const totalValue = walletBalance + investmentValue;
-  const totalProfit = investmentProfit + tradePnl + profitEarned;
+  const totalProfit = profitEarned + tradePnl;
 
   // Copy trade allocations
   const copyTrades = (trades ?? []).filter(t => t.status === "open" && t.asset.startsWith("COPY:"));
