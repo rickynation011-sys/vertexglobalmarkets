@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, CheckCircle, XCircle, ArrowDownLeft, Loader2 } from "lucide-react";
+import { Search, CheckCircle, XCircle, ArrowDownLeft, Loader2, Eye } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface DepositTx {
   id: string;
@@ -20,6 +21,7 @@ interface DepositTx {
   wallet_address: string | null;
   admin_notes: string | null;
   reviewed_by: string | null;
+  proof_url: string | null;
   profile?: { full_name: string | null; email: string | null; wallet_balance: number } | null;
 }
 
@@ -36,6 +38,13 @@ const AdminDeposits = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [proofUrl, setProofUrl] = useState<string | null>(null);
+
+  const viewProof = async (path: string) => {
+    const { data } = await supabase.storage.from("deposit-proofs").createSignedUrl(path, 300);
+    if (data?.signedUrl) setProofUrl(data.signedUrl);
+    else toast.error("Failed to load proof");
+  };
 
   const fetchDeposits = async () => {
     const { data: txData } = await supabase
@@ -189,16 +198,23 @@ const AdminDeposits = () => {
                     <td className="p-4"><Badge className={`text-xs ${statusColors[tx.status] ?? ""}`}>{tx.status}</Badge></td>
                     <td className="p-4 text-muted-foreground text-xs">{new Date(tx.created_at).toLocaleString()}</td>
                     <td className="p-4 text-right">
-                      {tx.status === "pending" && (
-                        <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-success" disabled={actionLoading === tx.id} onClick={() => handleApprove(tx)}>
-                            {actionLoading === tx.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                      <div className="flex items-center justify-end gap-1">
+                        {tx.proof_url && (
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" title="View Proof" onClick={() => viewProof(tx.proof_url!)}>
+                            <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" disabled={actionLoading === tx.id} onClick={() => handleReject(tx.id)}>
-                            <XCircle className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
+                        )}
+                        {tx.status === "pending" && (
+                          <>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-success" disabled={actionLoading === tx.id} onClick={() => handleApprove(tx)}>
+                              {actionLoading === tx.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" disabled={actionLoading === tx.id} onClick={() => handleReject(tx.id)}>
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -207,6 +223,20 @@ const AdminDeposits = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Proof Viewer Dialog */}
+      <Dialog open={!!proofUrl} onOpenChange={() => setProofUrl(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <h3 className="text-lg font-display font-bold text-foreground mb-2">Payment Proof</h3>
+          {proofUrl && (
+            proofUrl.match(/\.pdf/i) ? (
+              <iframe src={proofUrl} className="w-full h-[500px] rounded border border-border" />
+            ) : (
+              <img src={proofUrl} alt="Payment proof" className="w-full rounded border border-border" />
+            )
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

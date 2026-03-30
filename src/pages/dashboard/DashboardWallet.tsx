@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowDownLeft, ArrowUpRight, Wallet, Shield, Copy, TrendingUp, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Wallet, Shield, Copy, TrendingUp, AlertCircle, CheckCircle2, Upload, FileText, X } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,6 +34,9 @@ const DashboardWallet = () => {
   const [withdrawWallet, setWithdrawWallet] = useState("");
   const [showFeeDialog, setShowFeeDialog] = useState(false);
   const [showWithdrawalSuccess, setShowWithdrawalSuccess] = useState<{ amount: number; method: string } | null>(null);
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofPreview, setProofPreview] = useState<string | null>(null);
+  const [uploadingProof, setUploadingProof] = useState(false);
   const navigate = useNavigate();
 
   const { data: profile } = useQuery({
@@ -116,12 +119,40 @@ const DashboardWallet = () => {
   const selectedDepositMethod = (depositMethods ?? []).find(m => m.id === depositMethodId);
   const selectedWithdrawMethod = (depositMethods ?? []).find(m => m.id === withdrawMethodId);
 
+  const handleProofFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowed = ["image/jpeg", "image/png", "application/pdf"];
+    if (!allowed.includes(file.type)) { toast.error("Only JPG, PNG, or PDF files allowed"); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error("File must be under 10MB"); return; }
+    setProofFile(file);
+    if (file.type.startsWith("image/")) {
+      setProofPreview(URL.createObjectURL(file));
+    } else {
+      setProofPreview(null);
+    }
+  };
+
+  const uploadProofFile = async (): Promise<string | null> => {
+    if (!proofFile || !user) return null;
+    const ext = proofFile.name.split(".").pop() || "jpg";
+    const path = `${user.id}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("deposit-proofs").upload(path, proofFile);
+    if (error) throw new Error("Failed to upload proof: " + error.message);
+    return path;
+  };
+
   const depositMutation = useMutation({
     mutationFn: async () => {
       const amt = parseFloat(depositAmount);
       if (!amt || amt <= 0) throw new Error("Enter a valid amount");
       if (!selectedDepositMethod) throw new Error("Select a payment method");
+      if (!proofFile) throw new Error("Please upload payment proof");
       const method = `${selectedDepositMethod.currency}${selectedDepositMethod.network ? ` (${selectedDepositMethod.network})` : ""}`;
+      
+      // Upload proof first
+      const proofPath = await uploadProofFile();
+      
       const { error } = await supabase.from("transactions").insert({
         user_id: user!.id,
         type: "deposit",
@@ -129,7 +160,8 @@ const DashboardWallet = () => {
         amount: amt,
         currency: selectedDepositMethod.currency,
         status: "pending",
-      });
+        proof_url: proofPath,
+      } as any);
       if (error) throw error;
 
       // Send deposit confirmation email to user
@@ -175,6 +207,8 @@ const DashboardWallet = () => {
       toast.success("Deposit request submitted. It will be reviewed shortly.");
       setDepositAmount("");
       setDepositMethodId("");
+      setProofFile(null);
+      setProofPreview(null);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -324,32 +358,7 @@ const DashboardWallet = () => {
         </Card>
       </div>
 
-      {/* Recent Profits */}
-      {(profitLogs ?? []).length > 0 && (
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Recent Daily Profits</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-0">
-              {(profitLogs ?? []).map((log: any) => (
-                <div key={log.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
-                  <div className="flex items-center gap-2">
-                    <div className="h-6 w-6 rounded-full bg-success/10 flex items-center justify-center">
-                      <TrendingUp className="h-3 w-3 text-success" />
-                    </div>
-                    <span className="text-sm text-muted-foreground">Investment profit</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-sm font-medium text-success">+{fmt(Number(log.amount))}</span>
-                    <p className="text-[10px] text-muted-foreground">{new Date(log.created_at).toLocaleString()}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Recent Daily Profits section removed from this page */}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="bg-card border-border">
@@ -416,6 +425,38 @@ const DashboardWallet = () => {
                     <Button key={amt} variant="outline" size="sm" className="flex-1 text-xs" onClick={() => setDepositAmount(amt)}>${Number(amt).toLocaleString()}</Button>
                   ))}
                 </div>
+
+                {/* Payment Proof Upload */}
+                <div>
+                  <label className="text-sm text-muted-foreground">Upload Payment Proof <span className="text-destructive">*</span></label>
+                  <div className="mt-1">
+                    {proofFile ? (
+                      <div className="p-3 rounded-lg border border-border bg-muted/30 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-primary" />
+                            <span className="text-sm text-foreground truncate max-w-[200px]">{proofFile.name}</span>
+                            <span className="text-[10px] text-muted-foreground">({(proofFile.size / 1024).toFixed(0)} KB)</span>
+                          </div>
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setProofFile(null); setProofPreview(null); }}>
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        {proofPreview && (
+                          <img src={proofPreview} alt="Proof preview" className="w-full max-h-32 object-contain rounded border border-border" />
+                        )}
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors">
+                        <Upload className="h-6 w-6 text-muted-foreground mb-1" />
+                        <span className="text-sm text-muted-foreground">Click to upload</span>
+                        <span className="text-[10px] text-muted-foreground">JPG, PNG, or PDF (max 10MB)</span>
+                        <input type="file" className="hidden" accept=".jpg,.jpeg,.png,.pdf" onChange={handleProofFileChange} />
+                      </label>
+                    )}
+                  </div>
+                </div>
+
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border">
                   <Shield className="h-4 w-4 text-primary" />
                   <p className="text-xs text-muted-foreground">All transactions are secured with 256-bit SSL encryption.</p>
@@ -423,7 +464,7 @@ const DashboardWallet = () => {
                 <Button
                   className="w-full bg-gradient-brand text-primary-foreground font-semibold"
                   onClick={() => depositMutation.mutate()}
-                  disabled={depositMutation.isPending || !depositMethodId || !depositAmount}
+                  disabled={depositMutation.isPending || !depositMethodId || !depositAmount || !proofFile}
                 >
                   {depositMutation.isPending ? "Processing..." : "Submit Deposit"}
                 </Button>

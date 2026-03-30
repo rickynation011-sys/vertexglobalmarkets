@@ -901,6 +901,7 @@ export type Database = {
           currency: string
           id: string
           method: string
+          proof_url: string | null
           reviewed_by: string | null
           status: string
           type: string
@@ -915,6 +916,7 @@ export type Database = {
           currency?: string
           id?: string
           method: string
+          proof_url?: string | null
           reviewed_by?: string | null
           status?: string
           type: string
@@ -929,6 +931,7 @@ export type Database = {
           currency?: string
           id?: string
           method?: string
+          proof_url?: string | null
           reviewed_by?: string | null
           status?: string
           type?: string
