@@ -18,6 +18,7 @@ import Footer from "@/components/Footer";
 import LiveActivityFeed from "@/components/LiveActivityFeed";
 import TrustIndicators from "@/components/TrustIndicators";
 import TransparencySection from "@/components/TransparencySection";
+import HowItWorksSection from "@/components/HowItWorksSection";
 
 const Index = () => {
   return (
@@ -43,6 +44,7 @@ const Index = () => {
       <TrustIndicators />
       <StatsSection />
       <FeaturesSection />
+      <HowItWorksSection />
       <MarketsOverview />
       <AutoTradingSection />
       <CopyTradingSection />
