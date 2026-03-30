@@ -327,32 +327,7 @@ const DashboardWallet = () => {
         </Card>
       </div>
 
-      {/* Recent Profits */}
-      {(profitLogs ?? []).length > 0 && (
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Recent Daily Profits</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-0">
-              {(profitLogs ?? []).map((log: any) => (
-                <div key={log.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
-                  <div className="flex items-center gap-2">
-                    <div className="h-6 w-6 rounded-full bg-success/10 flex items-center justify-center">
-                      <TrendingUp className="h-3 w-3 text-success" />
-                    </div>
-                    <span className="text-sm text-muted-foreground">Investment profit</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-sm font-medium text-success">+{fmt(Number(log.amount))}</span>
-                    <p className="text-[10px] text-muted-foreground">{new Date(log.created_at).toLocaleString()}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Recent Daily Profits section removed from this page */}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="bg-card border-border">
