@@ -213,10 +213,13 @@ const DashboardOverview = () => {
   const activeInvestments = (investments ?? []).filter(i => i.status === "active");
   const totalInvested = activeInvestments.reduce((s, i) => s + Number(i.amount), 0);
   const totalCurrentValue = activeInvestments.reduce((s, i) => s + Number(i.current_value), 0);
-  // Total profit = all profit logs + trade P&L (no double-counting investment unrealized gains)
-  const totalProfitFromLogs = (profitLogs ?? []).reduce((s, l) => s + Number(l.amount), 0);
-  const tradePnl = (allTrades ?? []).filter(t => t.status === "closed").reduce((s, t) => s + Number(t.pnl ?? 0), 0);
-  const totalProfit = totalProfitFromLogs + tradePnl;
+  // Investment Profit = sum of all profit_logs (daily payouts from investments)
+  const investmentProfit = totalProfitFromLogs;
+  // Admin adjustments (credits - debits)
+  const adminCredits = (transactions ?? []).filter(t => t.type === "admin_credit" && isSuccessful(t.status)).reduce((s, t) => s + Number(t.amount), 0);
+  const adminDebits = (transactions ?? []).filter(t => t.type === "admin_debit" && isSuccessful(t.status)).reduce((s, t) => s + Number(t.amount), 0);
+  // Total Profit = investment profits + trade P&L + admin adjustments
+  const totalProfit = investmentProfit + tradePnl + adminCredits - adminDebits;
   const activeSignals = (signalSubs ?? []).filter(s => new Date(s.expires_at) > new Date()).length;
   const activeCopyTrades = (copyTrades ?? []).length;
 
