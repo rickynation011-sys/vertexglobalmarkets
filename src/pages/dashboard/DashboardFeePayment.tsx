@@ -77,6 +77,23 @@ const DashboardFeePayment = () => {
     enabled: !!user,
   });
 
+  // Real-time subscription for fee_payments updates
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('fee-payments-user')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'fee_payments',
+        filter: `user_id=eq.${user.id}`,
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: ["fee_payments", user.id] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, queryClient]);
+
   const totalProfit = (profitLogs ?? []).reduce((s, l) => s + Number(l.amount), 0);
   const processingFee = totalProfit * 0.10;
   const selectedMethod = (depositMethods ?? []).find((m) => m.id === selectedMethodId);
