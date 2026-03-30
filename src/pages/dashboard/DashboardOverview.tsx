@@ -233,7 +233,7 @@ const DashboardOverview = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground">Welcome back, {firstName} 👋</h1>
-          <p className="text-muted-foreground text-sm">Here's your portfolio overview</p>
+          <p className="text-muted-foreground text-sm">Monitor your account and stay updated on your activity.</p>
           <p className="text-muted-foreground text-xs flex items-center gap-1 mt-0.5">
             <Timer className="h-3 w-3" /> Daily profit is processed at 1:00 AM ({(profile as any)?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone})
           </p>
@@ -268,6 +268,7 @@ const DashboardOverview = () => {
               <BalanceSparkline data={balanceHistory} />
             </div>
           </CardContent>
+          <p className="px-4 pb-3 text-[10px] text-muted-foreground/60 leading-tight">Performance updates are based on market conditions and may vary.</p>
         </Card>
         <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/portfolio")}>
           <CardContent className="p-4">
