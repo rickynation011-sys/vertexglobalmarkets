@@ -46,11 +46,9 @@ interface InvestmentPlan {
 }
 
 const defaultPlans: InvestmentPlan[] = [
-  { name: "Conservative Growth", returns: "4-6%", risk: "Low", min: 500, annualRate: 5, duration: 30, status: "active" },
-  { name: "Balanced Portfolio", returns: "6-9%", risk: "Medium", min: 2000, annualRate: 7.5, duration: 30, status: "active" },
-  { name: "Aggressive Alpha", returns: "8-12%", risk: "High", min: 5000, annualRate: 10, duration: 30, status: "active" },
-  { name: "Forex Specialist", returns: "5-8%", risk: "Medium", min: 1000, annualRate: 6.5, duration: 30, status: "active" },
-  { name: "Crypto Momentum", returns: "7-12%", risk: "High", min: 1500, annualRate: 9.5, duration: 30, status: "active" },
+  { name: "Starter Plan", returns: "1-2%", risk: "Low", min: 200, annualRate: 1.5, duration: 30, status: "active" },
+  { name: "Growth Plan", returns: "1.5-2.5%", risk: "Medium", min: 500, annualRate: 2, duration: 60, status: "active" },
+  { name: "Advanced Plan", returns: "2-3%", risk: "High", min: 1000, annualRate: 2.5, duration: 90, status: "active" },
   { name: "Real Estate Income", returns: "6-10%", risk: "Medium", min: 2500, annualRate: 8, duration: 90, status: "active" },
   { name: "VIP Elite", returns: "10-15%", risk: "Variable", min: 25000, annualRate: 12.5, duration: 30, status: "active" },
 ];
