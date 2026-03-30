@@ -34,6 +34,9 @@ const DashboardWallet = () => {
   const [withdrawWallet, setWithdrawWallet] = useState("");
   const [showFeeDialog, setShowFeeDialog] = useState(false);
   const [showWithdrawalSuccess, setShowWithdrawalSuccess] = useState<{ amount: number; method: string } | null>(null);
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofPreview, setProofPreview] = useState<string | null>(null);
+  const [uploadingProof, setUploadingProof] = useState(false);
   const navigate = useNavigate();
 
   const { data: profile } = useQuery({
