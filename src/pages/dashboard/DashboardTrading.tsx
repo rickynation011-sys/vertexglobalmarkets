@@ -489,17 +489,14 @@ const DashboardTrading = () => {
                 </div>
               </div>
 
-              {/* Estimated Profit */}
+              {/* Trade Info */}
               {parsedAmount > 0 && (
-                <div className="p-3 rounded-lg bg-success/5 border border-success/20 space-y-1">
+                <div className="p-3 rounded-lg bg-muted/30 border border-border space-y-1">
                   <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Est. Profit (2.5%)</span>
-                    <span className="text-success font-semibold font-mono">+{fmt(estimatedProfit)}</span>
+                    <span className="text-muted-foreground">Trade Size</span>
+                    <span className="text-foreground font-medium font-mono">{fmt(parsedAmount)}</span>
                   </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Total Return</span>
-                    <span className="text-foreground font-medium font-mono">{fmt(parsedAmount + estimatedProfit)}</span>
-                  </div>
+                  <p className="text-[10px] text-muted-foreground">Actual returns depend on market conditions. You may lose part or all of your capital.</p>
                 </div>
               )}
 
