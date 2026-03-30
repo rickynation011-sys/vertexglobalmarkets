@@ -62,12 +62,12 @@ function useCountdown(targetDate: string) {
   return timeLeft;
 }
 
-function ActiveInvestmentRow({ inv }: { inv: any }) {
+function ActiveInvestmentRow({ inv, getSimulatedValue }: { inv: any; getSimulatedValue?: (inv: any) => number }) {
   const timeLeft = useCountdown(inv.ends_at);
   const startMs = new Date(inv.started_at).getTime();
   const endMs = new Date(inv.ends_at).getTime();
   const elapsed = Math.min(100, Math.max(0, ((Date.now() - startMs) / (endMs - startMs)) * 100));
-  const currentValue = Number(inv.current_value);
+  const currentValue = getSimulatedValue ? getSimulatedValue(inv) : Number(inv.current_value);
   const profit = currentValue - Number(inv.amount);
   const { format } = useCurrency();
   const fmt = (n: number) => format(n);
