@@ -104,22 +104,29 @@ export function useProfitSimulation(
 
     // Vary the chance of logging an activity entry (30-50%)
     if (Math.random() < 0.3 + Math.random() * 0.2) {
-      const labels = [
-        `Daily Profit — ${inv.plan_name}`,
-        `Trade Profit — ${inv.plan_name}`,
-        `Yield — ${inv.plan_name}`,
-        `Auto-Trade Gain`,
-        `ROI Credit`,
-        `Compound Return`,
-        `Market Gain — ${inv.plan_name}`,
-      ];
+      const labels = isDip
+        ? [
+            `Market Adjustment — ${inv.plan_name}`,
+            `Rebalancing — ${inv.plan_name}`,
+            `Spread Cost — ${inv.plan_name}`,
+            `Minor Correction`,
+          ]
+        : [
+            `Daily Profit — ${inv.plan_name}`,
+            `Trade Profit — ${inv.plan_name}`,
+            `Yield — ${inv.plan_name}`,
+            `Auto-Trade Gain`,
+            `ROI Credit`,
+            `Compound Return`,
+            `Market Gain — ${inv.plan_name}`,
+          ];
       const label = labels[Math.floor(Math.random() * labels.length)];
 
       setRecentProfits((prev) => [
         {
           id: `sim-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           label,
-          amount: roundedIncrement,
+          amount: finalIncrement,
           timestamp: Date.now(),
         },
         ...prev.slice(0, 19),
