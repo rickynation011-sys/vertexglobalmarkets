@@ -134,7 +134,7 @@ const DashboardOverview = () => {
   const { data: profitLogs } = useQuery({
     queryKey: ["profit_logs", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("profit_logs").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(10);
+      const { data } = await supabase.from("profit_logs").select("*").eq("user_id", user!.id).order("created_at", { ascending: false });
       return data ?? [];
     },
     enabled: !!user,
