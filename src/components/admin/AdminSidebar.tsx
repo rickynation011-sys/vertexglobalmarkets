@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, ShieldCheck, ArrowUpDown, Settings,
-  FileText, Bell, LogOut, Shield, TrendingUp, Wallet, Signal, Copy, ArrowDownLeft, ArrowUpRight, Ticket, DollarSign, Link2, Globe, Mail
+  FileText, Bell, LogOut, Shield, TrendingUp, Wallet, Signal, Copy, ArrowDownLeft, ArrowUpRight, Ticket, DollarSign, Link2, Globe, Mail, Scale
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import logo from "@/assets/logo-symbol.png";
@@ -28,6 +28,7 @@ const mainItems = [
   { title: "Ticket Complaints", url: "/admin/tickets", icon: Ticket },
   { title: "Fee Payments", url: "/admin/fee-payments", icon: DollarSign },
   { title: "Referrals", url: "/admin/referrals", icon: Link2 },
+  { title: "Profit & Loss", url: "/admin/profit-loss", icon: Scale },
 ];
 
 const systemItems = [
