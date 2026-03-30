@@ -210,16 +210,26 @@ const DashboardOverview = () => {
   const { format } = useCurrency();
   const fmt = (n: number) => format(n);
 
-  const {
-    simulatedBalance,
-    getSimulatedCurrentValue,
-    totalSimulatedProfit,
-    walletBonus,
-    recentProfits,
-    lastFlash,
-    balanceHistory,
-    milestone,
-  } = useProfitSimulation(investments as any, walletBalance);
+  // Build real balance history from transactions + profit logs for sparkline
+  const balanceHistory = (() => {
+    const events: { date: number; delta: number }[] = [];
+    (transactions ?? []).forEach(t => {
+      if (t.type === "deposit" && (t.status === "completed" || t.status === "approved"))
+        events.push({ date: new Date(t.created_at).getTime(), delta: Number(t.amount) });
+      if (t.type === "withdrawal" && (t.status === "completed" || t.status === "approved"))
+        events.push({ date: new Date(t.created_at).getTime(), delta: -Number(t.amount) });
+    });
+    (profitLogs ?? []).forEach(l => {
+      events.push({ date: new Date(l.created_at).getTime(), delta: Number(l.amount) });
+    });
+    events.sort((a, b) => a.date - b.date);
+    if (events.length === 0) return [walletBalance];
+    let running = 0;
+    const points = events.map(e => { running += e.delta; return running; });
+    // Ensure last point matches current wallet balance
+    points.push(walletBalance);
+    return points.slice(-30);
+  })();
 
   const isSuccessful = (status: string) => status === "completed" || status === "approved";
 
