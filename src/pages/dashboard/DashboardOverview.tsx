@@ -167,6 +167,15 @@ const DashboardOverview = () => {
     enabled: !!user,
   });
 
+  const { data: allTrades } = useQuery({
+    queryKey: ["all_trades", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("trades").select("*").eq("user_id", user!.id);
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
   const investMutation = useMutation({
     mutationFn: async () => {
       if (!investDialog || !selectedDuration || !investAmount) throw new Error("Fill all fields");
