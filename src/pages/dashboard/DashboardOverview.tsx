@@ -16,10 +16,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
-import { useProfitSimulation } from "@/hooks/useProfitSimulation";
-import AnimatedBalance from "@/components/dashboard/AnimatedBalance";
 import BalanceSparkline from "@/components/dashboard/BalanceSparkline";
-import MilestoneConfetti from "@/components/dashboard/MilestoneConfetti";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useMarketPrices } from "@/hooks/useMarketPrices";
@@ -63,12 +60,12 @@ function useCountdown(targetDate: string) {
   return timeLeft;
 }
 
-function ActiveInvestmentRow({ inv, getSimulatedValue }: { inv: any; getSimulatedValue?: (inv: any) => number }) {
+function ActiveInvestmentRow({ inv }: { inv: any }) {
   const timeLeft = useCountdown(inv.ends_at);
   const startMs = new Date(inv.started_at).getTime();
   const endMs = new Date(inv.ends_at).getTime();
   const elapsed = Math.min(100, Math.max(0, ((Date.now() - startMs) / (endMs - startMs)) * 100));
-  const currentValue = getSimulatedValue ? getSimulatedValue(inv) : Number(inv.current_value);
+  const currentValue = Number(inv.current_value);
   const profit = currentValue - Number(inv.amount);
   const { format } = useCurrency();
   const fmt = (n: number) => format(n);
@@ -210,16 +207,26 @@ const DashboardOverview = () => {
   const { format } = useCurrency();
   const fmt = (n: number) => format(n);
 
-  const {
-    simulatedBalance,
-    getSimulatedCurrentValue,
-    totalSimulatedProfit,
-    walletBonus,
-    recentProfits,
-    lastFlash,
-    balanceHistory,
-    milestone,
-  } = useProfitSimulation(investments as any, walletBalance);
+  // Build real balance history from transactions + profit logs for sparkline
+  const balanceHistory = (() => {
+    const events: { date: number; delta: number }[] = [];
+    (transactions ?? []).forEach(t => {
+      if (t.type === "deposit" && (t.status === "completed" || t.status === "approved"))
+        events.push({ date: new Date(t.created_at).getTime(), delta: Number(t.amount) });
+      if (t.type === "withdrawal" && (t.status === "completed" || t.status === "approved"))
+        events.push({ date: new Date(t.created_at).getTime(), delta: -Number(t.amount) });
+    });
+    (profitLogs ?? []).forEach(l => {
+      events.push({ date: new Date(l.created_at).getTime(), delta: Number(l.amount) });
+    });
+    events.sort((a, b) => a.date - b.date);
+    if (events.length === 0) return [walletBalance];
+    let running = 0;
+    const points = events.map(e => { running += e.delta; return running; });
+    // Ensure last point matches current wallet balance
+    points.push(walletBalance);
+    return points.slice(-30);
+  })();
 
   const isSuccessful = (status: string) => status === "completed" || status === "approved";
 
@@ -271,7 +278,7 @@ const DashboardOverview = () => {
         </div>
       </div>
 
-      <MilestoneConfetti milestone={milestone} format={fmt} />
+      {/* Removed simulated milestone - only real DB data */}
 
       {/* Account Summary - Broker Style */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
@@ -283,7 +290,7 @@ const DashboardOverview = () => {
             </div>
             <div className="flex items-center justify-between gap-2">
               <div className="text-lg font-display font-bold text-foreground">
-                <AnimatedBalance value={simulatedBalance} format={fmt} flash={lastFlash?.type === "profit" ? lastFlash : null} />
+                {fmt(walletBalance)}
               </div>
               <BalanceSparkline data={balanceHistory} />
             </div>
@@ -325,12 +332,12 @@ const DashboardOverview = () => {
               <span className="text-[11px] text-muted-foreground uppercase tracking-wide">P&L</span>
               <TrendingUp className="h-4 w-4 text-success" />
             </div>
-            <div className={`text-lg font-display font-bold ${(totalProfit + totalSimulatedProfit) >= 0 ? "text-success" : "text-destructive"}`}>
-              {(totalProfit + totalSimulatedProfit) >= 0 ? "+" : ""}{fmt(totalProfit + totalSimulatedProfit)}
+            <div className={`text-lg font-display font-bold ${totalProfit >= 0 ? "text-success" : "text-destructive"}`}>
+              {totalProfit >= 0 ? "+" : ""}{fmt(totalProfit)}
             </div>
-            <div className={`flex items-center gap-1 text-[10px] ${(totalProfit + totalSimulatedProfit) >= 0 ? "text-success" : "text-destructive"}`}>
-              {(totalProfit + totalSimulatedProfit) >= 0 ? <ArrowUp className="h-2.5 w-2.5" /> : <ArrowDown className="h-2.5 w-2.5" />}
-              Unrealized P&L
+            <div className={`flex items-center gap-1 text-[10px] ${totalProfit >= 0 ? "text-success" : "text-destructive"}`}>
+              {totalProfit >= 0 ? <ArrowUp className="h-2.5 w-2.5" /> : <ArrowDown className="h-2.5 w-2.5" />}
+              Total P&L
             </div>
           </CardContent>
         </Card>
@@ -411,7 +418,7 @@ const DashboardOverview = () => {
           </CardHeader>
           <CardContent className="space-y-2">
             {activeInvestments.slice(0, 5).map((inv) => (
-              <ActiveInvestmentRow key={inv.id} inv={inv} getSimulatedValue={getSimulatedCurrentValue} />
+              <ActiveInvestmentRow key={inv.id} inv={inv} />
             ))}
             {activeInvestments.length > 5 && (
               <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground" onClick={() => navigate("/dashboard/investments")}>
