@@ -217,10 +217,10 @@ const AdminKYC = () => {
                     <div className="flex justify-between"><span className="text-muted-foreground">Notes</span><span className="text-foreground">{selectedKYC.reviewer_notes}</span></div>
                   )}
                 </div>
-                {selectedKYC.document_url && (
-                  <div className="p-4 rounded-lg bg-muted/50 border border-border text-center text-xs text-muted-foreground">
-                    <a href={selectedKYC.document_url} target="_blank" rel="noopener noreferrer" className="text-primary underline">View Document</a>
-                  </div>
+                {(selectedKYC.document_url || selectedKYC.selfie_url) && (
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => navigate(`/admin/kyc/view/${selectedKYC.id}`)}>
+                    <Eye className="h-4 w-4 mr-2" /> View Documents
+                  </Button>
                 )}
                 {selectedKYC.status === "pending" && (
                   <>
