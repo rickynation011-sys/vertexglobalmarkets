@@ -164,10 +164,9 @@ const DashboardNotifications = () => {
               variant="destructive"
               onClick={async () => {
                 if (!user) return;
-                // Mark all as read by upserting user_notifications
                 for (const n of notifications) {
                   await supabase.from("user_notifications").upsert(
-                    { user_id: user.id, notification_id: n.id, is_read: true, read_at: new Date().toISOString() },
+                    { user_id: user.id, notification_id: n.id, is_read: true, read_at: new Date().toISOString(), is_dismissed: true } as any,
                     { onConflict: "user_id,notification_id" }
                   );
                 }
