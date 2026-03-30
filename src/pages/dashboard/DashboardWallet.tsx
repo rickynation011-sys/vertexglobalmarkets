@@ -102,8 +102,9 @@ const DashboardWallet = () => {
     enabled: !!user,
   });
 
-  const completedDeposits = (transactions ?? []).filter(t => t.type === "deposit" && t.status === "completed");
-  const completedWithdrawals = (transactions ?? []).filter(t => t.type === "withdrawal" && t.status === "completed");
+  const isSuccessful = (status: string) => status === "completed" || status === "approved";
+  const completedDeposits = (transactions ?? []).filter(t => t.type === "deposit" && isSuccessful(t.status));
+  const completedWithdrawals = (transactions ?? []).filter(t => t.type === "withdrawal" && isSuccessful(t.status));
   const totalDeposited = completedDeposits.reduce((s, t) => s + Number(t.amount), 0);
   const totalWithdrawn = completedWithdrawals.reduce((s, t) => s + Number(t.amount), 0);
   const walletBalance = Number(profile?.wallet_balance ?? 0);
@@ -504,7 +505,7 @@ const DashboardWallet = () => {
                       <p className={`text-sm font-medium ${tx.type === "deposit" ? "text-success" : "text-foreground"}`}>
                         {tx.type === "deposit" ? "+" : "-"}{fmt(Number(tx.amount))}
                       </p>
-                      <Badge variant="outline" className={`text-[10px] ${tx.status === "completed" ? "text-success border-success/30" : tx.status === "pending" ? "text-warning border-warning/30" : tx.status === "rejected" ? "text-destructive border-destructive/30" : "text-muted-foreground"}`}>
+                      <Badge variant="outline" className={`text-[10px] ${(tx.status === "completed" || tx.status === "approved") ? "text-success border-success/30" : tx.status === "pending" ? "text-warning border-warning/30" : tx.status === "rejected" ? "text-destructive border-destructive/30" : "text-muted-foreground"}`}>
                         {tx.status}
                       </Badge>
                     </div>

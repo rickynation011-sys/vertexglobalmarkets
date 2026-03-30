@@ -221,13 +221,19 @@ const DashboardOverview = () => {
     milestone,
   } = useProfitSimulation(investments as any, walletBalance);
 
+  const isSuccessful = (status: string) => status === "completed" || status === "approved";
+
+  const totalDeposited = (transactions ?? []).filter(t => t.type === "deposit" && isSuccessful(t.status)).reduce((s, t) => s + Number(t.amount), 0);
+  const totalWithdrawn = (transactions ?? []).filter(t => t.type === "withdrawal" && isSuccessful(t.status)).reduce((s, t) => s + Number(t.amount), 0);
+  const availableBalance = walletBalance - totalInvested;
+
   const portfolioData = (() => {
     const allTxns = [...(transactions ?? [])].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     if (allTxns.length === 0) return [{ date: "Now", value: walletBalance }];
     let running = 0;
     return allTxns.map(t => {
-      if (t.type === "deposit" && t.status === "completed") running += Number(t.amount);
-      if (t.type === "withdrawal" && t.status === "completed") running -= Number(t.amount);
+      if (t.type === "deposit" && isSuccessful(t.status)) running += Number(t.amount);
+      if (t.type === "withdrawal" && isSuccessful(t.status)) running -= Number(t.amount);
       return { date: new Date(t.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }), value: running };
     });
   })();
@@ -235,10 +241,10 @@ const DashboardOverview = () => {
   const firstName = profile?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "User";
   const recentTx = (transactions ?? []).slice(0, 5);
 
-  // Equity = wallet + invested current values
-  const equity = simulatedBalance + totalCurrentValue + (totalSimulatedProfit > 0 ? totalSimulatedProfit : 0);
+  // Equity = wallet balance + active investment current values
+  const equity = walletBalance + totalCurrentValue;
   const margin = totalInvested;
-  const freeMargin = Math.max(0, equity - margin);
+  const freeMargin = Math.max(0, walletBalance);
 
   const kycLabel = kycStatus === "approved" ? "Verified" : kycStatus === "pending" ? "Pending" : "Not Verified";
   const kycColor = kycStatus === "approved" ? "border-success/30 text-success" : kycStatus === "pending" ? "border-warning/30 text-warning" : "border-muted-foreground/30 text-muted-foreground";
@@ -470,7 +476,7 @@ const DashboardOverview = () => {
                       <p className={`text-xs font-medium ${tx.type === "deposit" ? "text-success" : "text-foreground"}`}>
                         {tx.type === "deposit" ? "+" : "-"}{fmt(Number(tx.amount))}
                       </p>
-                      <Badge variant="outline" className={`text-[9px] px-1 py-0 ${tx.status === "completed" ? "border-success/30 text-success" : tx.status === "pending" ? "border-warning/30 text-warning" : "border-muted-foreground/30"}`}>
+                      <Badge variant="outline" className={`text-[9px] px-1 py-0 ${(tx.status === "completed" || tx.status === "approved") ? "border-success/30 text-success" : tx.status === "pending" ? "border-warning/30 text-warning" : "border-muted-foreground/30"}`}>
                         {tx.status}
                       </Badge>
                     </div>
