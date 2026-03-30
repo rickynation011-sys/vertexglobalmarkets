@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Trash2, X } from "lucide-react";
+import { Bell, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -39,84 +39,82 @@ export const NotificationBell = () => {
 
       if (error) throw error;
 
-      const { data: readStatuses } = await supabase
+      const { data: userNotifs } = await supabase
         .from("user_notifications")
-        .select("notification_id, is_read")
+        .select("notification_id, is_read, is_dismissed")
         .eq("user_id", user.id);
 
-      const readMap = new Map(readStatuses?.map((r) => [r.notification_id, r.is_read]) || []);
+      const statusMap = new Map(
+        userNotifs?.map((r) => [r.notification_id, { is_read: r.is_read, is_dismissed: r.is_dismissed }]) || []
+      );
 
-      return (notifs || []).map((n) => ({
-        id: n.id,
-        title: n.title,
-        message: n.message,
-        created_at: n.created_at,
-        notification_id: n.id,
-        is_read: readMap.get(n.id) ?? false,
-      })) as Notification[];
+      // Filter out dismissed notifications
+      return (notifs || [])
+        .filter((n) => !statusMap.get(n.id)?.is_dismissed)
+        .map((n) => ({
+          id: n.id,
+          title: n.title,
+          message: n.message,
+          created_at: n.created_at,
+          notification_id: n.id,
+          is_read: statusMap.get(n.id)?.is_read ?? false,
+        })) as Notification[];
     },
     enabled: !!user,
     refetchInterval: 30000,
   });
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+    queryClient.invalidateQueries({ queryKey: ["all-notifications"] });
+  };
 
   const markReadMutation = useMutation({
     mutationFn: async (notificationId: string) => {
       if (!user) return;
-      const { error } = await supabase.from("user_notifications").upsert(
-        {
-          user_id: user.id,
-          notification_id: notificationId,
-          is_read: true,
-          read_at: new Date().toISOString(),
-        },
+      await supabase.from("user_notifications").upsert(
+        { user_id: user.id, notification_id: notificationId, is_read: true, read_at: new Date().toISOString() },
         { onConflict: "user_id,notification_id" }
       );
-      if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["all-notifications"] });
-    },
+    onSuccess: invalidateAll,
   });
 
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
       if (!user) return;
-      const unread = notifications.filter((n) => !n.is_read);
-      for (const n of unread) {
+      for (const n of notifications.filter((n) => !n.is_read)) {
         await supabase.from("user_notifications").upsert(
-          {
-            user_id: user.id,
-            notification_id: n.notification_id,
-            is_read: true,
-            read_at: new Date().toISOString(),
-          },
+          { user_id: user.id, notification_id: n.notification_id, is_read: true, read_at: new Date().toISOString() },
           { onConflict: "user_id,notification_id" }
         );
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["all-notifications"] });
-    },
+    onSuccess: invalidateAll,
   });
 
-  const deleteNotificationMutation = useMutation({
+  const dismissMutation = useMutation({
     mutationFn: async (notificationId: string) => {
       if (!user) return;
-      // Delete the user_notification record to dismiss it
-      await supabase
-        .from("user_notifications")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("notification_id", notificationId);
+      await supabase.from("user_notifications").upsert(
+        { user_id: user.id, notification_id: notificationId, is_read: true, is_dismissed: true, read_at: new Date().toISOString() } as any,
+        { onConflict: "user_id,notification_id" }
+      );
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["all-notifications"] });
+    onMutate: async (notificationId: string) => {
+      // Optimistic update - remove from list immediately
+      await queryClient.cancelQueries({ queryKey: ["user-notifications", user?.id] });
+      const prev = queryClient.getQueryData<Notification[]>(["user-notifications", user?.id]);
+      queryClient.setQueryData<Notification[]>(["user-notifications", user?.id], (old) =>
+        (old || []).filter((n) => n.notification_id !== notificationId)
+      );
+      return { prev };
     },
+    onError: (_err, _vars, context) => {
+      if (context?.prev) queryClient.setQueryData(["user-notifications", user?.id], context.prev);
+    },
+    onSettled: invalidateAll,
   });
 
   const handleNotificationClick = (n: Notification) => {
@@ -144,17 +142,14 @@ export const NotificationBell = () => {
             <h4 className="text-sm font-semibold text-foreground">Notifications</h4>
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
-                <button
-                  onClick={() => markAllReadMutation.mutate()}
-                  className="text-xs text-primary hover:underline"
-                >
+                <button onClick={() => markAllReadMutation.mutate()} className="text-xs text-primary hover:underline">
                   Mark all read
                 </button>
               )}
             </div>
           </div>
           <div className="relative">
-            <ScrollArea className="max-h-[60vh] sm:max-h-80" style={{ scrollBehavior: 'smooth' }}>
+            <ScrollArea className="max-h-[60vh] sm:max-h-80" style={{ scrollBehavior: "smooth" }}>
               {notifications.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">No notifications</p>
               ) : (
@@ -165,14 +160,9 @@ export const NotificationBell = () => {
                       !n.is_read ? "bg-primary/5" : ""
                     }`}
                   >
-                    <button
-                      onClick={() => handleNotificationClick(n)}
-                      className="w-full text-left"
-                    >
+                    <button onClick={() => handleNotificationClick(n)} className="w-full text-left">
                       <div className="flex items-start gap-2 pr-6">
-                        {!n.is_read && (
-                          <span className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />
-                        )}
+                        {!n.is_read && <span className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />}
                         <div className={!n.is_read ? "" : "pl-4"}>
                           <p className="text-sm font-medium text-foreground">{n.title}</p>
                           <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.message}</p>
@@ -185,7 +175,7 @@ export const NotificationBell = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        deleteNotificationMutation.mutate(n.notification_id);
+                        dismissMutation.mutate(n.notification_id);
                       }}
                       className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-destructive/10"
                       title="Dismiss"
@@ -203,11 +193,7 @@ export const NotificationBell = () => {
         </PopoverContent>
       </Popover>
 
-      <NotificationDetailDialog
-        open={detailOpen}
-        onOpenChange={setDetailOpen}
-        notification={selectedNotification}
-      />
+      <NotificationDetailDialog open={detailOpen} onOpenChange={setDetailOpen} notification={selectedNotification} />
     </>
   );
 };

@@ -2,20 +2,17 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, CheckCheck, Filter } from "lucide-react";
+import { Bell, CheckCheck, Filter, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow, format } from "date-fns";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { NotificationDetailDialog } from "@/components/dashboard/NotificationDetailDialog";
+import { toast } from "sonner";
 
 interface Notification {
   id: string;
@@ -46,25 +43,28 @@ const DashboardNotifications = () => {
 
       if (error) throw error;
 
-      const { data: readStatuses } = await supabase
+      const { data: userNotifs } = await supabase
         .from("user_notifications")
-        .select("notification_id, is_read")
+        .select("notification_id, is_read, is_dismissed")
         .eq("user_id", user.id);
 
-      const readMap = new Map(readStatuses?.map((r) => [r.notification_id, r.is_read]) || []);
+      const statusMap = new Map(
+        userNotifs?.map((r) => [r.notification_id, { is_read: r.is_read, is_dismissed: r.is_dismissed }]) || []
+      );
 
-      return (notifs || []).map((n) => ({
-        id: n.id,
-        title: n.title,
-        message: n.message,
-        created_at: n.created_at,
-        is_read: readMap.get(n.id) ?? false,
-      })) as Notification[];
+      return (notifs || [])
+        .filter((n) => !statusMap.get(n.id)?.is_dismissed)
+        .map((n) => ({
+          id: n.id,
+          title: n.title,
+          message: n.message,
+          created_at: n.created_at,
+          is_read: statusMap.get(n.id)?.is_read ?? false,
+        })) as Notification[];
     },
     enabled: !!user,
   });
 
-  // Realtime subscription for new notifications
   useEffect(() => {
     if (!user) return;
     const channel = supabase
@@ -88,6 +88,10 @@ const DashboardNotifications = () => {
   });
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: ["all-notifications"] });
+    queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+  };
 
   const markReadMutation = useMutation({
     mutationFn: async (ids: string[]) => {
@@ -99,28 +103,74 @@ const DashboardNotifications = () => {
         );
       }
     },
+    onSuccess: () => { invalidateAll(); setSelectedIds(new Set()); },
+  });
+
+  const clearAllMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) return;
+      // Upsert all visible notifications as dismissed
+      for (const n of notifications) {
+        await supabase.from("user_notifications").upsert(
+          { user_id: user.id, notification_id: n.id, is_read: true, is_dismissed: true, read_at: new Date().toISOString() } as any,
+          { onConflict: "user_id,notification_id" }
+        );
+      }
+    },
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["all-notifications", user?.id] });
+      const prev = queryClient.getQueryData<Notification[]>(["all-notifications", user?.id]);
+      queryClient.setQueryData<Notification[]>(["all-notifications", user?.id], []);
+      return { prev };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.prev) queryClient.setQueryData(["all-notifications", user?.id], context.prev);
+      toast.error("Failed to clear notifications");
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["all-notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+      toast.success("All notifications cleared");
       setSelectedIds(new Set());
     },
+    onSettled: invalidateAll,
+  });
+
+  const dismissSelectedMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      if (!user) return;
+      for (const id of ids) {
+        await supabase.from("user_notifications").upsert(
+          { user_id: user.id, notification_id: id, is_read: true, is_dismissed: true, read_at: new Date().toISOString() } as any,
+          { onConflict: "user_id,notification_id" }
+        );
+      }
+    },
+    onMutate: async (ids: string[]) => {
+      await queryClient.cancelQueries({ queryKey: ["all-notifications", user?.id] });
+      const prev = queryClient.getQueryData<Notification[]>(["all-notifications", user?.id]);
+      const idsSet = new Set(ids);
+      queryClient.setQueryData<Notification[]>(["all-notifications", user?.id], (old) =>
+        (old || []).filter((n) => !idsSet.has(n.id))
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.prev) queryClient.setQueryData(["all-notifications", user?.id], context.prev);
+    },
+    onSuccess: () => { setSelectedIds(new Set()); },
+    onSettled: invalidateAll,
   });
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
   };
 
   const selectAll = () => {
-    if (selectedIds.size === filtered.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(filtered.map((n) => n.id)));
-    }
+    if (selectedIds.size === filtered.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(filtered.map((n) => n.id)));
   };
 
   return (
@@ -146,54 +196,36 @@ const DashboardNotifications = () => {
           </Select>
           {unreadCount > 0 && (
             <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
-                markReadMutation.mutate(unreadIds);
-              }}
+              size="sm" variant="outline"
+              onClick={() => markReadMutation.mutate(notifications.filter((n) => !n.is_read).map((n) => n.id))}
               disabled={markReadMutation.isPending}
             >
-              <CheckCheck className="h-3.5 w-3.5 mr-1.5" />
-              Mark all read
+              <CheckCheck className="h-3.5 w-3.5 mr-1.5" /> Mark all read
             </Button>
           )}
           {notifications.length > 0 && (
             <Button
-              size="sm"
-              variant="destructive"
-              onClick={async () => {
-                if (!user) return;
-                // Delete all user_notification records to clear notifications
-                await supabase
-                  .from("user_notifications")
-                  .delete()
-                  .eq("user_id", user.id);
-                queryClient.invalidateQueries({ queryKey: ["all-notifications"] });
-                queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
-              }}
+              size="sm" variant="destructive"
+              onClick={() => clearAllMutation.mutate()}
+              disabled={clearAllMutation.isPending}
             >
-              Clear All
+              <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+              {clearAllMutation.isPending ? "Clearing..." : "Clear All"}
             </Button>
           )}
         </div>
       </div>
 
-      {/* Bulk actions */}
       {selectedIds.size > 0 && (
         <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border">
           <span className="text-sm text-muted-foreground">{selectedIds.size} selected</span>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => markReadMutation.mutate(Array.from(selectedIds))}
-            disabled={markReadMutation.isPending}
-          >
+          <Button size="sm" variant="outline" onClick={() => markReadMutation.mutate(Array.from(selectedIds))} disabled={markReadMutation.isPending}>
             Mark selected as read
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
-            Clear
+          <Button size="sm" variant="destructive" onClick={() => dismissSelectedMutation.mutate(Array.from(selectedIds))} disabled={dismissSelectedMutation.isPending}>
+            <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Delete selected
           </Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>Clear</Button>
         </div>
       )}
 
@@ -228,15 +260,9 @@ const DashboardNotifications = () => {
                 {filtered.map((n) => (
                   <div
                     key={n.id}
-                    className={`flex items-start gap-3 px-4 py-3.5 transition-colors hover:bg-muted/30 ${
-                      !n.is_read ? "bg-primary/5" : ""
-                    }`}
+                    className={`flex items-start gap-3 px-4 py-3.5 transition-colors hover:bg-muted/30 ${!n.is_read ? "bg-primary/5" : ""}`}
                   >
-                    <Checkbox
-                      checked={selectedIds.has(n.id)}
-                      onCheckedChange={() => toggleSelect(n.id)}
-                      className="mt-1"
-                    />
+                    <Checkbox checked={selectedIds.has(n.id)} onCheckedChange={() => toggleSelect(n.id)} className="mt-1" />
                     <button
                       className="flex-1 text-left"
                       onClick={() => {
@@ -247,23 +273,15 @@ const DashboardNotifications = () => {
                     >
                       <div className="flex items-center gap-2">
                         {!n.is_read && <span className="h-2 w-2 rounded-full bg-primary shrink-0" />}
-                        <p className={`text-sm ${!n.is_read ? "font-semibold" : "font-medium"} text-foreground`}>
-                          {n.title}
-                        </p>
+                        <p className={`text-sm ${!n.is_read ? "font-semibold" : "font-medium"} text-foreground`}>{n.title}</p>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
                       <div className="flex items-center gap-2 mt-1.5">
-                        <span className="text-xs text-muted-foreground/70">
-                          {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
-                        </span>
-                        <span className="text-xs text-muted-foreground/50">
-                          {format(new Date(n.created_at), "MMM d, yyyy · h:mm a")}
-                        </span>
+                        <span className="text-xs text-muted-foreground/70">{formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}</span>
+                        <span className="text-xs text-muted-foreground/50">{format(new Date(n.created_at), "MMM d, yyyy · h:mm a")}</span>
                       </div>
                     </button>
-                    {!n.is_read && (
-                      <Badge className="bg-primary/10 text-primary text-[10px] shrink-0">New</Badge>
-                    )}
+                    {!n.is_read && <Badge className="bg-primary/10 text-primary text-[10px] shrink-0">New</Badge>}
                   </div>
                 ))}
               </div>
@@ -274,11 +292,7 @@ const DashboardNotifications = () => {
           )}
         </CardContent>
       </Card>
-      <NotificationDetailDialog
-        open={detailOpen}
-        onOpenChange={setDetailOpen}
-        notification={selectedNotification}
-      />
+      <NotificationDetailDialog open={detailOpen} onOpenChange={setDetailOpen} notification={selectedNotification} />
     </div>
   );
 };
