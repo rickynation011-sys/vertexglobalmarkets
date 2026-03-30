@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     if (!activeUsers || activeUsers.length === 0) {
       await supabase.from("profit_processing_logs").insert({
         processed_count: 0, total_profit: 0, status: "success",
-        triggered_by: req.headers.get("x-trigger") || "cron",
+        triggered_by: trigger,
       });
       return new Response(JSON.stringify({ message: "No active investments" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
