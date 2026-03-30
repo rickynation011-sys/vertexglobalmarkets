@@ -23,6 +23,7 @@ const AdminProfitLoss = () => {
   const [submitting, setSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [confirmDialog, setConfirmDialog] = useState(false);
+  const [processingProfits, setProcessingProfits] = useState(false);
 
   const { data: profiles } = useQuery({
     queryKey: ["admin-all-profiles"],
