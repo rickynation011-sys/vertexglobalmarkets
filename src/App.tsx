@@ -27,6 +27,7 @@ import Contact from "./pages/Contact.tsx";
 import Terms from "./pages/Terms.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import RiskDisclosure from "./pages/RiskDisclosure.tsx";
+import RiskDisclaimer from "./pages/RiskDisclaimer.tsx";
 import Compliance from "./pages/Compliance.tsx";
 import Security from "./pages/Security.tsx";
 import Press from "./pages/Press.tsx";
