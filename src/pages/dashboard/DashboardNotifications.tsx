@@ -64,6 +64,23 @@ const DashboardNotifications = () => {
     enabled: !!user,
   });
 
+  // Realtime subscription for new notifications
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel("notifications-realtime")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["all-notifications"] });
+        queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "user_notifications", filter: `user_id=eq.${user.id}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ["all-notifications"] });
+        queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, queryClient]);
+
   const filtered = notifications.filter((n) => {
     if (filter === "unread") return !n.is_read;
     if (filter === "read") return n.is_read;
