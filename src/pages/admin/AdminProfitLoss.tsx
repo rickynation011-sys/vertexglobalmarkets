@@ -218,7 +218,7 @@ const AdminProfitLoss = () => {
             Manually trigger the daily profit processor. This will calculate and credit profits for all users with active investments, updating their balance and P&L in real-time.
           </p>
           <Button
-            onClick={handleProcessDailyProfits}
+            onClick={() => setProfitConfirmDialog(true)}
             disabled={processingProfits}
             className="bg-gradient-to-r from-primary to-primary/80"
           >
