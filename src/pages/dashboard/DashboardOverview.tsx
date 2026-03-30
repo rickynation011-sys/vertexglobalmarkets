@@ -219,7 +219,7 @@ const DashboardOverview = () => {
   // Trade P&L from closed trades
   const tradePnl = (allTrades ?? []).filter(t => t.status === "closed").reduce((s, t) => s + Number(t.pnl ?? 0), 0);
   // Admin adjustments (credits - debits)
-  const isSuccessful = (status: string) => status === "completed" || status === "approved";
+  const isSuccessful_ = (status: string) => status === "completed" || status === "approved";
   const adminCredits = (transactions ?? []).filter(t => t.type === "admin_credit" && isSuccessful(t.status)).reduce((s, t) => s + Number(t.amount), 0);
   const adminDebits = (transactions ?? []).filter(t => t.type === "admin_debit" && isSuccessful(t.status)).reduce((s, t) => s + Number(t.amount), 0);
   // Total Profit = investment profits + trade P&L + admin adjustments
