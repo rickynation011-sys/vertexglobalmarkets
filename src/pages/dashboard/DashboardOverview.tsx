@@ -12,7 +12,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "rec
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
@@ -112,6 +112,7 @@ const DashboardOverview = () => {
     },
     enabled: !!user,
     staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: investments } = useQuery({
@@ -122,6 +123,7 @@ const DashboardOverview = () => {
     },
     enabled: !!user,
     staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: transactions } = useQuery({
@@ -132,6 +134,7 @@ const DashboardOverview = () => {
     },
     enabled: !!user,
     staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: profitLogs } = useQuery({
@@ -142,6 +145,7 @@ const DashboardOverview = () => {
     },
     enabled: !!user,
     staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: signalSubs } = useQuery({
