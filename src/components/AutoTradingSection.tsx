@@ -12,18 +12,17 @@ const AutoTradingSection = () => {
             viewport={{ once: true }}
           >
             <h2 className="font-display text-3xl md:text-5xl font-bold mb-6">
-              AI-Powered <span className="text-gradient-brand">Automated Trading</span>
+              AI-Assisted <span className="text-gradient-brand">Market Analysis</span>
             </h2>
             <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
-              Our advanced algorithms analyze market conditions 24/7, executing optimized trades across multiple asset classes.
-              Estimated monthly returns of 4–12% depending on market conditions.*
+              Our system uses data-driven algorithms to analyze market conditions and identify potential trading opportunities across multiple asset classes. Results are not guaranteed and depend on market conditions.
             </p>
             <div className="space-y-4">
               {[
-                { icon: Cpu, text: "Machine learning models trained on 10+ years of market data" },
-                { icon: TrendingUp, text: "Real-time market analysis across forex, crypto, and equities" },
-                { icon: BarChart3, text: "Automated portfolio rebalancing and risk management" },
-                { icon: ShieldCheck, text: "Built-in stop-loss, drawdown protection, and position sizing" },
+                { icon: Cpu, text: "Data-driven models analyzing historical and real-time market data" },
+                { icon: TrendingUp, text: "Market analysis across forex, crypto, and equities" },
+                { icon: BarChart3, text: "Portfolio tools with automated rebalancing options" },
+                { icon: ShieldCheck, text: "Built-in risk management with stop-loss and position controls" },
               ].map((item) => (
                 <div key={item.text} className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
@@ -34,7 +33,7 @@ const AutoTradingSection = () => {
               ))}
             </div>
             <p className="text-xs text-muted-foreground mt-6">
-              *Returns are estimates based on historical performance.
+              No guarantee of profits. All trading involves risk and past performance does not indicate future results.
             </p>
           </motion.div>
 
@@ -46,25 +45,28 @@ const AutoTradingSection = () => {
           >
             <div className="rounded-2xl bg-card border border-border p-6 shadow-card">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-display font-semibold text-foreground">AI Performance</h3>
-                <span className="text-xs px-3 py-1 rounded-full bg-primary/10 text-primary font-medium">Live</span>
+                <h3 className="font-display font-semibold text-foreground">Trading Strategies</h3>
               </div>
               <div className="space-y-4">
                 {[
-                  { label: "Conservative Strategy", return: "+4.2%", risk: "Low" },
-                  { label: "Balanced Growth", return: "+7.8%", risk: "Medium" },
-                  { label: "Aggressive Alpha", return: "+11.4%", risk: "High" },
+                  { label: "Conservative", desc: "Lower risk, capital preservation focus", risk: "Low" },
+                  { label: "Balanced", desc: "Moderate risk-reward approach", risk: "Medium" },
+                  { label: "Active", desc: "Higher engagement, experienced traders", risk: "High" },
                 ].map((s) => (
                   <div key={s.label} className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border">
                     <div>
                       <p className="font-display font-medium text-sm text-foreground">{s.label}</p>
-                      <p className="text-xs text-muted-foreground">Risk: {s.risk}</p>
+                      <p className="text-xs text-muted-foreground">{s.desc}</p>
                     </div>
-                    <span className="font-display font-bold text-lg text-success">{s.return}</span>
+                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                      s.risk === "Low" ? "bg-success/10 text-success" :
+                      s.risk === "Medium" ? "bg-warning/10 text-warning" :
+                      "bg-destructive/10 text-destructive"
+                    }`}>{s.risk} Risk</span>
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground mt-4 text-center">Estimated monthly returns.</p>
+              <p className="text-xs text-muted-foreground mt-4 text-center">Performance varies based on market conditions.</p>
             </div>
           </motion.div>
         </div>

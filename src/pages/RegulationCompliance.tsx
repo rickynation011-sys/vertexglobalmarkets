@@ -25,21 +25,21 @@ const RegulationCompliance = () => {
 
         <div className="space-y-10 text-muted-foreground leading-relaxed">
           <p>
-            Vexter Global Markets operates within the digital asset and automated trading sector.
+            Vertex Global Markets operates within the digital asset and automated trading sector.
           </p>
           <p>
             Our services are centered on technology-driven trading solutions and access to global digital markets. As such, our operations differ from traditional financial institutions such as stock brokerage firms, which are typically overseen by regulatory bodies like the U.S. Securities and Exchange Commission (SEC), the Financial Industry Regulatory Authority (FINRA), and the Financial Conduct Authority (FCA).
           </p>
           <p>
-            We are committed to maintaining high standards of transparency, operational integrity, and user security across our platform.
+            We are working towards regulatory compliance and are committed to maintaining high standards of transparency, operational integrity, and user security across our platform.
           </p>
 
           <h2 className="font-display text-xl md:text-2xl font-bold text-foreground pt-4">
             Risk Disclosure
           </h2>
-          <p>Trading involves risk.</p>
+          <p>Trading involves significant risk and may not be suitable for all investors.</p>
           <p>
-            Digital asset markets are highly volatile, and while our system is designed to identify trading opportunities, estimates are based on historical performance. Users may experience losses depending on market conditions.
+            Digital asset markets are highly volatile. Users may experience losses depending on market conditions. Past performance does not guarantee future results.
           </p>
           <p>
             By using this platform, you acknowledge and accept the risks involved.
@@ -49,20 +49,20 @@ const RegulationCompliance = () => {
             Business Model
           </h2>
           <p>
-            Vexter Global Markets provides automated trading solutions, access to digital asset markets, and technology-driven trading systems.
+            Vertex Global Markets provides trading tools, access to digital asset markets, and technology-driven trading systems.
           </p>
           <p>
-            We focus on delivering tools and systems that assist users in participating in the market efficiently.
+            We focus on delivering tools and systems that assist users in participating in the market. We do not guarantee profits or specific returns.
           </p>
 
           <h2 className="font-display text-xl md:text-2xl font-bold text-foreground pt-4">
             Transparency Commitment
           </h2>
           <p>
-            Vexter Global Markets is committed to providing clear and honest information about how the platform operates.
+            Vertex Global Markets is committed to providing clear and honest information about how the platform operates.
           </p>
           <p>
-            We prioritize user security, system monitoring, and consistent performance while maintaining transparency in our services.
+            We prioritize user security, system monitoring, and consistent platform availability while maintaining transparency in our services.
           </p>
         </div>
       </div>
