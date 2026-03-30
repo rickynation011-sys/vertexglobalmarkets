@@ -240,7 +240,7 @@ Deno.serve(async (req) => {
       const supabase = createClient(supabaseUrl, serviceRoleKey);
       await supabase.from("profit_processing_logs").insert({
         processed_count: 0, total_profit: 0, status: "error",
-        error_message: error.message, triggered_by: "cron",
+        error_message: error.message, triggered_by: trigger ?? "cron",
       });
     } catch (_) { /* ignore logging errors */ }
 
