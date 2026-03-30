@@ -181,28 +181,32 @@ const DashboardOverview = () => {
       if (!investDialog || !selectedDuration || !investAmount) throw new Error("Fill all fields");
       const amt = parseFloat(investAmount);
       if (!amt || amt <= 0) throw new Error("Enter a valid amount");
-      const walletBal = Number(profile?.wallet_balance ?? 0);
-      if (amt > walletBal) throw new Error("Insufficient balance. Please deposit funds first.");
-      const durMs = durationToMs[selectedDuration];
-      const endsAt = new Date(Date.now() + durMs);
-      const rate = durationToRate[selectedDuration];
-      const { error } = await supabase.from("investments").insert({
-        user_id: user!.id,
-        plan_name: `${investDialog.name} (${durationToLabel[selectedDuration]})`,
-        amount: amt, current_value: amt, return_pct: 0, daily_rate: rate, status: "active",
-        started_at: new Date().toISOString(), ends_at: endsAt.toISOString(),
+      const planName = `${investDialog.name} (${durationToLabel[selectedDuration]})`;
+      const { data, error } = await supabase.functions.invoke("create-investment", {
+        body: { plan_name: planName, amount: amt },
       });
-      if (error) throw error;
-      const { error: walletError } = await supabase.from("profiles").update({ wallet_balance: walletBal - amt }).eq("user_id", user!.id);
-      if (walletError) throw walletError;
+      if (error) throw new Error(error.message || "Investment failed");
+      if (data?.error) {
+        if (data.error === "NO_BALANCE") {
+          toast.error(data.message);
+          setTimeout(() => navigate("/dashboard/wallet"), 2000);
+          throw new Error(data.message);
+        }
+        if (data.error === "INSUFFICIENT_BALANCE") throw new Error(data.message);
+        throw new Error(data.error);
+      }
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["investments"] });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
       toast.success("Investment placed successfully!");
       setInvestDialog(null); setSelectedDuration(""); setInvestAmount("");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      if (!e.message.includes("fund your account")) toast.error(e.message);
+    },
   });
 
   const walletBalance = Number(profile?.wallet_balance ?? 0);
