@@ -4,8 +4,8 @@ import { Bot, LineChart, Copy, PieChart, Shield, Wallet, Cpu, Target } from "luc
 const features = [
   {
     icon: Bot,
-    title: "AI Trading Engine",
-    description: "Advanced algorithms analyze markets 24/7, executing trades with precision and speed.",
+    title: "AI-Assisted Analysis",
+    description: "Data-driven algorithms analyze markets to identify potential trading opportunities.",
   },
   {
     icon: LineChart,
@@ -15,32 +15,32 @@ const features = [
   {
     icon: Copy,
     title: "Copy Trading",
-    description: "Mirror the strategies of top-performing traders. Diversify with expert portfolios.",
+    description: "Follow the strategies of experienced traders. Diversify across different approaches.",
   },
   {
     icon: PieChart,
     title: "Portfolio Management",
-    description: "Automated diversification and rebalancing to optimize your investment returns.",
+    description: "Tools for diversification and rebalancing to help manage your investment portfolio.",
   },
   {
     icon: Target,
     title: "Trading Signals",
-    description: "Real-time AI-generated signals with entry, exit, and stop-loss recommendations.",
+    description: "Data-driven signals with entry, exit, and stop-loss recommendations.",
   },
   {
     icon: Cpu,
     title: "Algo Strategies",
-    description: "Deploy custom algorithmic strategies or choose from our marketplace of proven systems.",
+    description: "Deploy algorithmic strategies or choose from available systems on the platform.",
   },
   {
     icon: Shield,
     title: "Risk Management",
-    description: "Advanced risk algorithms with stop-loss, position sizing, and drawdown protection.",
+    description: "Advanced risk tools with stop-loss, position sizing, and drawdown protection.",
   },
   {
     icon: Wallet,
-    title: "Instant Deposits",
-    description: "Fund your account instantly with crypto, bank transfer, or card payments.",
+    title: "Flexible Deposits",
+    description: "Fund your account using crypto, bank transfer, or supported payment methods.",
   },
 ];
 
@@ -55,10 +55,10 @@ const FeaturesSection = () => {
           viewport={{ once: true }}
         >
           <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">
-            Powerful Tools for <span className="text-gradient-brand">Smart Investing</span>
+            Tools for <span className="text-gradient-brand">Informed Trading</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Everything you need to trade and invest across global financial markets with confidence.
+            Access tools to trade and invest across global financial markets. Results depend on market conditions.
           </p>
         </motion.div>
 

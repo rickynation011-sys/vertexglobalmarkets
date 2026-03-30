@@ -31,31 +31,31 @@ import testHugo from "@/assets/profiles/test-hugo.jpg";
 import testYuki from "@/assets/profiles/test-yuki.jpg";
 
 const fallbackTestimonials = [
-  { name: "Emily Watson", country: "🇺🇸 USA", review: "Was skeptical at first but it's been pretty consistent so far. Three months in and no complaints.", photo_url: testEmily, rating: 5 },
-  { name: "Raj Patel", country: "🇮🇳 India", review: "The signals are honestly better than what I was paying for elsewhere. Saved me a lot of guesswork.", photo_url: testRaj, rating: 5 },
-  { name: "Marie Lefevre", country: "🇫🇷 France", review: "I barely knew anything about trading when I started. Copy trading made it easy to just... follow someone who knows what they're doing.", photo_url: testMarie, rating: 4 },
-  { name: "Kenji Tanaka", country: "🇯🇵 Japan", review: "Everything loads fast, trades go through quick. That's all I really need.", photo_url: testKenji, rating: 5 },
-  { name: "Anna Kowalski", country: "🇵🇱 Poland", review: "Picked the balanced plan and it's been doing well. Not crazy returns but steady, which I prefer.", photo_url: testAnna, rating: 4 },
+  { name: "Emily Watson", country: "🇺🇸 USA", review: "The platform has been straightforward to use. Three months in and the experience has been smooth overall.", photo_url: testEmily, rating: 5 },
+  { name: "Raj Patel", country: "🇮🇳 India", review: "The trading signals provide useful data points for decision-making. Better than what I was using before.", photo_url: testRaj, rating: 5 },
+  { name: "Marie Lefevre", country: "🇫🇷 France", review: "I barely knew anything about trading when I started. Copy trading made it easy to follow experienced strategies.", photo_url: testMarie, rating: 4 },
+  { name: "Kenji Tanaka", country: "🇯🇵 Japan", review: "Everything loads fast, trades go through quick. That's all I really need from a platform.", photo_url: testKenji, rating: 5 },
+  { name: "Anna Kowalski", country: "🇵🇱 Poland", review: "I appreciate the risk management tools. Being able to set my own limits gives me more control.", photo_url: testAnna, rating: 4 },
   { name: "Carlos Mendez", country: "🇲🇽 Mexico", review: "Had an issue with a deposit once. Support sorted it out same day, which was nice.", photo_url: testCarlos, rating: 4 },
-  { name: "Sarah Mitchell", country: "🇬🇧 UK", review: "Used to have accounts on like three different platforms. Moved everything here and honestly wish I did it sooner.", photo_url: testSarah, rating: 5 },
-  { name: "Ahmed Hassan", country: "🇦🇪 UAE", review: "I check the leaderboard way too often haha. It's weirdly motivating seeing where you rank.", photo_url: testAhmed, rating: 5 },
+  { name: "Sarah Mitchell", country: "🇬🇧 UK", review: "Used to have accounts on multiple platforms. Having everything in one place is much more convenient.", photo_url: testSarah, rating: 5 },
+  { name: "Ahmed Hassan", country: "🇦🇪 UAE", review: "The dashboard is clean and well-organized. Easy to track everything without being overwhelmed.", photo_url: testAhmed, rating: 5 },
   { name: "Lisa Johansson", country: "🇸🇪 Sweden", review: "No hidden fees, no weird charges. What you see is what you get. Refreshing.", photo_url: testLisa, rating: 5 },
-  { name: "Tomás García", country: "🇪🇸 Spain", review: "Told a friend about it, he signed up, and we both got a bonus. Pretty cool referral setup.", photo_url: testTomas, rating: 4 },
+  { name: "Tomás García", country: "🇪🇸 Spain", review: "Told a friend about it, he signed up, and we both got a bonus. The referral setup is straightforward.", photo_url: testTomas, rating: 4 },
   { name: "Chen Wei", country: "🇨🇳 China", review: "The charts are really good. Not as bloated as some terminal software I've tried. Clean and fast.", photo_url: testChen, rating: 5 },
   { name: "Fatima Al-Rashid", country: "🇸🇦 Saudi Arabia", review: "I feel safe using this platform. The 2FA and verification steps actually make a difference.", photo_url: testFatima, rating: 5 },
-  { name: "Patrick O'Connor", country: "🇮🇪 Ireland", review: "Woke up and my daily profit was already processed. Love that I don't have to do anything manually.", photo_url: testPatrick, rating: 5 },
+  { name: "Patrick O'Connor", country: "🇮🇪 Ireland", review: "The platform runs smoothly and keeps me updated on my account activity. Simple and clear.", photo_url: testPatrick, rating: 5 },
   { name: "Julia Schneider", country: "🇩🇪 Germany", review: "Security was my biggest concern. The encryption and 2FA put my mind at ease.", photo_url: testJulia, rating: 4 },
-  { name: "Dmitri Volkov", country: "🇷🇺 Russia", review: "Started copying one of the top traders here. Not gonna lie, the results have been solid.", photo_url: testDmitri, rating: 5 },
-  { name: "Priya Sharma", country: "🇮🇳 India", review: "Works great on my phone. I mostly trade during my commute and it handles everything fine.", photo_url: testPriya, rating: 4 },
+  { name: "Dmitri Volkov", country: "🇷🇺 Russia", review: "Started using copy trading here. It's a useful feature for someone who doesn't have time to trade actively.", photo_url: testDmitri, rating: 5 },
+  { name: "Priya Sharma", country: "🇮🇳 India", review: "Works great on my phone. I mostly check things during my commute and it handles everything fine.", photo_url: testPriya, rating: 4 },
   { name: "Marco Bianchi", country: "🇮🇹 Italy", review: "For what you're getting, the pricing is fair. I've paid more for way less on other platforms.", photo_url: testMarco, rating: 5 },
-  { name: "Kim Soo-Yeon", country: "🇰🇷 South Korea", review: "The market signals have been pretty spot on. Not perfect every time, but overall really helpful.", photo_url: testKim, rating: 4 },
-  { name: "Eva Lindqvist", country: "🇳🇴 Norway", review: "Withdrew my profits last week. It actually went through fast, which I wasn't expecting tbh.", photo_url: testEva, rating: 5 },
-  { name: "Robert van Dijk", country: "🇳🇱 Netherlands", review: "I like the calculator tool. Helps me figure out what to expect before I commit money.", photo_url: testRobert, rating: 4 },
+  { name: "Kim Soo-Yeon", country: "🇰🇷 South Korea", review: "The market analysis tools have been helpful for making more informed decisions.", photo_url: testKim, rating: 4 },
+  { name: "Eva Lindqvist", country: "🇳🇴 Norway", review: "Withdrew funds last week. The process was smooth and completed within the stated timeframe.", photo_url: testEva, rating: 5 },
+  { name: "Robert van Dijk", country: "🇳🇱 Netherlands", review: "I like the calculator tool. Helps me understand potential scenarios before committing.", photo_url: testRobert, rating: 4 },
   { name: "Amara Osei", country: "🇬🇭 Ghana", review: "Not many platforms work well for us here in West Africa. This one does. Really appreciate that.", photo_url: testAmara, rating: 5 },
   { name: "Daniel Fischer", country: "🇦🇹 Austria", review: "I spread my investments across a few different categories. The diversification options are solid.", photo_url: testDanielF, rating: 4 },
   { name: "Sophie Martin", country: "🇨🇦 Canada", review: "KYC took like 10 minutes. Way faster than I expected. The whole setup was smooth.", photo_url: testSophieM, rating: 5 },
   { name: "Hugo Ferreira", country: "🇧🇷 Brazil", review: "The dashboard is clean, easy to read. I don't need a manual to figure things out.", photo_url: testHugo, rating: 5 },
-  { name: "Yuki Yamamoto", country: "🇯🇵 Japan", review: "Real estate investments on a trading platform? That was new to me. Tried it and it's actually working out.", photo_url: testYuki, rating: 4 },
+  { name: "Yuki Yamamoto", country: "🇯🇵 Japan", review: "Real estate investments on a trading platform was new to me. Interesting to have that option available.", photo_url: testYuki, rating: 4 },
 ];
 
 const ITEMS_PER_VIEW = 3;
@@ -82,8 +82,8 @@ const ExtendedTestimonials = () => {
     <section className="py-24 relative overflow-hidden">
       <div className="container mx-auto px-4">
         <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">What Our <span className="text-gradient-brand">Investors Say</span></h2>
-          <p className="text-muted-foreground text-lg">Real feedback from traders and investors worldwide.</p>
+          <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">What Our <span className="text-gradient-brand">Users Say</span></h2>
+          <p className="text-muted-foreground text-lg">Feedback from traders and investors on the platform.</p>
         </motion.div>
         <div className="relative">
           <AnimatePresence mode="wait">
@@ -125,6 +125,9 @@ const ExtendedTestimonials = () => {
             <Button variant="outline" size="icon" onClick={next} className="rounded-full h-10 w-10"><ChevronRight className="h-5 w-5" /></Button>
           </div>
         </div>
+        <p className="text-xs text-muted-foreground text-center mt-6">
+          Individual experiences may vary. Trading involves risk.
+        </p>
       </div>
     </section>
   );

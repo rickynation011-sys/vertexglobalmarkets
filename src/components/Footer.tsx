@@ -43,7 +43,7 @@ const Footer = () => {
               </span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              AI-powered trading and investment platform serving investors in 180+ countries worldwide.
+              Multi-asset trading and investment platform serving users in 180+ countries worldwide.
             </p>
           </div>
 
@@ -70,7 +70,7 @@ const Footer = () => {
           <div className="max-w-3xl mx-auto text-center space-y-2">
             <p className="text-xs font-semibold text-muted-foreground">Risk Disclaimer</p>
             <p className="text-xs text-muted-foreground/70 leading-relaxed">
-              Trading involves risk and may not be suitable for everyone. There is a possibility of partial or full loss of funds depending on market conditions. Vertex Global Markets does not guarantee profits, and past performance does not assure future results. By using this platform, users acknowledge and accept the risks involved.
+              Trading involves significant risk and may not be suitable for all investors. You may lose part or all of your capital. Past performance does not guarantee future results. Vertex Global Markets does not guarantee profits. By using this platform, users acknowledge and accept the risks involved.
             </p>
             <Link to="/risk-disclaimer" className="text-xs text-primary hover:underline inline-block mt-1">
               Read full Risk Disclaimer →

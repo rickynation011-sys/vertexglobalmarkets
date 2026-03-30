@@ -39,9 +39,9 @@ const TestimonialsSection = () => {
           viewport={{ once: true }}
         >
           <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">
-            Trusted by <span className="text-gradient-brand">Global Investors</span>
+            Trusted by <span className="text-gradient-brand">Global Users</span>
           </h2>
-          <p className="text-muted-foreground text-lg">Join millions of investors who trust Vertex Global Markets.</p>
+          <p className="text-muted-foreground text-lg">Feedback from traders and investors using Vertex Global Markets.</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -70,6 +70,10 @@ const TestimonialsSection = () => {
             </motion.div>
           ))}
         </div>
+
+        <p className="text-xs text-muted-foreground text-center mt-8">
+          Individual experiences may vary. Trading involves risk.
+        </p>
       </div>
     </section>
   );
