@@ -20,6 +20,7 @@ interface DepositTx {
   wallet_address: string | null;
   admin_notes: string | null;
   reviewed_by: string | null;
+  proof_url: string | null;
   profile?: { full_name: string | null; email: string | null; wallet_balance: number } | null;
 }
 
