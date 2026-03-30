@@ -17,6 +17,7 @@ import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 import LiveActivityFeed from "@/components/LiveActivityFeed";
 import TrustIndicators from "@/components/TrustIndicators";
+import TransparencySection from "@/components/TransparencySection";
 
 const Index = () => {
   return (
@@ -49,6 +50,7 @@ const Index = () => {
       <InvestorsLeaderboard />
       <SecuritySection />
       <PlatformFeaturesSection />
+      <TransparencySection />
       <TestimonialsSection />
       <ExtendedTestimonials />
       <CTASection />
