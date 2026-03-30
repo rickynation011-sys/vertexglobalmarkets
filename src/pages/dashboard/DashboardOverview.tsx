@@ -253,7 +253,8 @@ const DashboardOverview = () => {
 
   const totalDeposited = (transactions ?? []).filter(t => t.type === "deposit" && isSuccessful(t.status)).reduce((s, t) => s + Number(t.amount), 0);
   const totalWithdrawn = (transactions ?? []).filter(t => t.type === "withdrawal" && isSuccessful(t.status)).reduce((s, t) => s + Number(t.amount), 0);
-  const availableBalance = walletBalance - totalInvested;
+  // wallet_balance is already net of invested amounts (deducted at investment time)
+  const availableBalance = walletBalance;
 
   const portfolioData = (() => {
     const allTxns = [...(transactions ?? [])].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());

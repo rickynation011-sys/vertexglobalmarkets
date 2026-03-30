@@ -127,7 +127,26 @@ Deno.serve(async (req) => {
       if (new Date(inv.ends_at) < nowUtc) {
         await supabase.from("investments").update({ status: "completed" }).eq("id", inv.id);
 
+        // Credit initial capital back to wallet balance on maturity
         const profile = profileMap.get(inv.user_id);
+        const capitalReturn = Number(inv.amount);
+        if (profile && capitalReturn > 0) {
+          const newBal = Number(profile.wallet_balance) + capitalReturn;
+          await supabase.from("profiles").update({ wallet_balance: newBal }).eq("user_id", inv.user_id);
+          profile.wallet_balance = newBal;
+
+          // Log the capital return as a transaction
+          await supabase.from("transactions").insert({
+            user_id: inv.user_id,
+            type: "deposit",
+            amount: capitalReturn,
+            method: "investment_return",
+            status: "completed",
+            currency: "USD",
+            admin_notes: `Capital returned from matured ${inv.plan_name} plan`,
+          });
+        }
+
         if (profile?.email) {
           const profit = (Number(inv.current_value) - Number(inv.amount)).toFixed(2);
           await supabase.functions.invoke("send-transactional-email", {
