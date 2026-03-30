@@ -106,16 +106,12 @@ export const NotificationBell = () => {
   const deleteNotificationMutation = useMutation({
     mutationFn: async (notificationId: string) => {
       if (!user) return;
-      await supabase.from("user_notifications").upsert(
-        {
-          user_id: user.id,
-          notification_id: notificationId,
-          is_read: true,
-          read_at: new Date().toISOString(),
-          is_dismissed: true,
-        } as any,
-        { onConflict: "user_id,notification_id" }
-      );
+      // Delete the user_notification record to dismiss it
+      await supabase
+        .from("user_notifications")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("notification_id", notificationId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-notifications"] });

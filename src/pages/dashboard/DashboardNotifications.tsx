@@ -164,12 +164,11 @@ const DashboardNotifications = () => {
               variant="destructive"
               onClick={async () => {
                 if (!user) return;
-                for (const n of notifications) {
-                  await supabase.from("user_notifications").upsert(
-                    { user_id: user.id, notification_id: n.id, is_read: true, read_at: new Date().toISOString(), is_dismissed: true } as any,
-                    { onConflict: "user_id,notification_id" }
-                  );
-                }
+                // Delete all user_notification records to clear notifications
+                await supabase
+                  .from("user_notifications")
+                  .delete()
+                  .eq("user_id", user.id);
                 queryClient.invalidateQueries({ queryKey: ["all-notifications"] });
                 queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
               }}
