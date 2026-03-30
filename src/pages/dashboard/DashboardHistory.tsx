@@ -12,9 +12,11 @@ import { useState, useMemo } from "react";
 const statusColor: Record<string, string> = {
   closed: "bg-muted text-muted-foreground",
   completed: "bg-success/10 text-success",
+  approved: "bg-success/10 text-success",
   active: "bg-primary/10 text-primary",
   open: "bg-primary/10 text-primary",
   pending: "bg-warning/10 text-warning",
+  rejected: "bg-destructive/10 text-destructive",
   cancelled: "bg-destructive/10 text-destructive",
 };
 
