@@ -336,8 +336,8 @@ const DashboardOverview = () => {
           </CardContent>
         </Card>
       </div>
+      <p className="text-[10px] text-muted-foreground/50 text-center">Performance may vary over time based on market conditions.</p>
 
-      {/* Quick Actions */}
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
         {[
           { label: "Invest", icon: Briefcase, to: "/dashboard/investments", color: "bg-primary/10 text-primary" },

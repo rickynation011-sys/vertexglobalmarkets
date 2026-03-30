@@ -67,18 +67,25 @@ export function useProfitSimulation(
     const u1 = Math.random();
     const u2 = Math.random();
     const z = Math.sqrt(-2 * Math.log(Math.max(u1, 0.001))) * Math.cos(2 * Math.PI * u2);
-    const fluctuation = Math.exp(z * 0.3); // centered around 1, spread ~0.3
+    const fluctuation = Math.exp(z * 0.3);
     const clampedFluctuation = Math.max(0.3, Math.min(2.5, fluctuation));
-    const increment = Math.max(0.01, baseIncrement * clampedFluctuation);
-    const roundedIncrement = Math.round(increment * 100) / 100;
+
+    // ~15% chance of a small dip for natural market feel
+    const isDip = Math.random() < 0.15;
+    const direction = isDip ? -1 : 1;
+    const dipScale = isDip ? (0.1 + Math.random() * 0.3) : 1; // dips are smaller than gains
+    const rawIncrement = baseIncrement * clampedFluctuation * direction * dipScale;
+    const roundedIncrement = Math.round(rawIncrement * 100) / 100;
+    // Ensure we never go below a tiny absolute value to keep things moving
+    const finalIncrement = roundedIncrement === 0 ? (isDip ? -0.01 : 0.01) : roundedIncrement;
 
     setBonusMap((prev) => ({
       ...prev,
-      [inv.id]: (prev[inv.id] || 0) + roundedIncrement,
+      [inv.id]: Math.max(0, (prev[inv.id] || 0) + finalIncrement),
     }));
 
     setWalletBonus((prev) => {
-      const newBonus = prev + roundedIncrement;
+      const newBonus = Math.max(0, prev + finalIncrement);
       for (const m of MILESTONES) {
         if (newBonus >= m && !passedMilestones.current.has(m)) {
           passedMilestones.current.add(m);
@@ -88,31 +95,38 @@ export function useProfitSimulation(
       return newBonus;
     });
 
-    setLastFlash({ type: "profit", amount: roundedIncrement, ts: Date.now() });
+    setLastFlash({ type: finalIncrement >= 0 ? "profit" : "balance", amount: finalIncrement, ts: Date.now() });
 
     setBalanceHistory((prev) => {
-      const newVal = walletBalance + walletBonus + roundedIncrement;
+      const newVal = walletBalance + walletBonus + finalIncrement;
       return [...prev.slice(-29), newVal];
     });
 
     // Vary the chance of logging an activity entry (30-50%)
     if (Math.random() < 0.3 + Math.random() * 0.2) {
-      const labels = [
-        `Daily Profit — ${inv.plan_name}`,
-        `Trade Profit — ${inv.plan_name}`,
-        `Yield — ${inv.plan_name}`,
-        `Auto-Trade Gain`,
-        `ROI Credit`,
-        `Compound Return`,
-        `Market Gain — ${inv.plan_name}`,
-      ];
+      const labels = isDip
+        ? [
+            `Market Adjustment — ${inv.plan_name}`,
+            `Rebalancing — ${inv.plan_name}`,
+            `Spread Cost — ${inv.plan_name}`,
+            `Minor Correction`,
+          ]
+        : [
+            `Daily Profit — ${inv.plan_name}`,
+            `Trade Profit — ${inv.plan_name}`,
+            `Yield — ${inv.plan_name}`,
+            `Auto-Trade Gain`,
+            `ROI Credit`,
+            `Compound Return`,
+            `Market Gain — ${inv.plan_name}`,
+          ];
       const label = labels[Math.floor(Math.random() * labels.length)];
 
       setRecentProfits((prev) => [
         {
           id: `sim-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           label,
-          amount: roundedIncrement,
+          amount: finalIncrement,
           timestamp: Date.now(),
         },
         ...prev.slice(0, 19),
