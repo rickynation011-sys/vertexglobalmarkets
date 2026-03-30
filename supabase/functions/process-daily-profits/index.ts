@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
       profileMap.set(p.user_id, p);
     }
 
-    // Determine which users are eligible (it's 1:00 AM in their timezone, not yet processed today)
+    // Determine which users are eligible
     const eligibleUserIds: string[] = [];
 
     for (const userId of uniqueUserIds) {
@@ -67,32 +67,30 @@ Deno.serve(async (req) => {
       if (!profile) continue;
 
       const tz = profile.timezone || "UTC";
-      let localHour: number;
       let localDateStr: string;
 
       try {
-        const formatter = new Intl.DateTimeFormat("en-US", {
-          timeZone: tz,
-          hour: "numeric",
-          hour12: false,
-        });
-        localHour = parseInt(formatter.format(nowUtc), 10);
-
         const dateFormatter = new Intl.DateTimeFormat("en-CA", {
-          timeZone: tz,
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
+          timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit",
         });
-        localDateStr = dateFormatter.format(nowUtc); // YYYY-MM-DD
+        localDateStr = dateFormatter.format(nowUtc);
       } catch {
-        // Invalid timezone, fall back to UTC
-        localHour = nowUtc.getUTCHours();
         localDateStr = nowUtc.toISOString().slice(0, 10);
       }
 
-      // Check: is it the 1 AM hour? (covers 1:00-1:09 since cron runs every 10 min)
-      if (localHour !== 1) continue;
+      // For manual admin trigger: skip timezone hour check, only check if already processed today
+      if (!isManual) {
+        let localHour: number;
+        try {
+          const formatter = new Intl.DateTimeFormat("en-US", {
+            timeZone: tz, hour: "numeric", hour12: false,
+          });
+          localHour = parseInt(formatter.format(nowUtc), 10);
+        } catch {
+          localHour = nowUtc.getUTCHours();
+        }
+        if (localHour !== 1) continue;
+      }
 
       // Check: not already processed today
       if (profile.last_profit_processed_date === localDateStr) continue;
