@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, Download } from "lucide-react";
+import { Search, Download, ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -20,10 +20,13 @@ const statusColor: Record<string, string> = {
   cancelled: "bg-destructive/10 text-destructive",
 };
 
+const PAGE_SIZE = 20;
+
 const DashboardHistory = () => {
   const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const { data: transactions } = useQuery({
     queryKey: ["transactions", user?.id],
@@ -52,7 +55,15 @@ const DashboardHistory = () => {
     enabled: !!user,
   });
 
-  // Merge all into unified history
+  const { data: profitLogs } = useQuery({
+    queryKey: ["profit_logs_history", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profit_logs").select("*").eq("user_id", user!.id).order("created_at", { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
   const history = useMemo(() => {
     const items: Array<{ id: string; type: string; asset: string; side: string; amount: string; pnl: string; status: string; date: string }> = [];
 
@@ -95,15 +106,31 @@ const DashboardHistory = () => {
       });
     });
 
+    (profitLogs ?? []).forEach(p => {
+      items.push({
+        id: p.id.slice(0, 8).toUpperCase(),
+        type: "Profit",
+        asset: "Investment",
+        side: "—",
+        amount: `+$${Number(p.amount).toLocaleString()}`,
+        pnl: `+$${Number(p.amount).toLocaleString()}`,
+        status: "completed",
+        date: new Date(p.created_at).toLocaleString(),
+      });
+    });
+
     items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     return items;
-  }, [transactions, trades, investments]);
+  }, [transactions, trades, investments, profitLogs]);
 
   const filtered = history.filter(h => {
     if (typeFilter !== "all" && h.type.toLowerCase() !== typeFilter) return false;
     if (search && !h.asset.toLowerCase().includes(search.toLowerCase()) && !h.id.toLowerCase().includes(search.toLowerCase()) && !h.type.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
+
+  const visible = filtered.slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
 
   const handleExport = () => {
     const csv = ["ID,Type,Asset,Side,Amount,P&L,Status,Date", ...filtered.map(h => `${h.id},${h.type},${h.asset},${h.side},${h.amount},${h.pnl},${h.status},${h.date}`)].join("\n");
@@ -131,9 +158,9 @@ const DashboardHistory = () => {
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search transactions..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder="Search transactions..." className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setVisibleCount(PAGE_SIZE); }} />
         </div>
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
+        <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setVisibleCount(PAGE_SIZE); }}>
           <SelectTrigger className="w-full sm:w-[160px]"><SelectValue placeholder="All types" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
@@ -141,6 +168,7 @@ const DashboardHistory = () => {
             <SelectItem value="deposit">Deposits</SelectItem>
             <SelectItem value="withdrawal">Withdrawals</SelectItem>
             <SelectItem value="investment">Investments</SelectItem>
+            <SelectItem value="profit">Profits</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -150,9 +178,9 @@ const DashboardHistory = () => {
           {filtered.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">No transactions found.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
               <table className="w-full text-sm">
-                <thead>
+                <thead className="sticky top-0 bg-card z-10">
                   <tr className="border-b border-border">
                     <th className="text-left p-4 text-muted-foreground font-medium">ID</th>
                     <th className="text-left p-4 text-muted-foreground font-medium">Type</th>
@@ -165,7 +193,7 @@ const DashboardHistory = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((tx, i) => (
+                  {visible.map((tx, i) => (
                     <tr key={`${tx.id}-${i}`} className="border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors">
                       <td className="p-4 font-mono text-xs text-muted-foreground">{tx.id}</td>
                       <td className="p-4 text-foreground">{tx.type}</td>
@@ -179,6 +207,13 @@ const DashboardHistory = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+          {hasMore && (
+            <div className="flex justify-center py-4 border-t border-border">
+              <Button variant="ghost" size="sm" className="gap-2" onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}>
+                <ChevronDown className="h-4 w-4" /> Load More ({filtered.length - visibleCount} remaining)
+              </Button>
             </div>
           )}
         </CardContent>
