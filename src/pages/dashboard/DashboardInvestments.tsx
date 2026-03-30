@@ -10,13 +10,15 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const plans = [
+const defaultPlans = [
   { name: "Starter Plan", icon: Shield, returns: "1-2%", annualRate: 1.5, risk: "Low", min: 200, max: 50000, duration: 30, description: "Simple entry-level plan with estimated daily returns based on market conditions.", features: ["Daily interest accrual", "Withdraw after maturity", "Email reports"], popular: false },
   { name: "Growth Plan", icon: Target, returns: "1.5-2.5%", annualRate: 2, risk: "Medium", min: 500, max: 100000, duration: 60, description: "Balanced plan with AI-assisted rebalancing for steady growth.", features: ["AI-assisted rebalancing", "Weekly performance reports", "Priority withdrawals"], popular: true },
   { name: "Advanced Plan", icon: Zap, returns: "2-3%", annualRate: 2.5, risk: "High", min: 1000, max: 200000, duration: 90, description: "Advanced strategies for experienced investors seeking higher potential returns.", features: ["Advanced trading strategies", "Daily analytics", "VIP support"], popular: false },
   { name: "Real Estate Income", icon: Building2, returns: "6-10%", annualRate: 8, risk: "Medium", min: 2500, max: 150000, duration: 90, description: "Earn passive income through diversified global real estate investments and REITs.", features: ["REIT portfolio", "Monthly dividends", "Property diversification"], popular: false },
   { name: "VIP Elite", icon: Crown, returns: "10-15%", annualRate: 12.5, risk: "Variable", min: 25000, max: 1000000, duration: 30, description: "Exclusive strategies with dedicated account management and priority execution.", features: ["Personal manager", "Priority execution", "Custom strategies"], popular: false },
 ];
+
+const iconMap: Record<string, any> = { Shield, Target, Zap, Building2, Crown, Star, TrendingUp };
 
 const DashboardInvestments = () => {
   const { user } = useAuth();
