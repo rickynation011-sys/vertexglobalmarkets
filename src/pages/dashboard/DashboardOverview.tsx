@@ -370,8 +370,8 @@ const DashboardOverview = () => {
               <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Investment Profit</span>
               <TrendingUp className="h-4 w-4 text-success" />
             </div>
-            <div className={`text-lg font-display font-bold ${investmentProfit >= 0 ? "text-success" : "text-destructive"}`}>
-              {investmentProfit >= 0 ? "+" : ""}{fmt(investmentProfit)}
+            <div className={`text-lg font-display font-bold ${displayInvestmentProfit >= 0 ? "text-success" : "text-destructive"}`}>
+              <AnimatedBalance value={displayInvestmentProfit} format={(n) => `${n >= 0 ? "+" : ""}${fmt(n)}`} flash={lastFlash && lastFlash.type === "profit" ? { amount: lastFlash.amount, ts: lastFlash.ts } : null} />
             </div>
             <p className="text-[10px] text-muted-foreground">{activeInvestments.length} active plans</p>
           </CardContent>
