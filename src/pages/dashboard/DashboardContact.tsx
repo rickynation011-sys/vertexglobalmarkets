@@ -165,11 +165,15 @@ const DashboardContact = () => {
       {/* Contact Info */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { icon: Mail, label: "Email Support", value: "support@vertexglobal.com", sub: "Response within 2 hours" },
-          { icon: Phone, label: "Phone Support", value: "+1 (800) 555-VRTX", sub: "Mon-Fri, 9AM-6PM EST" },
-          { icon: Clock, label: "Live Chat", value: "Available 24/7", sub: "Average wait: 2 min" },
+          { icon: Mail, label: "Email Support", value: "support@vertexglobal.com", sub: "Response within 2 hours", action: null },
+          { icon: Phone, label: "Phone Support", value: "+1 (800) 555-VRTX", sub: "Mon-Fri, 9AM-6PM EST", action: null },
+          { icon: Clock, label: "Live Chat", value: "Available 24/7", sub: "Click to start a conversation", action: () => setShowForm(true) },
         ].map((item) => (
-          <Card key={item.label} className="bg-card border-border">
+          <Card
+            key={item.label}
+            className={`bg-card border-border ${item.action ? "cursor-pointer hover:border-primary/50 transition-colors" : ""}`}
+            onClick={item.action ?? undefined}
+          >
             <CardContent className="p-4 flex items-start gap-3">
               <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                 <item.icon className="h-5 w-5 text-primary" />
