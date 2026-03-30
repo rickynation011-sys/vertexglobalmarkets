@@ -81,11 +81,11 @@ export function useProfitSimulation(
 
     setBonusMap((prev) => ({
       ...prev,
-      [inv.id]: (prev[inv.id] || 0) + roundedIncrement,
+      [inv.id]: Math.max(0, (prev[inv.id] || 0) + finalIncrement),
     }));
 
     setWalletBonus((prev) => {
-      const newBonus = prev + roundedIncrement;
+      const newBonus = Math.max(0, prev + finalIncrement);
       for (const m of MILESTONES) {
         if (newBonus >= m && !passedMilestones.current.has(m)) {
           passedMilestones.current.add(m);
@@ -95,10 +95,10 @@ export function useProfitSimulation(
       return newBonus;
     });
 
-    setLastFlash({ type: "profit", amount: roundedIncrement, ts: Date.now() });
+    setLastFlash({ type: finalIncrement >= 0 ? "profit" : "balance", amount: finalIncrement, ts: Date.now() });
 
     setBalanceHistory((prev) => {
-      const newVal = walletBalance + walletBonus + roundedIncrement;
+      const newVal = walletBalance + walletBonus + finalIncrement;
       return [...prev.slice(-29), newVal];
     });
 
