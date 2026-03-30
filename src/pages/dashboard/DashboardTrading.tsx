@@ -229,9 +229,8 @@ const DashboardTrading = () => {
     return generateCandles(livePrice, count, vol);
   }, [selectedPair, timeframe, livePrice]);
 
-  // Estimated profit
+  // Note: actual P&L depends on market conditions
   const parsedAmount = parseFloat(amount) || 0;
-  const estimatedProfit = parsedAmount * 0.025; // ~2.5% estimated
 
   // Queries
   const { data: openTrades } = useQuery({
