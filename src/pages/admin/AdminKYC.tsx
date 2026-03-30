@@ -22,6 +22,7 @@ const statusColors: Record<string, string> = {
 
 const AdminKYC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [kycList, setKycList] = useState<KYC[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [filter, setFilter] = useState("all");
@@ -183,6 +184,7 @@ const AdminKYC = () => {
                         <td className="p-4"><Badge className={`text-xs ${statusColors[kyc.status]}`}>{kyc.status}</Badge></td>
                         <td className="p-4 text-right">
                           <div className="flex items-center justify-end gap-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={(e) => { e.stopPropagation(); navigate(`/admin/kyc/view/${kyc.id}`); }}><Eye className="h-4 w-4" /></Button>
                             {kyc.status === "pending" && (
                               <>
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-success" onClick={(e) => { e.stopPropagation(); handleAction(kyc.id, "approved"); }}><CheckCircle className="h-4 w-4" /></Button>
