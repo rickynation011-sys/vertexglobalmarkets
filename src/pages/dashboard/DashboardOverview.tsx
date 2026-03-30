@@ -236,6 +236,21 @@ const DashboardOverview = () => {
   const activeSignals = (signalSubs ?? []).filter(s => new Date(s.expires_at) > new Date()).length;
   const activeCopyTrades = (copyTrades ?? []).length;
 
+  // Live profit simulation - profits tick up in real-time between admin processing runs
+  const {
+    simulatedBalance,
+    getSimulatedCurrentValue,
+    totalSimulatedProfit,
+    walletBonus,
+    lastFlash,
+    balanceHistory: simBalanceHistory,
+  } = useProfitSimulation(investments ?? [], walletBalance);
+
+  // Display values include live simulation
+  const displayBalance = simulatedBalance;
+  const displayInvestmentProfit = investmentProfit + totalSimulatedProfit;
+  const displayTotalProfit = totalProfit + totalSimulatedProfit;
+
   // Win rate from real closed trades
   const closedTrades = (allTrades ?? []).filter(t => t.status === "closed");
   const winCount = closedTrades.filter(t => Number(t.pnl ?? 0) > 0).length;
@@ -244,8 +259,8 @@ const DashboardOverview = () => {
   const { format } = useCurrency();
   const fmt = (n: number) => format(n);
 
-  // Build real balance history from transactions + profit logs for sparkline
-  const balanceHistory = (() => {
+  // Use simulation balance history for sparkline if available, fall back to DB history
+  const balanceHistory = simBalanceHistory.length > 1 ? simBalanceHistory : (() => {
     const events: { date: number; delta: number }[] = [];
     (transactions ?? []).forEach(t => {
       if (t.type === "deposit" && (t.status === "completed" || t.status === "approved"))
@@ -260,7 +275,6 @@ const DashboardOverview = () => {
     if (events.length === 0) return [walletBalance];
     let running = 0;
     const points = events.map(e => { running += e.delta; return running; });
-    // Ensure last point matches current wallet balance
     points.push(walletBalance);
     return points.slice(-30);
   })();
