@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
-  ArrowUp, ArrowDown, DollarSign, TrendingUp, Briefcase, Activity,
-  Timer, Zap, Globe, BarChart3, Layers, Gem, Building2, Rocket,
+  ArrowUp, ArrowDown, DollarSign, TrendingUp, Briefcase,
+  Timer, Globe, BarChart3, Layers, Gem, Building2, Rocket,
   Bot, CircleDollarSign, Palette, Landmark, Coins, ChevronRight,
-  Wallet, Signal, Users, ArrowUpRight, ArrowDownLeft,
+  Wallet, Signal, Users, ArrowUpRight, ArrowDownLeft, ShieldCheck,
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,18 +26,18 @@ import { useMarketPrices } from "@/hooks/useMarketPrices";
 
 // ─── Investment Categories ───
 const investmentCategories = [
-  { name: "Cryptocurrency", description: "BTC, ETH, SOL & 200+ coins", icon: Coins, color: "from-orange-500 to-amber-500", roi: "8-15%", durations: ["1h", "24h", "3d", "7d", "30d"] },
-  { name: "Forex Trading", description: "Major & minor currency pairs", icon: Globe, color: "from-blue-500 to-cyan-500", roi: "5-10%", durations: ["1h", "24h", "3d", "7d"] },
-  { name: "Stocks", description: "Global company equities", icon: BarChart3, color: "from-green-500 to-emerald-500", roi: "6-12%", durations: ["24h", "3d", "7d", "30d"] },
-  { name: "Options Trading", description: "Calls, puts & strategies", icon: Layers, color: "from-purple-500 to-violet-500", roi: "10-20%", durations: ["1h", "24h", "3d"] },
-  { name: "ETFs", description: "Diversified index funds", icon: Briefcase, color: "from-teal-500 to-cyan-500", roi: "4-8%", durations: ["7d", "30d"] },
-  { name: "Commodities", description: "Gold, silver, oil & more", icon: Gem, color: "from-yellow-500 to-orange-500", roi: "5-9%", durations: ["24h", "3d", "7d", "30d"] },
-  { name: "DeFi Investments", description: "Yield farming & staking", icon: CircleDollarSign, color: "from-indigo-500 to-purple-500", roi: "12-25%", durations: ["3d", "7d", "30d"] },
-  { name: "NFT Assets", description: "Digital art & collectibles", icon: Palette, color: "from-pink-500 to-rose-500", roi: "15-30%", durations: ["7d", "30d"] },
-  { name: "Real Estate", description: "Tokenized property investments", icon: Building2, color: "from-emerald-500 to-green-500", roi: "6-10%", durations: ["30d"] },
-  { name: "Startup Equity", description: "Early-stage venture investments", icon: Rocket, color: "from-sky-500 to-blue-500", roi: "20-50%", durations: ["30d"] },
-  { name: "AI Trading Bots", description: "Automated algorithmic strategies", icon: Bot, color: "from-violet-500 to-fuchsia-500", roi: "8-18%", durations: ["1h", "24h", "3d", "7d"] },
-  { name: "Precious Metals", description: "Physical & digital gold, silver, platinum", icon: Landmark, color: "from-amber-500 to-yellow-500", roi: "4-7%", durations: ["7d", "30d"] },
+  { name: "Cryptocurrency", description: "BTC, ETH, SOL & 200+ coins", icon: Coins, color: "from-orange-500 to-amber-500", durations: ["1h", "24h", "3d", "7d", "30d"] },
+  { name: "Forex Trading", description: "Major & minor currency pairs", icon: Globe, color: "from-blue-500 to-cyan-500", durations: ["1h", "24h", "3d", "7d"] },
+  { name: "Stocks", description: "Global company equities", icon: BarChart3, color: "from-green-500 to-emerald-500", durations: ["24h", "3d", "7d", "30d"] },
+  { name: "Options Trading", description: "Calls, puts & strategies", icon: Layers, color: "from-purple-500 to-violet-500", durations: ["1h", "24h", "3d"] },
+  { name: "ETFs", description: "Diversified index funds", icon: Briefcase, color: "from-teal-500 to-cyan-500", durations: ["7d", "30d"] },
+  { name: "Commodities", description: "Gold, silver, oil & more", icon: Gem, color: "from-yellow-500 to-orange-500", durations: ["24h", "3d", "7d", "30d"] },
+  { name: "DeFi", description: "Yield farming & staking", icon: CircleDollarSign, color: "from-indigo-500 to-purple-500", durations: ["3d", "7d", "30d"] },
+  { name: "NFT Assets", description: "Digital art & collectibles", icon: Palette, color: "from-pink-500 to-rose-500", durations: ["7d", "30d"] },
+  { name: "Real Estate", description: "Tokenized property investments", icon: Building2, color: "from-emerald-500 to-green-500", durations: ["30d"] },
+  { name: "Startup Equity", description: "Early-stage venture investments", icon: Rocket, color: "from-sky-500 to-blue-500", durations: ["30d"] },
+  { name: "Algo Strategies", description: "Automated algorithmic trading", icon: Bot, color: "from-violet-500 to-fuchsia-500", durations: ["1h", "24h", "3d", "7d"] },
+  { name: "Precious Metals", description: "Physical & digital gold, silver, platinum", icon: Landmark, color: "from-amber-500 to-yellow-500", durations: ["7d", "30d"] },
 ];
 
 const durationToMs: Record<string, number> = { "1h": 3600000, "24h": 86400000, "3d": 259200000, "7d": 604800000, "30d": 2592000000 };
@@ -81,7 +81,7 @@ function ActiveInvestmentRow({ inv, getSimulatedValue }: { inv: any; getSimulate
           <p className="text-xs text-muted-foreground">Invested: {fmt(Number(inv.amount))}</p>
         </div>
         <div className="text-right">
-          <p className="text-sm font-semibold text-success">+{fmt(profit)}</p>
+          <p className={`text-sm font-semibold ${profit >= 0 ? "text-success" : "text-destructive"}`}>{profit >= 0 ? "+" : ""}{fmt(profit)}</p>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Timer className="h-3 w-3" />
             {timeLeft}
@@ -161,6 +161,15 @@ const DashboardOverview = () => {
     enabled: !!user,
   });
 
+  const { data: kycStatus } = useQuery({
+    queryKey: ["kyc_status", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("kyc_verifications").select("status").eq("user_id", user!.id).order("submitted_at", { ascending: false }).limit(1).maybeSingle();
+      return data?.status || null;
+    },
+    enabled: !!user,
+  });
+
   const investMutation = useMutation({
     mutationFn: async () => {
       if (!investDialog || !selectedDuration || !investAmount) throw new Error("Fill all fields");
@@ -201,7 +210,6 @@ const DashboardOverview = () => {
   const { format } = useCurrency();
   const fmt = (n: number) => format(n);
 
-  // Profit simulation
   const {
     simulatedBalance,
     getSimulatedCurrentValue,
@@ -212,6 +220,7 @@ const DashboardOverview = () => {
     balanceHistory,
     milestone,
   } = useProfitSimulation(investments as any, walletBalance);
+
   const portfolioData = (() => {
     const allTxns = [...(transactions ?? [])].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     if (allTxns.length === 0) return [{ date: "Now", value: walletBalance }];
@@ -223,22 +232,30 @@ const DashboardOverview = () => {
     });
   })();
 
-  const firstName = profile?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "Investor";
-
+  const firstName = profile?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "User";
   const recentTx = (transactions ?? []).slice(0, 5);
+
+  // Equity = wallet + invested current values
+  const equity = simulatedBalance + totalCurrentValue + (totalSimulatedProfit > 0 ? totalSimulatedProfit : 0);
+  const margin = totalInvested;
+  const freeMargin = Math.max(0, equity - margin);
+
+  const kycLabel = kycStatus === "approved" ? "Verified" : kycStatus === "pending" ? "Pending" : "Not Verified";
+  const kycColor = kycStatus === "approved" ? "border-success/30 text-success" : kycStatus === "pending" ? "border-warning/30 text-warning" : "border-muted-foreground/30 text-muted-foreground";
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Welcome back, {firstName} 👋</h1>
+          <h1 className="text-2xl font-display font-bold text-foreground">Welcome back, {firstName}</h1>
           <p className="text-muted-foreground text-sm">Monitor your account and stay updated on your activity.</p>
-          <p className="text-muted-foreground text-xs flex items-center gap-1 mt-0.5">
-            <Timer className="h-3 w-3" /> Daily profit is processed at 1:00 AM ({(profile as any)?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone})
-          </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className={`text-[10px] ${kycColor}`}>
+            <ShieldCheck className="h-3 w-3 mr-1" />
+            KYC: {kycLabel}
+          </Badge>
           <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/wallet")}>
             <ArrowDownLeft className="h-4 w-4 mr-1" /> Deposit
           </Button>
@@ -248,18 +265,15 @@ const DashboardOverview = () => {
         </div>
       </div>
 
-      {/* Milestone Confetti */}
       <MilestoneConfetti milestone={milestone} format={fmt} />
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+      {/* Account Summary - Broker Style */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/wallet")}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Balance</span>
-              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary">
-                <DollarSign className="h-4 w-4" />
-              </div>
+              <DollarSign className="h-4 w-4 text-primary" />
             </div>
             <div className="flex items-center justify-between gap-2">
               <div className="text-lg font-display font-bold text-foreground">
@@ -268,76 +282,57 @@ const DashboardOverview = () => {
               <BalanceSparkline data={balanceHistory} />
             </div>
           </CardContent>
-          <p className="px-4 pb-3 text-[10px] text-muted-foreground/60 leading-tight">Performance updates are based on market conditions and may vary.</p>
+        </Card>
+        <Card className="bg-card border-border">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Equity</span>
+              <BarChart3 className="h-4 w-4 text-primary" />
+            </div>
+            <div className="text-lg font-display font-bold text-foreground">{fmt(equity)}</div>
+            <p className="text-[10px] text-muted-foreground">Balance + positions</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-card border-border">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Margin</span>
+              <Briefcase className="h-4 w-4 text-accent-foreground" />
+            </div>
+            <div className="text-lg font-display font-bold text-foreground">{fmt(margin)}</div>
+            <p className="text-[10px] text-muted-foreground">In active positions</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-card border-border">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Free Margin</span>
+              <Wallet className="h-4 w-4 text-success" />
+            </div>
+            <div className="text-lg font-display font-bold text-foreground">{fmt(freeMargin)}</div>
+            <p className="text-[10px] text-muted-foreground">Available to trade</p>
+          </CardContent>
         </Card>
         <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/portfolio")}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Total Profit</span>
-              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-success/10 text-success">
-                <TrendingUp className="h-4 w-4" />
-              </div>
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">P&L</span>
+              <TrendingUp className="h-4 w-4 text-success" />
             </div>
-            <div className="text-lg font-display font-bold text-foreground">
-              <AnimatedBalance value={totalProfit + totalSimulatedProfit} format={fmt} />
+            <div className={`text-lg font-display font-bold ${(totalProfit + totalSimulatedProfit) >= 0 ? "text-success" : "text-destructive"}`}>
+              {(totalProfit + totalSimulatedProfit) >= 0 ? "+" : ""}{fmt(totalProfit + totalSimulatedProfit)}
             </div>
-            <div className={`flex items-center gap-1 text-xs mt-0.5 ${(totalProfit + totalSimulatedProfit) >= 0 ? "text-success" : "text-destructive"}`}>
-              {(totalProfit + totalSimulatedProfit) >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
-              {(totalProfit + totalSimulatedProfit) >= 0 ? "Profit" : "Loss"}
+            <div className={`flex items-center gap-1 text-[10px] ${(totalProfit + totalSimulatedProfit) >= 0 ? "text-success" : "text-destructive"}`}>
+              {(totalProfit + totalSimulatedProfit) >= 0 ? <ArrowUp className="h-2.5 w-2.5" /> : <ArrowDown className="h-2.5 w-2.5" />}
+              Unrealized P&L
             </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/investments")}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Investments</span>
-              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-accent/10 text-accent-foreground">
-                <Briefcase className="h-4 w-4" />
-              </div>
-            </div>
-            <div className="text-lg font-display font-bold text-foreground">{activeInvestments.length}</div>
-            <p className="text-xs text-muted-foreground">{fmt(totalInvested)} invested</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/copy-trading")}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Copy Trades</span>
-              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-secondary/50 text-secondary-foreground">
-                <Users className="h-4 w-4" />
-              </div>
-            </div>
-            <div className="text-lg font-display font-bold text-foreground">{activeCopyTrades}</div>
-            <p className="text-xs text-muted-foreground">active allocations</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/signals")}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Signals</span>
-              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary">
-                <Signal className="h-4 w-4" />
-              </div>
-            </div>
-            <div className="text-lg font-display font-bold text-foreground">{activeSignals}</div>
-            <p className="text-xs text-muted-foreground">active subscriptions</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/history")}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Win Rate</span>
-              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-success/10 text-success">
-                <Activity className="h-4 w-4" />
-              </div>
-            </div>
-            <div className="text-lg font-display font-bold text-foreground">{activeInvestments.length > 0 ? "100" : "0"}%</div>
-            <p className="text-xs text-muted-foreground">{(investments ?? []).length} total</p>
           </CardContent>
         </Card>
       </div>
-      <p className="text-[10px] text-muted-foreground/50 text-center">Performance may vary over time based on market conditions.</p>
 
+      <p className="text-[10px] text-muted-foreground/50 text-center">Performance updates are based on market conditions and may vary. Past results do not guarantee future outcomes.</p>
+
+      {/* Quick Actions */}
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
         {[
           { label: "Invest", icon: Briefcase, to: "/dashboard/investments", color: "bg-primary/10 text-primary" },
@@ -361,13 +356,13 @@ const DashboardOverview = () => {
         ))}
       </div>
 
-      {/* Live Crypto Prices */}
+      {/* Market Watch */}
       {cryptoAssets.length > 0 && (
         <Card className="bg-card border-border">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Coins className="h-4 w-4 text-primary" /> Live Market Prices
+                <Coins className="h-4 w-4 text-primary" /> Market Watch
               </CardTitle>
               <Badge variant="outline" className="text-[10px] text-success border-success/30">● LIVE</Badge>
             </div>
@@ -397,13 +392,13 @@ const DashboardOverview = () => {
         </Card>
       )}
 
-      {/* Active Investments with Timers */}
+      {/* Open Positions / Active Investments */}
       {activeInvestments.length > 0 && (
         <Card className="bg-card border-border">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Timer className="h-4 w-4 text-primary" /> Active Investments
+                <Timer className="h-4 w-4 text-primary" /> Open Positions
               </CardTitle>
               <Badge variant="outline" className="text-xs">{activeInvestments.length} active</Badge>
             </div>
@@ -414,14 +409,14 @@ const DashboardOverview = () => {
             ))}
             {activeInvestments.length > 5 && (
               <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground" onClick={() => navigate("/dashboard/investments")}>
-                View all {activeInvestments.length} investments <ChevronRight className="h-3 w-3 ml-1" />
+                View all {activeInvestments.length} positions <ChevronRight className="h-3 w-3 ml-1" />
               </Button>
             )}
           </CardContent>
         </Card>
       )}
 
-      {/* Chart + Recent Activity side-by-side */}
+      {/* Chart + Recent Transactions */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <Card className="bg-card border-border lg:col-span-3">
           <CardHeader className="pb-2">
@@ -445,43 +440,21 @@ const DashboardOverview = () => {
           </CardContent>
         </Card>
 
-        {/* Recent Activity */}
+        {/* Recent Transactions */}
         <Card className="bg-card border-border lg:col-span-2">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
+              <CardTitle className="text-sm font-medium">Recent Transactions</CardTitle>
               <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => navigate("/dashboard/history")}>
                 View All <ChevronRight className="h-3 w-3 ml-1" />
               </Button>
             </div>
           </CardHeader>
           <CardContent>
-            {recentTx.length === 0 && recentProfits.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">No recent activity</p>
+            {recentTx.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No recent transactions</p>
             ) : (
               <div className="space-y-0">
-                {/* Simulated profit entries first */}
-                {recentProfits.slice(0, 3).map(sp => {
-                  const secsAgo = Math.floor((Date.now() - sp.timestamp) / 1000);
-                  const timeLabel = secsAgo < 5 ? "just now" : secsAgo < 60 ? `${secsAgo}s ago` : `${Math.floor(secsAgo / 60)}m ago`;
-                  return (
-                    <div key={sp.id} className="flex items-center justify-between py-2.5 border-b border-border/50 last:border-0">
-                      <div className="flex items-center gap-2">
-                        <div className="h-7 w-7 rounded-full flex items-center justify-center bg-success/10">
-                          <TrendingUp className="h-3.5 w-3.5 text-success" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium text-foreground">{sp.label}</p>
-                          <p className="text-[10px] text-muted-foreground">{timeLabel}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs font-semibold text-success">+{fmt(sp.amount)}</p>
-                        <Badge variant="outline" className="text-[9px] px-1 py-0 border-success/30 text-success">completed</Badge>
-                      </div>
-                    </div>
-                  );
-                })}
                 {recentTx.map(tx => (
                   <div key={tx.id} className="flex items-center justify-between py-2.5 border-b border-border/50 last:border-0">
                     <div className="flex items-center gap-2">
@@ -490,7 +463,7 @@ const DashboardOverview = () => {
                       </div>
                       <div>
                         <p className="text-xs font-medium text-foreground capitalize">{tx.type}</p>
-                        <p className="text-[10px] text-muted-foreground">{tx.method}</p>
+                        <p className="text-[10px] text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -514,7 +487,7 @@ const DashboardOverview = () => {
         <Card className="bg-card border-border">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Zap className="h-4 w-4 text-success" /> Recent Profit Payouts
+              <TrendingUp className="h-4 w-4 text-success" /> Account Activity
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -525,7 +498,7 @@ const DashboardOverview = () => {
                     <div className="h-6 w-6 rounded-full bg-success/10 flex items-center justify-center">
                       <TrendingUp className="h-3 w-3 text-success" />
                     </div>
-                    <span className="text-sm text-muted-foreground">Daily profit</span>
+                    <span className="text-sm text-muted-foreground">Investment return</span>
                   </div>
                   <div className="text-right">
                     <span className="text-sm font-medium text-success">+{fmt(Number(log.amount))}</span>
@@ -542,27 +515,24 @@ const DashboardOverview = () => {
       <div>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-display font-semibold text-foreground">Invest Now</h2>
-            <p className="text-xs text-muted-foreground">Choose a category and start earning</p>
+            <h2 className="text-lg font-display font-semibold text-foreground">Investment Options</h2>
+            <p className="text-xs text-muted-foreground">Choose a category to explore. All investments involve risk.</p>
           </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {investmentCategories.map((cat) => (
             <Card
               key={cat.name}
-              className="bg-card border-border hover:border-primary/40 transition-all cursor-pointer group hover:shadow-lg hover:shadow-primary/5"
+              className="bg-card border-border hover:border-primary/40 transition-all cursor-pointer group"
               onClick={() => { setInvestDialog(cat); setSelectedDuration(cat.durations[0]); }}
             >
               <CardContent className="p-4">
-                <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
+                <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center mb-3`}>
                   <cat.icon className="h-5 w-5 text-white" />
                 </div>
                 <h3 className="text-sm font-semibold text-foreground mb-0.5">{cat.name}</h3>
                 <p className="text-[11px] text-muted-foreground mb-2 line-clamp-1">{cat.description}</p>
-                <div className="flex items-center justify-between">
-                  <Badge variant="outline" className="text-[10px] text-success border-success/30">{cat.roi} ROI</Badge>
-                  <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
-                </div>
+                <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
               </CardContent>
             </Card>
           ))}
@@ -581,7 +551,7 @@ const DashboardOverview = () => {
         </CardHeader>
         <CardContent>
           {(investments ?? []).length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">No investments yet. Choose a category above to start earning.</p>
+            <p className="text-sm text-muted-foreground text-center py-6">No investments yet. Choose a category above to get started.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -589,7 +559,7 @@ const DashboardOverview = () => {
                   <tr className="border-b border-border">
                     <th className="text-left py-2 text-muted-foreground font-medium text-xs">Plan</th>
                     <th className="text-left py-2 text-muted-foreground font-medium text-xs">Amount</th>
-                    <th className="text-left py-2 text-muted-foreground font-medium text-xs">Profit</th>
+                    <th className="text-left py-2 text-muted-foreground font-medium text-xs">P&L</th>
                     <th className="text-left py-2 text-muted-foreground font-medium text-xs">Status</th>
                     <th className="text-right py-2 text-muted-foreground font-medium text-xs">Date</th>
                   </tr>
@@ -630,7 +600,7 @@ const DashboardOverview = () => {
               )}
               {investDialog?.name}
             </DialogTitle>
-            <DialogDescription>{investDialog?.description} · Expected ROI: {investDialog?.roi}</DialogDescription>
+            <DialogDescription>{investDialog?.description}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 mt-2">
             <div>
@@ -652,10 +622,6 @@ const DashboardOverview = () => {
             {selectedDuration && (
               <div className="p-3 rounded-lg bg-muted/50 border border-border">
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-muted-foreground">Expected Return</span>
-                  <span className="text-success font-semibold">+{durationToRate[selectedDuration]}%</span>
-                </div>
-                <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Duration</span>
                   <span className="text-foreground">{durationToLabel[selectedDuration]}</span>
                 </div>
@@ -671,18 +637,7 @@ const DashboardOverview = () => {
                 <Button key={amt} variant="outline" size="sm" className="flex-1 text-xs" onClick={() => setInvestAmount(amt)}>${Number(amt).toLocaleString()}</Button>
               ))}
             </div>
-            {investAmount && selectedDuration && (
-              <div className="p-3 rounded-lg bg-success/5 border border-success/20">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Expected Profit</span>
-                  <span className="text-success font-bold">+{fmt(parseFloat(investAmount || "0") * durationToRate[selectedDuration] / 100)}</span>
-                </div>
-                <div className="flex justify-between text-sm mt-1">
-                  <span className="text-muted-foreground">Total Return</span>
-                  <span className="text-foreground font-semibold">{fmt(parseFloat(investAmount || "0") * (1 + durationToRate[selectedDuration] / 100))}</span>
-                </div>
-              </div>
-            )}
+            <p className="text-[10px] text-muted-foreground">Returns depend on market conditions and are not guaranteed. You may lose part or all of your capital.</p>
             <Button
               className="w-full bg-gradient-brand text-primary-foreground font-semibold"
               onClick={() => investMutation.mutate()}

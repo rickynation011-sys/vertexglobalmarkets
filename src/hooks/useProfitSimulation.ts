@@ -112,13 +112,12 @@ export function useProfitSimulation(
             `Minor Correction`,
           ]
         : [
-            `Daily Profit — ${inv.plan_name}`,
-            `Trade Profit — ${inv.plan_name}`,
-            `Yield — ${inv.plan_name}`,
-            `Auto-Trade Gain`,
-            `ROI Credit`,
-            `Compound Return`,
-            `Market Gain — ${inv.plan_name}`,
+            `Position Update — ${inv.plan_name}`,
+            `Market Movement — ${inv.plan_name}`,
+            `Return Update — ${inv.plan_name}`,
+            `Portfolio Activity`,
+            `Position Credit`,
+            `Market Activity`,
           ];
       const label = labels[Math.floor(Math.random() * labels.length)];
 

@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { Shield, Lock } from "lucide-react";
 
 const DashboardLayout = () => {
   const { user } = useAuth();
@@ -30,10 +31,14 @@ const DashboardLayout = () => {
         <div className="min-h-screen flex w-full bg-background">
           <DashboardSidebar />
           <div className="flex-1 flex flex-col min-w-0">
-            <header className="h-14 flex items-center justify-between border-b border-border px-4 glass">
+            <header className="h-14 flex items-center justify-between border-b border-border px-4 bg-card/50">
               <div className="flex items-center gap-2">
                 <SidebarTrigger className="text-muted-foreground" />
                 <span className="text-sm font-medium text-muted-foreground hidden sm:block">Dashboard</span>
+                <div className="hidden md:flex items-center gap-3 ml-4 text-[10px] text-muted-foreground/70">
+                  <span className="flex items-center gap-1"><Shield className="h-3 w-3" /> Secure Account</span>
+                  <span className="flex items-center gap-1"><Lock className="h-3 w-3" /> Data Protected</span>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <CurrencySelector />
@@ -45,6 +50,11 @@ const DashboardLayout = () => {
             <main className="flex-1 overflow-auto p-4 md:p-6">
               <Outlet />
             </main>
+            <footer className="border-t border-border px-4 py-2 text-center">
+              <p className="text-[10px] text-muted-foreground/50">
+                Trading involves significant risk and may not be suitable for all investors. You may lose part or all of your capital.
+              </p>
+            </footer>
           </div>
         </div>
       </SidebarProvider>
