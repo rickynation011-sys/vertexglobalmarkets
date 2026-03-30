@@ -213,10 +213,16 @@ const DashboardOverview = () => {
   const activeInvestments = (investments ?? []).filter(i => i.status === "active");
   const totalInvested = activeInvestments.reduce((s, i) => s + Number(i.amount), 0);
   const totalCurrentValue = activeInvestments.reduce((s, i) => s + Number(i.current_value), 0);
-  // Total profit = all profit logs + trade P&L (no double-counting investment unrealized gains)
+  // Investment Profit = sum of all profit_logs (daily payouts from investments)
   const totalProfitFromLogs = (profitLogs ?? []).reduce((s, l) => s + Number(l.amount), 0);
+  const investmentProfit = totalProfitFromLogs;
+  // Trade P&L from closed trades
   const tradePnl = (allTrades ?? []).filter(t => t.status === "closed").reduce((s, t) => s + Number(t.pnl ?? 0), 0);
-  const totalProfit = totalProfitFromLogs + tradePnl;
+  // Admin adjustments (credits - debits)
+  const adminCredits = (transactions ?? []).filter(t => t.type === "admin_credit" && (t.status === "completed" || t.status === "approved")).reduce((s, t) => s + Number(t.amount), 0);
+  const adminDebits = (transactions ?? []).filter(t => t.type === "admin_debit" && (t.status === "completed" || t.status === "approved")).reduce((s, t) => s + Number(t.amount), 0);
+  // Total Profit = investment profits + trade P&L + admin adjustments
+  const totalProfit = investmentProfit + tradePnl + adminCredits - adminDebits;
   const activeSignals = (signalSubs ?? []).filter(s => new Date(s.expires_at) > new Date()).length;
   const activeCopyTrades = (copyTrades ?? []).length;
 
@@ -337,11 +343,13 @@ const DashboardOverview = () => {
         <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Investments</span>
-              <Briefcase className="h-4 w-4 text-primary" />
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Investment Profit</span>
+              <TrendingUp className="h-4 w-4 text-success" />
             </div>
-            <div className="text-lg font-display font-bold text-foreground">{fmt(totalInvested)}</div>
-            <p className="text-[10px] text-muted-foreground">{activeInvestments.length} active</p>
+            <div className={`text-lg font-display font-bold ${investmentProfit >= 0 ? "text-success" : "text-destructive"}`}>
+              {investmentProfit >= 0 ? "+" : ""}{fmt(investmentProfit)}
+            </div>
+            <p className="text-[10px] text-muted-foreground">{activeInvestments.length} active plans</p>
           </CardContent>
         </Card>
         <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/portfolio")}>

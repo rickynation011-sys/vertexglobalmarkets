@@ -6,11 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { DollarSign, TrendingUp, TrendingDown, Search, ArrowUpDown } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Search, ArrowUpDown, AlertTriangle } from "lucide-react";
 
 const AdminProfitLoss = () => {
   const { user } = useAuth();
@@ -21,6 +22,7 @@ const AdminProfitLoss = () => {
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [confirmDialog, setConfirmDialog] = useState(false);
 
   const { data: profiles } = useQuery({
     queryKey: ["admin-all-profiles"],
@@ -30,12 +32,14 @@ const AdminProfitLoss = () => {
     },
   });
 
+  // Fetch recent admin profit/debit transactions
   const { data: recentAdjustments } = useQuery({
-    queryKey: ["admin-manual-adjustments"],
+    queryKey: ["admin-profit-adjustments"],
     queryFn: async () => {
       const { data } = await supabase
-        .from("profit_logs")
+        .from("transactions")
         .select("*")
+        .in("type", ["admin_credit", "admin_debit"])
         .order("created_at", { ascending: false })
         .limit(50);
       return data ?? [];
@@ -55,18 +59,39 @@ const AdminProfitLoss = () => {
       toast.error("Please select a user and enter a valid amount");
       return;
     }
+    if (!note.trim()) {
+      toast.error("A reason is required for all profit adjustments");
+      return;
+    }
 
     const amt = Number(amount);
     if (!selectedProfile) return;
 
     const currentBalance = Number(selectedProfile.wallet_balance);
+
+    // Prevent debiting more than available
+    if (actionType === "debit" && amt > currentBalance) {
+      toast.error(`Cannot debit $${amt.toFixed(2)} — user only has $${currentBalance.toFixed(2)}`);
+      return;
+    }
+
+    // Show confirmation dialog
+    setConfirmDialog(true);
+  };
+
+  const executeAdjustment = async () => {
+    setConfirmDialog(false);
+    if (!selectedProfile) return;
+
+    const amt = Number(amount);
+    const currentBalance = Number(selectedProfile.wallet_balance);
     const newBalance = actionType === "credit"
       ? currentBalance + amt
-      : Math.max(0, currentBalance - amt);
+      : currentBalance - amt;
 
     setSubmitting(true);
     try {
-      // Update wallet balance
+      // 1. Update wallet balance
       const { error: profileErr } = await supabase
         .from("profiles")
         .update({ wallet_balance: newBalance })
@@ -74,17 +99,28 @@ const AdminProfitLoss = () => {
 
       if (profileErr) throw profileErr;
 
-      // Find an active investment for logging, or use a placeholder approach
-      // We'll log via a transaction-style record in profit_logs if credit,
-      // or just update balance for debit
+      // 2. Record transaction for audit trail
+      const { error: txnErr } = await supabase.from("transactions").insert({
+        user_id: selectedUserId,
+        type: actionType === "credit" ? "admin_credit" : "admin_debit",
+        amount: amt,
+        method: "admin",
+        status: "completed",
+        currency: "USD",
+        admin_notes: note.trim(),
+        reviewed_by: user?.id,
+      });
+
+      if (txnErr) throw txnErr;
+
+      // 3. For credits, also insert into profit_logs if user has any investment
       if (actionType === "credit") {
-        // Get any investment for this user to link the profit log
         const { data: inv } = await supabase
           .from("investments")
           .select("id")
           .eq("user_id", selectedUserId)
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (inv) {
           await supabase.from("profit_logs").insert({
@@ -95,12 +131,12 @@ const AdminProfitLoss = () => {
         }
       }
 
-      // Create a notification for the user
+      // 4. Send notification
       const { data: notif } = await supabase.from("notifications").insert({
-        title: actionType === "credit" ? "Account Credited" : "Account Adjustment",
+        title: actionType === "credit" ? "Profit Credited" : "Account Adjustment",
         message: actionType === "credit"
-          ? `$${amt.toFixed(2)} has been credited to your wallet.${note ? ` Note: ${note}` : ""}`
-          : `$${amt.toFixed(2)} has been adjusted from your wallet.${note ? ` Note: ${note}` : ""}`,
+          ? `$${amt.toFixed(2)} profit has been credited to your wallet. Reason: ${note.trim()}`
+          : `$${amt.toFixed(2)} has been debited from your wallet. Reason: ${note.trim()}`,
         target: "specific",
         target_user_id: selectedUserId,
         sent_by: user?.id,
@@ -113,12 +149,11 @@ const AdminProfitLoss = () => {
         });
       }
 
-      toast.success(`Successfully ${actionType === "credit" ? "credited" : "debited"} $${amt.toFixed(2)} ${actionType === "credit" ? "to" : "from"} user`);
-
-      // Reset form
+      toast.success(`Successfully ${actionType === "credit" ? "credited" : "debited"} $${amt.toFixed(2)}`);
       setAmount("");
       setNote("");
       queryClient.invalidateQueries({ queryKey: ["admin-all-profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-profit-adjustments"] });
       queryClient.invalidateQueries({ queryKey: ["admin-manual-adjustments"] });
     } catch (err: any) {
       toast.error(err.message || "Failed to process adjustment");
@@ -133,7 +168,7 @@ const AdminProfitLoss = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-display font-bold text-foreground">Profit & Loss Manager</h1>
-        <p className="text-muted-foreground text-sm">Manually credit or debit user wallets with full audit trail</p>
+        <p className="text-muted-foreground text-sm">Credit or debit user profits with full transaction audit trail</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -142,11 +177,10 @@ const AdminProfitLoss = () => {
           <CardHeader>
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <ArrowUpDown className="h-4 w-4 text-primary" />
-              New Adjustment
+              New Profit Adjustment
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* User Search & Select */}
             <div className="space-y-2">
               <Label>Search User</Label>
               <div className="relative">
@@ -186,7 +220,6 @@ const AdminProfitLoss = () => {
               </div>
             )}
 
-            {/* Action Type */}
             <div className="space-y-2">
               <Label>Action Type</Label>
               <div className="grid grid-cols-2 gap-2">
@@ -209,7 +242,6 @@ const AdminProfitLoss = () => {
               </div>
             </div>
 
-            {/* Amount */}
             <div className="space-y-2">
               <Label>Amount (USD)</Label>
               <div className="relative">
@@ -226,18 +258,16 @@ const AdminProfitLoss = () => {
               </div>
             </div>
 
-            {/* Note */}
             <div className="space-y-2">
-              <Label>Note (optional)</Label>
+              <Label>Reason <span className="text-destructive">*</span></Label>
               <Textarea
-                placeholder="Reason for adjustment..."
+                placeholder="Required — describe the reason for this adjustment..."
                 value={note}
                 onChange={e => setNote(e.target.value)}
                 rows={2}
               />
             </div>
 
-            {/* Preview */}
             {selectedProfile && amount && Number(amount) > 0 && (
               <div className="p-3 rounded-lg border border-border bg-muted/30">
                 <p className="text-xs text-muted-foreground mb-1">Preview</p>
@@ -255,7 +285,7 @@ const AdminProfitLoss = () => {
 
             <Button
               onClick={handleSubmit}
-              disabled={submitting || !selectedUserId || !amount || Number(amount) <= 0}
+              disabled={submitting || !selectedUserId || !amount || Number(amount) <= 0 || !note.trim()}
               className="w-full"
             >
               {submitting ? "Processing..." : `Apply ${actionType === "credit" ? "Credit" : "Debit"}`}
@@ -263,27 +293,31 @@ const AdminProfitLoss = () => {
           </CardContent>
         </Card>
 
-        {/* Recent Adjustments */}
+        {/* Recent Adjustments from transactions table */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Recent Profit Logs</CardTitle>
+            <CardTitle className="text-sm font-medium">Recent Profit Adjustments</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 max-h-[500px] overflow-y-auto">
               {(recentAdjustments ?? []).length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">No profit logs yet</p>
+                <p className="text-sm text-muted-foreground text-center py-4">No adjustments yet</p>
               ) : (
                 (recentAdjustments ?? []).map(adj => {
                   const profile = (profiles ?? []).find(p => p.user_id === adj.user_id);
+                  const isCredit = adj.type === "admin_credit";
                   return (
-                    <div key={adj.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/20">
-                      <div>
+                    <div key={adj.id} className="p-3 rounded-lg border border-border bg-muted/20 space-y-1">
+                      <div className="flex items-center justify-between">
                         <p className="text-sm font-medium text-foreground">{profile?.full_name || profile?.email || "Unknown"}</p>
-                        <p className="text-xs text-muted-foreground">{new Date(adj.created_at).toLocaleString()}</p>
+                        <Badge variant={isCredit ? "default" : "destructive"} className="font-mono text-xs">
+                          {isCredit ? "+" : "-"}{fmt(Number(adj.amount))}
+                        </Badge>
                       </div>
-                      <Badge variant={Number(adj.amount) >= 0 ? "default" : "destructive"} className="font-mono">
-                        {Number(adj.amount) >= 0 ? "+" : ""}{fmt(Number(adj.amount))}
-                      </Badge>
+                      {adj.admin_notes && (
+                        <p className="text-xs text-muted-foreground">Reason: {adj.admin_notes}</p>
+                      )}
+                      <p className="text-[10px] text-muted-foreground">{new Date(adj.created_at).toLocaleString()}</p>
                     </div>
                   );
                 })
@@ -292,6 +326,40 @@ const AdminProfitLoss = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmDialog} onOpenChange={setConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-warning" />
+              Confirm {actionType === "credit" ? "Profit Credit" : "Profit Debit"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-muted-foreground">
+              You are about to <strong>{actionType === "credit" ? "credit" : "debit"}</strong>{" "}
+              <strong className={actionType === "credit" ? "text-success" : "text-destructive"}>
+                {fmt(Number(amount || 0))}
+              </strong>{" "}
+              {actionType === "credit" ? "to" : "from"}{" "}
+              <strong>{selectedProfile?.full_name || selectedProfile?.email}</strong>.
+            </p>
+            <p className="text-sm text-muted-foreground">Reason: <em>{note}</em></p>
+            <p className="text-xs text-muted-foreground">This action will be recorded in the transaction history and cannot be undone automatically.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDialog(false)}>Cancel</Button>
+            <Button
+              onClick={executeAdjustment}
+              disabled={submitting}
+              className={actionType === "credit" ? "bg-success text-success-foreground hover:bg-success/90" : "bg-destructive text-destructive-foreground hover:bg-destructive/90"}
+            >
+              {submitting ? "Processing..." : "Confirm"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
