@@ -425,6 +425,38 @@ const DashboardWallet = () => {
                     <Button key={amt} variant="outline" size="sm" className="flex-1 text-xs" onClick={() => setDepositAmount(amt)}>${Number(amt).toLocaleString()}</Button>
                   ))}
                 </div>
+
+                {/* Payment Proof Upload */}
+                <div>
+                  <label className="text-sm text-muted-foreground">Upload Payment Proof <span className="text-destructive">*</span></label>
+                  <div className="mt-1">
+                    {proofFile ? (
+                      <div className="p-3 rounded-lg border border-border bg-muted/30 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-primary" />
+                            <span className="text-sm text-foreground truncate max-w-[200px]">{proofFile.name}</span>
+                            <span className="text-[10px] text-muted-foreground">({(proofFile.size / 1024).toFixed(0)} KB)</span>
+                          </div>
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setProofFile(null); setProofPreview(null); }}>
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        {proofPreview && (
+                          <img src={proofPreview} alt="Proof preview" className="w-full max-h-32 object-contain rounded border border-border" />
+                        )}
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors">
+                        <Upload className="h-6 w-6 text-muted-foreground mb-1" />
+                        <span className="text-sm text-muted-foreground">Click to upload</span>
+                        <span className="text-[10px] text-muted-foreground">JPG, PNG, or PDF (max 10MB)</span>
+                        <input type="file" className="hidden" accept=".jpg,.jpeg,.png,.pdf" onChange={handleProofFileChange} />
+                      </label>
+                    )}
+                  </div>
+                </div>
+
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border">
                   <Shield className="h-4 w-4 text-primary" />
                   <p className="text-xs text-muted-foreground">All transactions are secured with 256-bit SSL encryption.</p>
@@ -432,7 +464,7 @@ const DashboardWallet = () => {
                 <Button
                   className="w-full bg-gradient-brand text-primary-foreground font-semibold"
                   onClick={() => depositMutation.mutate()}
-                  disabled={depositMutation.isPending || !depositMethodId || !depositAmount}
+                  disabled={depositMutation.isPending || !depositMethodId || !depositAmount || !proofFile}
                 >
                   {depositMutation.isPending ? "Processing..." : "Submit Deposit"}
                 </Button>
