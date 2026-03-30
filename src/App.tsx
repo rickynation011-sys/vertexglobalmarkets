@@ -37,6 +37,12 @@ import Signals from "./pages/Signals.tsx";
 import Plans from "./pages/Plans.tsx";
 import RealEstate from "./pages/RealEstate.tsx";
 import RegulationCompliance from "./pages/RegulationCompliance.tsx";
+import CryptoTicker from "./pages/features/CryptoTicker.tsx";
+import LiveCharts from "./pages/features/LiveCharts.tsx";
+import ReferralProgram from "./pages/features/ReferralProgram.tsx";
+import Leaderboards from "./pages/features/Leaderboards.tsx";
+import CopyTradingFeature from "./pages/features/CopyTrading.tsx";
+import InvestmentCalculator from "./pages/features/InvestmentCalculator.tsx";
 import MarketForex from "./pages/markets/MarketForex.tsx";
 import MarketCrypto from "./pages/markets/MarketCrypto.tsx";
 import MarketStocks from "./pages/markets/MarketStocks.tsx";
@@ -126,6 +132,12 @@ const App = () => (
               <Route path="/plans" element={<Plans />} />
               <Route path="/real-estate" element={<RealEstate />} />
               <Route path="/regulation-compliance" element={<RegulationCompliance />} />
+              <Route path="/features/crypto-ticker" element={<CryptoTicker />} />
+              <Route path="/features/live-charts" element={<LiveCharts />} />
+              <Route path="/features/referral-program" element={<ReferralProgram />} />
+              <Route path="/features/leaderboards" element={<Leaderboards />} />
+              <Route path="/features/copy-trading" element={<CopyTradingFeature />} />
+              <Route path="/features/investment-calculator" element={<InvestmentCalculator />} />
               <Route path="/markets/forex" element={<MarketForex />} />
               <Route path="/markets/crypto" element={<MarketCrypto />} />
               <Route path="/markets/stocks" element={<MarketStocks />} />
