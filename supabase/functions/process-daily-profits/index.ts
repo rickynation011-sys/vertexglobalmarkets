@@ -224,7 +224,7 @@ Deno.serve(async (req) => {
       processed_count: processed,
       total_profit: totalProfit,
       status: "success",
-      triggered_by: req.headers.get("x-trigger") || "cron",
+      triggered_by: trigger,
     });
 
     return new Response(JSON.stringify({
