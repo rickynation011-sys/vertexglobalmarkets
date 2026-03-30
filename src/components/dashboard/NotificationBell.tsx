@@ -41,19 +41,21 @@ export const NotificationBell = () => {
 
       const { data: readStatuses } = await supabase
         .from("user_notifications")
-        .select("notification_id, is_read")
+        .select("notification_id, is_read, is_dismissed")
         .eq("user_id", user.id);
 
-      const readMap = new Map(readStatuses?.map((r) => [r.notification_id, r.is_read]) || []);
+      const readMap = new Map(readStatuses?.map((r: any) => [r.notification_id, { is_read: r.is_read, is_dismissed: r.is_dismissed }]) || []);
 
-      return (notifs || []).map((n) => ({
-        id: n.id,
-        title: n.title,
-        message: n.message,
-        created_at: n.created_at,
-        notification_id: n.id,
-        is_read: readMap.get(n.id) ?? false,
-      })) as Notification[];
+      return (notifs || [])
+        .filter((n) => !(readMap.get(n.id)?.is_dismissed))
+        .map((n) => ({
+          id: n.id,
+          title: n.title,
+          message: n.message,
+          created_at: n.created_at,
+          notification_id: n.id,
+          is_read: readMap.get(n.id)?.is_read ?? false,
+        })) as Notification[];
     },
     enabled: !!user,
     refetchInterval: 30000,
@@ -106,14 +108,14 @@ export const NotificationBell = () => {
   const deleteNotificationMutation = useMutation({
     mutationFn: async (notificationId: string) => {
       if (!user) return;
-      // Mark as read and "dismissed" by upserting read status
       await supabase.from("user_notifications").upsert(
         {
           user_id: user.id,
           notification_id: notificationId,
           is_read: true,
           read_at: new Date().toISOString(),
-        },
+          is_dismissed: true,
+        } as any,
         { onConflict: "user_id,notification_id" }
       );
     },
