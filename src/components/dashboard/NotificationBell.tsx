@@ -41,21 +41,19 @@ export const NotificationBell = () => {
 
       const { data: readStatuses } = await supabase
         .from("user_notifications")
-        .select("notification_id, is_read, is_dismissed")
+        .select("notification_id, is_read")
         .eq("user_id", user.id);
 
-      const readMap = new Map(readStatuses?.map((r: any) => [r.notification_id, { is_read: r.is_read, is_dismissed: r.is_dismissed }]) || []);
+      const readMap = new Map(readStatuses?.map((r) => [r.notification_id, r.is_read]) || []);
 
-      return (notifs || [])
-        .filter((n) => !(readMap.get(n.id)?.is_dismissed))
-        .map((n) => ({
-          id: n.id,
-          title: n.title,
-          message: n.message,
-          created_at: n.created_at,
-          notification_id: n.id,
-          is_read: readMap.get(n.id)?.is_read ?? false,
-        })) as Notification[];
+      return (notifs || []).map((n) => ({
+        id: n.id,
+        title: n.title,
+        message: n.message,
+        created_at: n.created_at,
+        notification_id: n.id,
+        is_read: readMap.get(n.id) ?? false,
+      })) as Notification[];
     },
     enabled: !!user,
     refetchInterval: 30000,
