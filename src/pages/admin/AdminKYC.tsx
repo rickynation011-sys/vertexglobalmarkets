@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle, XCircle, Eye, Search, Clock, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ const statusColors: Record<string, string> = {
 
 const AdminKYC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [kycList, setKycList] = useState<KYC[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [filter, setFilter] = useState("all");
@@ -182,6 +184,7 @@ const AdminKYC = () => {
                         <td className="p-4"><Badge className={`text-xs ${statusColors[kyc.status]}`}>{kyc.status}</Badge></td>
                         <td className="p-4 text-right">
                           <div className="flex items-center justify-end gap-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={(e) => { e.stopPropagation(); navigate(`/admin/kyc/view/${kyc.id}`); }}><Eye className="h-4 w-4" /></Button>
                             {kyc.status === "pending" && (
                               <>
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-success" onClick={(e) => { e.stopPropagation(); handleAction(kyc.id, "approved"); }}><CheckCircle className="h-4 w-4" /></Button>
@@ -214,10 +217,10 @@ const AdminKYC = () => {
                     <div className="flex justify-between"><span className="text-muted-foreground">Notes</span><span className="text-foreground">{selectedKYC.reviewer_notes}</span></div>
                   )}
                 </div>
-                {selectedKYC.document_url && (
-                  <div className="p-4 rounded-lg bg-muted/50 border border-border text-center text-xs text-muted-foreground">
-                    <a href={selectedKYC.document_url} target="_blank" rel="noopener noreferrer" className="text-primary underline">View Document</a>
-                  </div>
+                {(selectedKYC.document_url || selectedKYC.selfie_url) && (
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => navigate(`/admin/kyc/view/${selectedKYC.id}`)}>
+                    <Eye className="h-4 w-4 mr-2" /> View Documents
+                  </Button>
                 )}
                 {selectedKYC.status === "pending" && (
                   <>

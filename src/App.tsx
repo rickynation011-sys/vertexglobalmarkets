@@ -83,6 +83,7 @@ import AdminFeePayments from "./pages/admin/AdminFeePayments.tsx";
 import AdminReferrals from "./pages/admin/AdminReferrals.tsx";
 import AdminLandingContent from "./pages/admin/AdminLandingContent.tsx";
 import AdminEmailDashboard from "./pages/admin/AdminEmailDashboard.tsx";
+import AdminKYCView from "./pages/admin/AdminKYCView.tsx";
 
 const queryClient = new QueryClient();
 
@@ -159,6 +160,7 @@ const App = () => (
                   <Route index element={<AdminDashboard />} />
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="kyc" element={<AdminKYC />} />
+                  <Route path="kyc/view/:kycId" element={<AdminKYCView />} />
                   <Route path="deposits" element={<AdminDeposits />} />
                   <Route path="withdrawals" element={<AdminWithdrawals />} />
                   <Route path="transactions" element={<AdminTransactions />} />
