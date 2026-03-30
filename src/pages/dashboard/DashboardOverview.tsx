@@ -200,7 +200,9 @@ const DashboardOverview = () => {
   const activeInvestments = (investments ?? []).filter(i => i.status === "active");
   const totalInvested = activeInvestments.reduce((s, i) => s + Number(i.amount), 0);
   const totalCurrentValue = activeInvestments.reduce((s, i) => s + Number(i.current_value), 0);
-  const totalProfit = totalCurrentValue - totalInvested + (profitLogs ?? []).reduce((s, l) => s + Number(l.amount), 0);
+  // Total profit = all profit logs + trade P&L (no double-counting investment unrealized gains)
+  const totalProfitFromLogs = (profitLogs ?? []).reduce((s, l) => s + Number(l.amount), 0);
+  const totalProfit = totalProfitFromLogs;
   const activeSignals = (signalSubs ?? []).filter(s => new Date(s.expires_at) > new Date()).length;
   const activeCopyTrades = (copyTrades ?? []).length;
 

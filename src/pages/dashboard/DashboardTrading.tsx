@@ -246,6 +246,12 @@ const DashboardTrading = () => {
     mutationFn: async (tradeSide: "buy" | "sell") => {
       const amt = parseFloat(amount);
       if (!amt || amt <= 0) throw new Error("Enter a valid amount");
+
+      // Check wallet balance
+      const { data: prof } = await supabase.from("profiles").select("wallet_balance").eq("user_id", user!.id).single();
+      const walletBal = Number(prof?.wallet_balance ?? 0);
+      if (amt > walletBal) throw new Error("Insufficient balance. Please deposit funds first.");
+
       const { error } = await supabase.from("trades").insert({
         user_id: user!.id, asset: selectedPair, side: tradeSide, amount: amt,
         price: price ? parseFloat(price) : livePrice,
@@ -254,9 +260,13 @@ const DashboardTrading = () => {
         status: "open",
       });
       if (error) throw error;
+
+      // Deduct from wallet
+      await supabase.from("profiles").update({ wallet_balance: walletBal - amt }).eq("user_id", user!.id);
     },
     onSuccess: (_, tradeSide) => {
       queryClient.invalidateQueries({ queryKey: ["trades-open", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
       toast.success(`${tradeSide === "buy" ? "Buy" : "Sell"} order placed for ${selectedPair}`);
       setAmount(""); setPrice(""); setTp(""); setSl("");
     },

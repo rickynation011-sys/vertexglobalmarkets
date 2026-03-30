@@ -163,26 +163,40 @@ export const NotificationBell = () => {
                 <p className="text-sm text-muted-foreground text-center py-8">No notifications</p>
               ) : (
                 notifications.map((n) => (
-                  <button
+                  <div
                     key={n.id}
-                    onClick={() => handleNotificationClick(n)}
-                    className={`w-full text-left px-4 py-3 border-b border-border/50 last:border-0 transition-colors hover:bg-muted/50 ${
+                    className={`relative group w-full text-left px-4 py-3 border-b border-border/50 last:border-0 transition-colors hover:bg-muted/50 ${
                       !n.is_read ? "bg-primary/5" : ""
                     }`}
                   >
-                    <div className="flex items-start gap-2">
-                      {!n.is_read && (
-                        <span className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />
-                      )}
-                      <div className={!n.is_read ? "" : "pl-4"}>
-                        <p className="text-sm font-medium text-foreground">{n.title}</p>
-                        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.message}</p>
-                        <p className="text-xs text-muted-foreground/70 mt-1">
-                          {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
-                        </p>
+                    <button
+                      onClick={() => handleNotificationClick(n)}
+                      className="w-full text-left"
+                    >
+                      <div className="flex items-start gap-2 pr-6">
+                        {!n.is_read && (
+                          <span className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />
+                        )}
+                        <div className={!n.is_read ? "" : "pl-4"}>
+                          <p className="text-sm font-medium text-foreground">{n.title}</p>
+                          <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.message}</p>
+                          <p className="text-xs text-muted-foreground/70 mt-1">
+                            {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </button>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteNotificationMutation.mutate(n.notification_id);
+                      }}
+                      className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-destructive/10"
+                      title="Dismiss"
+                    >
+                      <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                    </button>
+                  </div>
                 ))
               )}
             </ScrollArea>
