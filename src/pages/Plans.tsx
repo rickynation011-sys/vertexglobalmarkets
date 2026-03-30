@@ -93,7 +93,7 @@ const Plans = () => (
                   {plan.dailyRate}
                 </p>
                 <p className="text-[10px] md:text-xs text-muted-foreground text-center mb-4">
-                  daily · {plan.expectedReturn} total · {plan.duration}
+                  daily (variable) · {plan.duration}
                 </p>
 
                 {/* Features */}
