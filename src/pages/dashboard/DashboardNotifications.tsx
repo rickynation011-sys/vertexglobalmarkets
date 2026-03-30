@@ -48,20 +48,18 @@ const DashboardNotifications = () => {
 
       const { data: readStatuses } = await supabase
         .from("user_notifications")
-        .select("notification_id, is_read, is_dismissed")
+        .select("notification_id, is_read")
         .eq("user_id", user.id);
 
-      const readMap = new Map(readStatuses?.map((r: any) => [r.notification_id, { is_read: r.is_read, is_dismissed: r.is_dismissed }]) || []);
+      const readMap = new Map(readStatuses?.map((r) => [r.notification_id, r.is_read]) || []);
 
-      return (notifs || [])
-        .filter((n) => !(readMap.get(n.id)?.is_dismissed))
-        .map((n) => ({
-          id: n.id,
-          title: n.title,
-          message: n.message,
-          created_at: n.created_at,
-          is_read: readMap.get(n.id)?.is_read ?? false,
-        })) as Notification[];
+      return (notifs || []).map((n) => ({
+        id: n.id,
+        title: n.title,
+        message: n.message,
+        created_at: n.created_at,
+        is_read: readMap.get(n.id) ?? false,
+      })) as Notification[];
     },
     enabled: !!user,
   });
@@ -166,12 +164,11 @@ const DashboardNotifications = () => {
               variant="destructive"
               onClick={async () => {
                 if (!user) return;
-                for (const n of notifications) {
-                  await supabase.from("user_notifications").upsert(
-                    { user_id: user.id, notification_id: n.id, is_read: true, read_at: new Date().toISOString(), is_dismissed: true } as any,
-                    { onConflict: "user_id,notification_id" }
-                  );
-                }
+                // Delete all user_notification records to clear notifications
+                await supabase
+                  .from("user_notifications")
+                  .delete()
+                  .eq("user_id", user.id);
                 queryClient.invalidateQueries({ queryKey: ["all-notifications"] });
                 queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
               }}
