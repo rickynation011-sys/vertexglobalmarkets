@@ -73,30 +73,21 @@ const Plans = () => (
                 </span>
               )}
               <CardContent className="flex flex-col flex-1 p-4 md:p-6 pt-6 md:pt-8">
-                {/* Icon */}
                 <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gold/10">
                   <plan.icon className="h-6 w-6 text-gold" />
                 </div>
-
-                {/* Name */}
                 <h3 className="text-sm md:text-lg font-display font-bold text-foreground text-center mb-1">
                   {plan.name}
                 </h3>
-
-                {/* Min investment */}
                 <p className="text-xs text-muted-foreground text-center mb-3">
                   {plan.minInvestment} min
                 </p>
-
-                {/* Daily rate */}
                 <p className="text-xl md:text-2xl font-display font-bold text-center text-success mb-1">
                   {plan.dailyRate}
                 </p>
                 <p className="text-[10px] md:text-xs text-muted-foreground text-center mb-4">
                   daily (variable) · {plan.duration}
                 </p>
-
-                {/* Features */}
                 <ul className="space-y-1.5 mb-6 flex-1">
                   {plan.features.map((f) => (
                     <li key={f} className="text-[10px] md:text-xs text-muted-foreground flex items-start gap-1.5">
@@ -104,8 +95,6 @@ const Plans = () => (
                     </li>
                   ))}
                 </ul>
-
-                {/* Button pinned to bottom */}
                 <Button
                   className={`w-full mt-auto ${
                     plan.popular
@@ -121,6 +110,10 @@ const Plans = () => (
             </Card>
           ))}
         </div>
+
+        <p className="text-sm text-muted-foreground text-center mb-20 italic">
+          All returns are estimates based on market conditions and are not guaranteed.
+        </p>
 
         {/* Benefits */}
         <h2 className="text-2xl font-display font-bold text-foreground text-center mb-10">Why Invest With Us</h2>
