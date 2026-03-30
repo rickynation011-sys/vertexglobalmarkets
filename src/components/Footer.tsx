@@ -21,6 +21,7 @@ const footerLinks = {
     { label: "Terms of Service", href: "/terms" },
     { label: "Privacy Policy", href: "/privacy" },
     { label: "Risk Disclosure", href: "/risk-disclosure" },
+    { label: "Risk Disclaimer", href: "/risk-disclaimer" },
     { label: "Regulation & Compliance", href: "/regulation-compliance" },
     { label: "Compliance", href: "/compliance" },
     { label: "Security", href: "/security" },
