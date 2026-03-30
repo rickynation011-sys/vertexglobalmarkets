@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, ShieldCheck, ArrowUpDown, Settings,
-  FileText, Bell, LogOut, Shield, TrendingUp, Wallet, Signal, Copy, ArrowDownLeft, ArrowUpRight, Ticket, DollarSign, Link2, Globe, Mail
+  FileText, Bell, LogOut, Shield, TrendingUp, Wallet, Signal, Copy, ArrowDownLeft, ArrowUpRight, Ticket, DollarSign, Link2, Globe, Mail, Scale
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import logo from "@/assets/logo-symbol.png";
