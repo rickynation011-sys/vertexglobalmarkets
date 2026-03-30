@@ -188,7 +188,7 @@ const DashboardNotifications = () => {
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-border">
+            <div className="divide-y divide-border max-h-[60vh] sm:max-h-[600px] overflow-y-auto scroll-smooth pr-1">
               {filtered.map((n) => (
                 <div
                   key={n.id}

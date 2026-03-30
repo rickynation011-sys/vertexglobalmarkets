@@ -135,7 +135,7 @@ export const NotificationBell = () => {
               </button>
             )}
           </div>
-          <ScrollArea className="max-h-80">
+          <ScrollArea className="max-h-80 sm:max-h-80 max-h-[60vh]" style={{ scrollBehavior: 'smooth' }}>
             {notifications.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">No notifications</p>
             ) : (
