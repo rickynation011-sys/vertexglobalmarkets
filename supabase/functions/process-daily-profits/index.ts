@@ -6,26 +6,27 @@ const corsHeaders = {
 };
 
 /**
- * Timezone-aware daily profit processor.
- * Runs every 10 minutes via cron. For each user with active investments,
- * checks if it's currently 1:00 AM in their local timezone and processes
- * profits only once per calendar day (tracked via last_profit_processed_date).
+ * Manual-only daily profit processor.
+ * Triggered exclusively by admin clicking "Process Daily Profit".
+ * No cron, no time restrictions. Each click = one profit cycle.
+ * Tracks last_profit_processed_date to prevent same-day duplicates.
  */
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const trigger = req.headers.get("x-trigger") || "cron";
+  const trigger = req.headers.get("x-trigger") || "admin-manual";
+
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const nowUtc = new Date();
-    const isManual = trigger === "admin-manual";
+    const todayStr = nowUtc.toISOString().slice(0, 10); // YYYY-MM-DD
 
-    // Get distinct user_ids with active investments, joined with their timezone & last processed date
+    // Get all users with active investments
     const { data: activeUsers, error: usersErr } = await supabase
       .from("investments")
       .select("user_id")
@@ -38,15 +39,14 @@ Deno.serve(async (req) => {
         processed_count: 0, total_profit: 0, status: "success",
         triggered_by: trigger,
       });
-      return new Response(JSON.stringify({ message: "No active investments" }), {
+      return new Response(JSON.stringify({ message: "No active investments found" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Deduplicate user_ids
     const uniqueUserIds = [...new Set(activeUsers.map((u: any) => u.user_id))];
 
-    // Fetch profiles for these users (timezone + last_profit_processed_date)
+    // Fetch profiles
     const { data: profiles, error: profErr } = await supabase
       .from("profiles")
       .select("user_id, email, full_name, wallet_balance, timezone, last_profit_processed_date")
@@ -59,51 +59,21 @@ Deno.serve(async (req) => {
       profileMap.set(p.user_id, p);
     }
 
-    // Determine which users are eligible
-    const eligibleUserIds: string[] = [];
-
-    for (const userId of uniqueUserIds) {
+    // Filter: skip users already processed today
+    const eligibleUserIds = uniqueUserIds.filter(userId => {
       const profile = profileMap.get(userId);
-      if (!profile) continue;
-
-      const tz = profile.timezone || "UTC";
-      let localDateStr: string;
-
-      try {
-        const dateFormatter = new Intl.DateTimeFormat("en-CA", {
-          timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit",
-        });
-        localDateStr = dateFormatter.format(nowUtc);
-      } catch {
-        localDateStr = nowUtc.toISOString().slice(0, 10);
-      }
-
-      // For manual admin trigger: skip timezone hour check, only check if already processed today
-      if (!isManual) {
-        let localHour: number;
-        try {
-          const formatter = new Intl.DateTimeFormat("en-US", {
-            timeZone: tz, hour: "numeric", hour12: false,
-          });
-          localHour = parseInt(formatter.format(nowUtc), 10);
-        } catch {
-          localHour = nowUtc.getUTCHours();
-        }
-        if (localHour !== 1) continue;
-      }
-
-      // Check: not already processed today
-      if (profile.last_profit_processed_date === localDateStr) continue;
-
-      eligibleUserIds.push(userId);
-    }
+      if (!profile) return false;
+      return profile.last_profit_processed_date !== todayStr;
+    });
 
     if (eligibleUserIds.length === 0) {
       await supabase.from("profit_processing_logs").insert({
         processed_count: 0, total_profit: 0, status: "success",
         triggered_by: trigger,
       });
-      return new Response(JSON.stringify({ message: "No users eligible at this time" }), {
+      return new Response(JSON.stringify({
+        message: "All users have already been processed today. Profits can only be distributed once per day.",
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -123,11 +93,10 @@ Deno.serve(async (req) => {
     const processedUserIds = new Set<string>();
 
     for (const inv of investments ?? []) {
-      // Check if investment has expired
+      // Handle expired investments
       if (new Date(inv.ends_at) < nowUtc) {
         await supabase.from("investments").update({ status: "completed" }).eq("id", inv.id);
 
-        // Credit initial capital back to wallet balance on maturity
         const profile = profileMap.get(inv.user_id);
         const capitalReturn = Number(inv.amount);
         if (profile && capitalReturn > 0) {
@@ -135,7 +104,6 @@ Deno.serve(async (req) => {
           await supabase.from("profiles").update({ wallet_balance: newBal }).eq("user_id", inv.user_id);
           profile.wallet_balance = newBal;
 
-          // Log the capital return as a transaction
           await supabase.from("transactions").insert({
             user_id: inv.user_id,
             type: "deposit",
@@ -175,22 +143,23 @@ Deno.serve(async (req) => {
       const newValue = Number(inv.current_value) + dailyProfit;
       const returnPct = ((newValue - Number(inv.amount)) / Number(inv.amount)) * 100;
 
+      // Update investment value
       await supabase.from("investments").update({
         current_value: newValue,
         return_pct: returnPct,
       }).eq("id", inv.id);
 
-      // Update wallet balance
+      // Credit profit to wallet balance
       const profile = profileMap.get(inv.user_id);
       if (profile) {
         const currentBalance = Number(profile.wallet_balance) + dailyProfit;
         await supabase.from("profiles").update({
           wallet_balance: currentBalance,
         }).eq("user_id", inv.user_id);
-        // Update local cache so subsequent investments for same user use correct balance
         profile.wallet_balance = currentBalance;
       }
 
+      // Log profit for P&L tracking
       await supabase.from("profit_logs").insert({
         user_id: inv.user_id,
         investment_id: inv.id,
@@ -202,24 +171,14 @@ Deno.serve(async (req) => {
       processedUserIds.add(inv.user_id);
     }
 
-    // Mark all processed users with today's date to prevent duplicate processing
+    // Mark all processed users to prevent duplicate processing today
     for (const userId of processedUserIds) {
-      const profile = profileMap.get(userId);
-      const tz = profile?.timezone || "UTC";
-      let localDateStr: string;
-      try {
-        const dateFormatter = new Intl.DateTimeFormat("en-CA", {
-          timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit",
-        });
-        localDateStr = dateFormatter.format(nowUtc);
-      } catch {
-        localDateStr = nowUtc.toISOString().slice(0, 10);
-      }
       await supabase.from("profiles").update({
-        last_profit_processed_date: localDateStr,
+        last_profit_processed_date: todayStr,
       }).eq("user_id", userId);
     }
 
+    // Log the processing run
     await supabase.from("profit_processing_logs").insert({
       processed_count: processed,
       total_profit: totalProfit,
@@ -230,6 +189,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       message: `Processed ${processed} investments for ${processedUserIds.size} users`,
       totalProfit,
+      usersProcessed: processedUserIds.size,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -240,7 +200,7 @@ Deno.serve(async (req) => {
       const supabase = createClient(supabaseUrl, serviceRoleKey);
       await supabase.from("profit_processing_logs").insert({
         processed_count: 0, total_profit: 0, status: "error",
-        error_message: error.message, triggered_by: trigger ?? "cron",
+        error_message: error.message, triggered_by: trigger,
       });
     } catch (_) { /* ignore logging errors */ }
 
