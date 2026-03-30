@@ -421,7 +421,7 @@ const DashboardOverview = () => {
           </CardHeader>
           <CardContent className="space-y-2">
             {activeInvestments.slice(0, 5).map((inv) => (
-              <ActiveInvestmentRow key={inv.id} inv={inv} getSimulatedValue={getSimulatedCurrentValue} />
+              <ActiveInvestmentRow key={inv.id} inv={inv} />
             ))}
             {activeInvestments.length > 5 && (
               <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground" onClick={() => navigate("/dashboard/investments")}>
