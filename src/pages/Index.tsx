@@ -44,6 +44,7 @@ const Index = () => {
       <TrustIndicators />
       <StatsSection />
       <FeaturesSection />
+      <HowItWorksSection />
       <MarketsOverview />
       <AutoTradingSection />
       <CopyTradingSection />
