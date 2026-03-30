@@ -67,10 +67,17 @@ export function useProfitSimulation(
     const u1 = Math.random();
     const u2 = Math.random();
     const z = Math.sqrt(-2 * Math.log(Math.max(u1, 0.001))) * Math.cos(2 * Math.PI * u2);
-    const fluctuation = Math.exp(z * 0.3); // centered around 1, spread ~0.3
+    const fluctuation = Math.exp(z * 0.3);
     const clampedFluctuation = Math.max(0.3, Math.min(2.5, fluctuation));
-    const increment = Math.max(0.01, baseIncrement * clampedFluctuation);
-    const roundedIncrement = Math.round(increment * 100) / 100;
+
+    // ~15% chance of a small dip for natural market feel
+    const isDip = Math.random() < 0.15;
+    const direction = isDip ? -1 : 1;
+    const dipScale = isDip ? (0.1 + Math.random() * 0.3) : 1; // dips are smaller than gains
+    const rawIncrement = baseIncrement * clampedFluctuation * direction * dipScale;
+    const roundedIncrement = Math.round(rawIncrement * 100) / 100;
+    // Ensure we never go below a tiny absolute value to keep things moving
+    const finalIncrement = roundedIncrement === 0 ? (isDip ? -0.01 : 0.01) : roundedIncrement;
 
     setBonusMap((prev) => ({
       ...prev,
