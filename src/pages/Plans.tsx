@@ -3,7 +3,7 @@ import StaticPageLayout from "@/layouts/StaticPageLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { CheckCircle, Shield, Clock, TrendingUp, Gem, Rocket, Crown, Landmark } from "lucide-react";
+import { CheckCircle, Shield, Clock, TrendingUp, Gem, Rocket, Crown } from "lucide-react";
 
 const plans = [
   {
