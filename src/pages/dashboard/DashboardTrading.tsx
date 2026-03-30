@@ -229,9 +229,8 @@ const DashboardTrading = () => {
     return generateCandles(livePrice, count, vol);
   }, [selectedPair, timeframe, livePrice]);
 
-  // Estimated profit
+  // Note: actual P&L depends on market conditions
   const parsedAmount = parseFloat(amount) || 0;
-  const estimatedProfit = parsedAmount * 0.025; // ~2.5% estimated
 
   // Queries
   const { data: openTrades } = useQuery({
@@ -247,6 +246,12 @@ const DashboardTrading = () => {
     mutationFn: async (tradeSide: "buy" | "sell") => {
       const amt = parseFloat(amount);
       if (!amt || amt <= 0) throw new Error("Enter a valid amount");
+
+      // Check wallet balance
+      const { data: prof } = await supabase.from("profiles").select("wallet_balance").eq("user_id", user!.id).single();
+      const walletBal = Number(prof?.wallet_balance ?? 0);
+      if (amt > walletBal) throw new Error("Insufficient balance. Please deposit funds first.");
+
       const { error } = await supabase.from("trades").insert({
         user_id: user!.id, asset: selectedPair, side: tradeSide, amount: amt,
         price: price ? parseFloat(price) : livePrice,
@@ -255,9 +260,13 @@ const DashboardTrading = () => {
         status: "open",
       });
       if (error) throw error;
+
+      // Deduct from wallet
+      await supabase.from("profiles").update({ wallet_balance: walletBal - amt }).eq("user_id", user!.id);
     },
     onSuccess: (_, tradeSide) => {
       queryClient.invalidateQueries({ queryKey: ["trades-open", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
       toast.success(`${tradeSide === "buy" ? "Buy" : "Sell"} order placed for ${selectedPair}`);
       setAmount(""); setPrice(""); setTp(""); setSl("");
     },
@@ -266,12 +275,33 @@ const DashboardTrading = () => {
 
   const closeTrade = useMutation({
     mutationFn: async (tradeId: string) => {
-      const { error } = await supabase.from("trades").update({ status: "closed", closed_at: new Date().toISOString() }).eq("id", tradeId);
+      const trade = (openTrades ?? []).find(t => t.id === tradeId);
+      if (!trade) throw new Error("Trade not found");
+
+      // Simulate a realistic P&L based on trade amount (-10% to +15%)
+      const pnlPct = (Math.random() * 0.25) - 0.10; // -10% to +15%
+      const pnl = Number(trade.amount) * pnlPct;
+      const roundedPnl = Math.round(pnl * 100) / 100;
+
+      const { error } = await supabase.from("trades").update({
+        status: "closed",
+        closed_at: new Date().toISOString(),
+        pnl: roundedPnl,
+      }).eq("id", tradeId);
       if (error) throw error;
+
+      // Update wallet balance with P&L
+      const { data: prof } = await supabase.from("profiles").select("wallet_balance").eq("user_id", user!.id).single();
+      if (prof) {
+        const newBalance = Number(prof.wallet_balance) + Number(trade.amount) + roundedPnl;
+        await supabase.from("profiles").update({ wallet_balance: Math.max(0, newBalance) }).eq("user_id", user!.id);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trades-open", user?.id] });
-      toast.success("Position closed.");
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.invalidateQueries({ queryKey: ["trades"] });
+      toast.success("Position closed. P&L applied to wallet.");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -469,17 +499,14 @@ const DashboardTrading = () => {
                 </div>
               </div>
 
-              {/* Estimated Profit */}
+              {/* Trade Info */}
               {parsedAmount > 0 && (
-                <div className="p-3 rounded-lg bg-success/5 border border-success/20 space-y-1">
+                <div className="p-3 rounded-lg bg-muted/30 border border-border space-y-1">
                   <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Est. Profit (2.5%)</span>
-                    <span className="text-success font-semibold font-mono">+{fmt(estimatedProfit)}</span>
+                    <span className="text-muted-foreground">Trade Size</span>
+                    <span className="text-foreground font-medium font-mono">{fmt(parsedAmount)}</span>
                   </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Total Return</span>
-                    <span className="text-foreground font-medium font-mono">{fmt(parsedAmount + estimatedProfit)}</span>
-                  </div>
+                  <p className="text-[10px] text-muted-foreground">Actual returns depend on market conditions. You may lose part or all of your capital.</p>
                 </div>
               )}
 

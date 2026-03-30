@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Bell } from "lucide-react";
+import { useState } from "react";
+import { Bell, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -103,6 +103,26 @@ export const NotificationBell = () => {
     },
   });
 
+  const deleteNotificationMutation = useMutation({
+    mutationFn: async (notificationId: string) => {
+      if (!user) return;
+      // Mark as read and "dismissed" by upserting read status
+      await supabase.from("user_notifications").upsert(
+        {
+          user_id: user.id,
+          notification_id: notificationId,
+          is_read: true,
+          read_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,notification_id" }
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["all-notifications"] });
+    },
+  });
+
   const handleNotificationClick = (n: Notification) => {
     if (!n.is_read) markReadMutation.mutate(n.notification_id);
     setSelectedNotification({ ...n, is_read: true });
@@ -126,14 +146,16 @@ export const NotificationBell = () => {
         <PopoverContent className="w-80 p-0" align="end">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border">
             <h4 className="text-sm font-semibold text-foreground">Notifications</h4>
-            {unreadCount > 0 && (
-              <button
-                onClick={() => markAllReadMutation.mutate()}
-                className="text-xs text-primary hover:underline"
-              >
-                Mark all read
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {unreadCount > 0 && (
+                <button
+                  onClick={() => markAllReadMutation.mutate()}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Mark all read
+                </button>
+              )}
+            </div>
           </div>
           <div className="relative">
             <ScrollArea className="max-h-[60vh] sm:max-h-80" style={{ scrollBehavior: 'smooth' }}>
@@ -141,26 +163,40 @@ export const NotificationBell = () => {
                 <p className="text-sm text-muted-foreground text-center py-8">No notifications</p>
               ) : (
                 notifications.map((n) => (
-                  <button
+                  <div
                     key={n.id}
-                    onClick={() => handleNotificationClick(n)}
-                    className={`w-full text-left px-4 py-3 border-b border-border/50 last:border-0 transition-colors hover:bg-muted/50 ${
+                    className={`relative group w-full text-left px-4 py-3 border-b border-border/50 last:border-0 transition-colors hover:bg-muted/50 ${
                       !n.is_read ? "bg-primary/5" : ""
                     }`}
                   >
-                    <div className="flex items-start gap-2">
-                      {!n.is_read && (
-                        <span className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />
-                      )}
-                      <div className={!n.is_read ? "" : "pl-4"}>
-                        <p className="text-sm font-medium text-foreground">{n.title}</p>
-                        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.message}</p>
-                        <p className="text-xs text-muted-foreground/70 mt-1">
-                          {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
-                        </p>
+                    <button
+                      onClick={() => handleNotificationClick(n)}
+                      className="w-full text-left"
+                    >
+                      <div className="flex items-start gap-2 pr-6">
+                        {!n.is_read && (
+                          <span className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />
+                        )}
+                        <div className={!n.is_read ? "" : "pl-4"}>
+                          <p className="text-sm font-medium text-foreground">{n.title}</p>
+                          <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.message}</p>
+                          <p className="text-xs text-muted-foreground/70 mt-1">
+                            {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </button>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteNotificationMutation.mutate(n.notification_id);
+                      }}
+                      className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-destructive/10"
+                      title="Dismiss"
+                    >
+                      <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                    </button>
+                  </div>
                 ))
               )}
             </ScrollArea>

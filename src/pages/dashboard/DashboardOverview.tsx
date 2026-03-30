@@ -134,7 +134,7 @@ const DashboardOverview = () => {
   const { data: profitLogs } = useQuery({
     queryKey: ["profit_logs", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("profit_logs").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(10);
+      const { data } = await supabase.from("profit_logs").select("*").eq("user_id", user!.id).order("created_at", { ascending: false });
       return data ?? [];
     },
     enabled: !!user,
@@ -163,6 +163,15 @@ const DashboardOverview = () => {
     queryFn: async () => {
       const { data } = await supabase.from("kyc_verifications").select("status").eq("user_id", user!.id).order("submitted_at", { ascending: false }).limit(1).maybeSingle();
       return data?.status || null;
+    },
+    enabled: !!user,
+  });
+
+  const { data: allTrades } = useQuery({
+    queryKey: ["all_trades", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("trades").select("*").eq("user_id", user!.id);
+      return data ?? [];
     },
     enabled: !!user,
   });
@@ -200,9 +209,17 @@ const DashboardOverview = () => {
   const activeInvestments = (investments ?? []).filter(i => i.status === "active");
   const totalInvested = activeInvestments.reduce((s, i) => s + Number(i.amount), 0);
   const totalCurrentValue = activeInvestments.reduce((s, i) => s + Number(i.current_value), 0);
-  const totalProfit = totalCurrentValue - totalInvested + (profitLogs ?? []).reduce((s, l) => s + Number(l.amount), 0);
+  // Total profit = all profit logs + trade P&L (no double-counting investment unrealized gains)
+  const totalProfitFromLogs = (profitLogs ?? []).reduce((s, l) => s + Number(l.amount), 0);
+  const tradePnl = (allTrades ?? []).filter(t => t.status === "closed").reduce((s, t) => s + Number(t.pnl ?? 0), 0);
+  const totalProfit = totalProfitFromLogs + tradePnl;
   const activeSignals = (signalSubs ?? []).filter(s => new Date(s.expires_at) > new Date()).length;
   const activeCopyTrades = (copyTrades ?? []).length;
+
+  // Win rate from real closed trades
+  const closedTrades = (allTrades ?? []).filter(t => t.status === "closed");
+  const winCount = closedTrades.filter(t => Number(t.pnl ?? 0) > 0).length;
+  const winRate = closedTrades.length > 0 ? Math.round((winCount / closedTrades.length) * 100) : 0;
 
   const { format } = useCurrency();
   const fmt = (n: number) => format(n);
