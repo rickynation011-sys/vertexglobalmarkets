@@ -459,6 +459,44 @@ const AdminProfitLoss = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Process Profits Confirmation Dialog */}
+      <Dialog open={profitConfirmDialog} onOpenChange={setProfitConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-warning" />
+              Confirm Daily Profit Processing
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to process daily profits? This will:
+            </p>
+            <ul className="text-sm text-muted-foreground list-disc pl-5 space-y-1">
+              <li>Calculate profit for <strong>all active investments</strong></li>
+              <li>Credit profits to each user's <strong>balance and P&L</strong></li>
+              <li>Mark expired investments as completed</li>
+            </ul>
+            <p className="text-xs text-muted-foreground">
+              Profits can only be distributed once per day per user. This action is logged and cannot be reversed automatically.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setProfitConfirmDialog(false)}>Cancel</Button>
+            <Button
+              onClick={() => {
+                setProfitConfirmDialog(false);
+                handleProcessDailyProfits();
+              }}
+              disabled={processingProfits}
+              className="bg-success text-success-foreground hover:bg-success/90"
+            >
+              {processingProfits ? "Processing..." : "Yes, Process Profits"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
