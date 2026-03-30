@@ -135,34 +135,39 @@ export const NotificationBell = () => {
               </button>
             )}
           </div>
-          <ScrollArea className="max-h-80 sm:max-h-80 max-h-[60vh]" style={{ scrollBehavior: 'smooth' }}>
-            {notifications.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No notifications</p>
-            ) : (
-              notifications.map((n) => (
-                <button
-                  key={n.id}
-                  onClick={() => handleNotificationClick(n)}
-                  className={`w-full text-left px-4 py-3 border-b border-border/50 last:border-0 transition-colors hover:bg-muted/50 ${
-                    !n.is_read ? "bg-primary/5" : ""
-                  }`}
-                >
-                  <div className="flex items-start gap-2">
-                    {!n.is_read && (
-                      <span className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />
-                    )}
-                    <div className={!n.is_read ? "" : "pl-4"}>
-                      <p className="text-sm font-medium text-foreground">{n.title}</p>
-                      <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.message}</p>
-                      <p className="text-xs text-muted-foreground/70 mt-1">
-                        {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
-                      </p>
+          <div className="relative">
+            <ScrollArea className="max-h-[60vh] sm:max-h-80" style={{ scrollBehavior: 'smooth' }}>
+              {notifications.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">No notifications</p>
+              ) : (
+                notifications.map((n) => (
+                  <button
+                    key={n.id}
+                    onClick={() => handleNotificationClick(n)}
+                    className={`w-full text-left px-4 py-3 border-b border-border/50 last:border-0 transition-colors hover:bg-muted/50 ${
+                      !n.is_read ? "bg-primary/5" : ""
+                    }`}
+                  >
+                    <div className="flex items-start gap-2">
+                      {!n.is_read && (
+                        <span className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />
+                      )}
+                      <div className={!n.is_read ? "" : "pl-4"}>
+                        <p className="text-sm font-medium text-foreground">{n.title}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{n.message}</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">
+                          {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))
+                  </button>
+                ))
+              )}
+            </ScrollArea>
+            {notifications.length > 3 && (
+              <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-popover to-transparent rounded-b-md" />
             )}
-          </ScrollArea>
+          </div>
         </PopoverContent>
       </Popover>
 
