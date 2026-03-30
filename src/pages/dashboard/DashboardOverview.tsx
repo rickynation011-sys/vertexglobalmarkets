@@ -265,10 +265,8 @@ const DashboardOverview = () => {
   const firstName = profile?.full_name?.split(" ")[0] || user?.email?.split("@")[0] || "User";
   const recentTx = (transactions ?? []).slice(0, 5);
 
-  // Equity = wallet balance + active investment current values
-  const equity = walletBalance + totalCurrentValue;
-  const margin = totalInvested;
-  const freeMargin = Math.max(0, walletBalance);
+
+
 
   const kycLabel = kycStatus === "approved" ? "Verified" : kycStatus === "pending" ? "Pending" : "Not Verified";
   const kycColor = kycStatus === "approved" ? "border-success/30 text-success" : kycStatus === "pending" ? "border-warning/30 text-warning" : "border-muted-foreground/30 text-muted-foreground";
@@ -316,31 +314,29 @@ const DashboardOverview = () => {
         <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Equity</span>
-              <BarChart3 className="h-4 w-4 text-primary" />
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Total Deposited</span>
+              <ArrowDown className="h-4 w-4 text-success" />
             </div>
-            <div className="text-lg font-display font-bold text-foreground">{fmt(equity)}</div>
-            <p className="text-[10px] text-muted-foreground">Balance + positions</p>
+            <div className="text-lg font-display font-bold text-success">{fmt(totalDeposited)}</div>
           </CardContent>
         </Card>
         <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Margin</span>
-              <Briefcase className="h-4 w-4 text-accent-foreground" />
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Total Withdrawn</span>
+              <ArrowUp className="h-4 w-4 text-warning" />
             </div>
-            <div className="text-lg font-display font-bold text-foreground">{fmt(margin)}</div>
-            <p className="text-[10px] text-muted-foreground">In active positions</p>
+            <div className="text-lg font-display font-bold text-foreground">{fmt(totalWithdrawn)}</div>
           </CardContent>
         </Card>
         <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Free Margin</span>
-              <Wallet className="h-4 w-4 text-success" />
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Investments</span>
+              <Briefcase className="h-4 w-4 text-primary" />
             </div>
-            <div className="text-lg font-display font-bold text-foreground">{fmt(freeMargin)}</div>
-            <p className="text-[10px] text-muted-foreground">Available to trade</p>
+            <div className="text-lg font-display font-bold text-foreground">{fmt(totalInvested)}</div>
+            <p className="text-[10px] text-muted-foreground">{activeInvestments.length} active</p>
           </CardContent>
         </Card>
         <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/portfolio")}>
