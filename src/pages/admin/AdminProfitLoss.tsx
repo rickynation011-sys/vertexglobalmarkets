@@ -198,10 +198,76 @@ const AdminProfitLoss = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-display font-bold text-foreground">Profit & Loss Manager</h1>
-        <p className="text-muted-foreground text-sm">Credit or debit user profits with full transaction audit trail</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-foreground">Profit & Loss Manager</h1>
+          <p className="text-muted-foreground text-sm">Credit or debit user profits with full transaction audit trail</p>
+        </div>
       </div>
+
+      {/* Process Daily Profits Section */}
+      <Card className="bg-card border-border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <Play className="h-4 w-4 text-primary" />
+            Process Daily Profits
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Manually trigger the daily profit processor. This will calculate and credit profits for all users with active investments, updating their balance and P&L in real-time.
+          </p>
+          <Button
+            onClick={handleProcessDailyProfits}
+            disabled={processingProfits}
+            className="bg-gradient-to-r from-primary to-primary/80"
+          >
+            {processingProfits ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing All Users...
+              </>
+            ) : (
+              <>
+                <Play className="mr-2 h-4 w-4" />
+                Run Daily Profit Processing
+              </>
+            )}
+          </Button>
+
+          {/* Processing Logs */}
+          {(processingLogs ?? []).length > 0 && (
+            <div className="space-y-2 mt-4">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Recent Processing Runs</p>
+              <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                {(processingLogs ?? []).map(log => (
+                  <div key={log.id} className="flex items-center justify-between p-2.5 rounded-lg bg-muted/30 border border-border/50 text-xs">
+                    <div className="flex items-center gap-2">
+                      {log.status === "success" ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
+                      ) : (
+                        <XCircle className="h-3.5 w-3.5 text-destructive shrink-0" />
+                      )}
+                      <span className="text-foreground">
+                        {log.processed_count} investments · {fmt(Number(log.total_profit))} profit
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Badge variant="outline" className="text-[10px]">
+                        {log.triggered_by || "cron"}
+                      </Badge>
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {new Date(log.created_at).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Adjustment Form */}
