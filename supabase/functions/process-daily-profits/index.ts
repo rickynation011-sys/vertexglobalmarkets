@@ -22,6 +22,8 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const nowUtc = new Date();
+    const trigger = req.headers.get("x-trigger") || "cron";
+    const isManual = trigger === "admin-manual";
 
     // Get distinct user_ids with active investments, joined with their timezone & last processed date
     const { data: activeUsers, error: usersErr } = await supabase
