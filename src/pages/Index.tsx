@@ -50,6 +50,7 @@ const Index = () => {
       <InvestorsLeaderboard />
       <SecuritySection />
       <PlatformFeaturesSection />
+      <TransparencySection />
       <TestimonialsSection />
       <ExtendedTestimonials />
       <CTASection />
