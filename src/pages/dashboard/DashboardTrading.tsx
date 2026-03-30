@@ -266,12 +266,33 @@ const DashboardTrading = () => {
 
   const closeTrade = useMutation({
     mutationFn: async (tradeId: string) => {
-      const { error } = await supabase.from("trades").update({ status: "closed", closed_at: new Date().toISOString() }).eq("id", tradeId);
+      const trade = (openTrades ?? []).find(t => t.id === tradeId);
+      if (!trade) throw new Error("Trade not found");
+
+      // Simulate a realistic P&L based on trade amount (-10% to +15%)
+      const pnlPct = (Math.random() * 0.25) - 0.10; // -10% to +15%
+      const pnl = Number(trade.amount) * pnlPct;
+      const roundedPnl = Math.round(pnl * 100) / 100;
+
+      const { error } = await supabase.from("trades").update({
+        status: "closed",
+        closed_at: new Date().toISOString(),
+        pnl: roundedPnl,
+      }).eq("id", tradeId);
       if (error) throw error;
+
+      // Update wallet balance with P&L
+      const { data: prof } = await supabase.from("profiles").select("wallet_balance").eq("user_id", user!.id).single();
+      if (prof) {
+        const newBalance = Number(prof.wallet_balance) + Number(trade.amount) + roundedPnl;
+        await supabase.from("profiles").update({ wallet_balance: Math.max(0, newBalance) }).eq("user_id", user!.id);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trades-open", user?.id] });
-      toast.success("Position closed.");
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.invalidateQueries({ queryKey: ["trades"] });
+      toast.success("Position closed. P&L applied to wallet.");
     },
     onError: (e: Error) => toast.error(e.message),
   });
