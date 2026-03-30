@@ -102,8 +102,9 @@ const DashboardWallet = () => {
     enabled: !!user,
   });
 
-  const completedDeposits = (transactions ?? []).filter(t => t.type === "deposit" && t.status === "completed");
-  const completedWithdrawals = (transactions ?? []).filter(t => t.type === "withdrawal" && t.status === "completed");
+  const isSuccessful = (status: string) => status === "completed" || status === "approved";
+  const completedDeposits = (transactions ?? []).filter(t => t.type === "deposit" && isSuccessful(t.status));
+  const completedWithdrawals = (transactions ?? []).filter(t => t.type === "withdrawal" && isSuccessful(t.status));
   const totalDeposited = completedDeposits.reduce((s, t) => s + Number(t.amount), 0);
   const totalWithdrawn = completedWithdrawals.reduce((s, t) => s + Number(t.amount), 0);
   const walletBalance = Number(profile?.wallet_balance ?? 0);

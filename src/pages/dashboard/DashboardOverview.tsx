@@ -221,13 +221,19 @@ const DashboardOverview = () => {
     milestone,
   } = useProfitSimulation(investments as any, walletBalance);
 
+  const isSuccessful = (status: string) => status === "completed" || status === "approved";
+
+  const totalDeposited = (transactions ?? []).filter(t => t.type === "deposit" && isSuccessful(t.status)).reduce((s, t) => s + Number(t.amount), 0);
+  const totalWithdrawn = (transactions ?? []).filter(t => t.type === "withdrawal" && isSuccessful(t.status)).reduce((s, t) => s + Number(t.amount), 0);
+  const availableBalance = walletBalance - totalInvested;
+
   const portfolioData = (() => {
     const allTxns = [...(transactions ?? [])].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     if (allTxns.length === 0) return [{ date: "Now", value: walletBalance }];
     let running = 0;
     return allTxns.map(t => {
-      if (t.type === "deposit" && t.status === "completed") running += Number(t.amount);
-      if (t.type === "withdrawal" && t.status === "completed") running -= Number(t.amount);
+      if (t.type === "deposit" && isSuccessful(t.status)) running += Number(t.amount);
+      if (t.type === "withdrawal" && isSuccessful(t.status)) running -= Number(t.amount);
       return { date: new Date(t.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }), value: running };
     });
   })();
