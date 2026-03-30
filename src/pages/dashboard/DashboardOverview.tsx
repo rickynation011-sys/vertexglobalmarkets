@@ -134,6 +134,7 @@ const DashboardOverview = () => {
     },
     enabled: !!user,
     staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: profitLogs } = useQuery({
