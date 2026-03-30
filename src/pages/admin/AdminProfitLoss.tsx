@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { DollarSign, TrendingUp, TrendingDown, Search, ArrowUpDown, AlertTriangle } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Search, ArrowUpDown, AlertTriangle, Play, Loader2, Clock, CheckCircle2, XCircle } from "lucide-react";
 
 const AdminProfitLoss = () => {
   const { user } = useAuth();
