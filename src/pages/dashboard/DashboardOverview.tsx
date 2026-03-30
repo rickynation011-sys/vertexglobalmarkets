@@ -340,11 +340,13 @@ const DashboardOverview = () => {
         <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Investments</span>
-              <Briefcase className="h-4 w-4 text-primary" />
+              <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Investment Profit</span>
+              <TrendingUp className="h-4 w-4 text-success" />
             </div>
-            <div className="text-lg font-display font-bold text-foreground">{fmt(totalInvested)}</div>
-            <p className="text-[10px] text-muted-foreground">{activeInvestments.length} active</p>
+            <div className={`text-lg font-display font-bold ${investmentProfit >= 0 ? "text-success" : "text-destructive"}`}>
+              {investmentProfit >= 0 ? "+" : ""}{fmt(investmentProfit)}
+            </div>
+            <p className="text-[10px] text-muted-foreground">{activeInvestments.length} active plans</p>
           </CardContent>
         </Card>
         <Card className="bg-card border-border hover:border-primary/30 transition-colors cursor-pointer" onClick={() => navigate("/dashboard/portfolio")}>
