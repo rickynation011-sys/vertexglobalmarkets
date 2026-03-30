@@ -119,12 +119,40 @@ const DashboardWallet = () => {
   const selectedDepositMethod = (depositMethods ?? []).find(m => m.id === depositMethodId);
   const selectedWithdrawMethod = (depositMethods ?? []).find(m => m.id === withdrawMethodId);
 
+  const handleProofFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowed = ["image/jpeg", "image/png", "application/pdf"];
+    if (!allowed.includes(file.type)) { toast.error("Only JPG, PNG, or PDF files allowed"); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error("File must be under 10MB"); return; }
+    setProofFile(file);
+    if (file.type.startsWith("image/")) {
+      setProofPreview(URL.createObjectURL(file));
+    } else {
+      setProofPreview(null);
+    }
+  };
+
+  const uploadProofFile = async (): Promise<string | null> => {
+    if (!proofFile || !user) return null;
+    const ext = proofFile.name.split(".").pop() || "jpg";
+    const path = `${user.id}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("deposit-proofs").upload(path, proofFile);
+    if (error) throw new Error("Failed to upload proof: " + error.message);
+    return path;
+  };
+
   const depositMutation = useMutation({
     mutationFn: async () => {
       const amt = parseFloat(depositAmount);
       if (!amt || amt <= 0) throw new Error("Enter a valid amount");
       if (!selectedDepositMethod) throw new Error("Select a payment method");
+      if (!proofFile) throw new Error("Please upload payment proof");
       const method = `${selectedDepositMethod.currency}${selectedDepositMethod.network ? ` (${selectedDepositMethod.network})` : ""}`;
+      
+      // Upload proof first
+      const proofPath = await uploadProofFile();
+      
       const { error } = await supabase.from("transactions").insert({
         user_id: user!.id,
         type: "deposit",
@@ -132,7 +160,8 @@ const DashboardWallet = () => {
         amount: amt,
         currency: selectedDepositMethod.currency,
         status: "pending",
-      });
+        proof_url: proofPath,
+      } as any);
       if (error) throw error;
 
       // Send deposit confirmation email to user
