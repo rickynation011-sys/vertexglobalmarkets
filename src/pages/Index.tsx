@@ -19,6 +19,7 @@ import LiveActivityFeed from "@/components/LiveActivityFeed";
 import TrustIndicators from "@/components/TrustIndicators";
 import TransparencySection from "@/components/TransparencySection";
 import HowItWorksSection from "@/components/HowItWorksSection";
+import ContactSupportSection from "@/components/ContactSupportSection";
 
 const Index = () => {
   return (
