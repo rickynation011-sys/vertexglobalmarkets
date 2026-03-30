@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 
 interface DepositMethod {
@@ -77,6 +77,23 @@ const DashboardFeePayment = () => {
     enabled: !!user,
   });
 
+  // Real-time subscription for fee_payments updates
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('fee-payments-user')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'fee_payments',
+        filter: `user_id=eq.${user.id}`,
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: ["fee_payments", user.id] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, queryClient]);
+
   const totalProfit = (profitLogs ?? []).reduce((s, l) => s + Number(l.amount), 0);
   const processingFee = totalProfit * 0.10;
   const selectedMethod = (depositMethods ?? []).find((m) => m.id === selectedMethodId);
@@ -92,17 +109,17 @@ const DashboardFeePayment = () => {
 
       setUploading(true);
 
-      // Upload proof
+      // Upload proof to dedicated fee-proofs bucket
       const fileExt = proofFile.name.split(".").pop();
-      const filePath = `${user!.id}/fee-proofs/${Date.now()}.${fileExt}`;
+      const filePath = `${user!.id}/${Date.now()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
-        .from("ticket-attachments")
+        .from("fee-proofs")
         .upload(filePath, proofFile);
       if (uploadError) throw uploadError;
 
       const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-        .from("ticket-attachments")
-        .createSignedUrl(filePath, 60 * 60 * 24 * 365); // 1 year
+        .from("fee-proofs")
+        .createSignedUrl(filePath, 60 * 60 * 24 * 365 * 5); // 5 years
       if (signedUrlError) throw signedUrlError;
 
       const methodLabel = `${selectedMethod.currency}${selectedMethod.network ? ` (${selectedMethod.network})` : ""}`;
