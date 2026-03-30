@@ -340,7 +340,7 @@ const DashboardOverview = () => {
             </div>
             <div className="flex items-center justify-between gap-2">
               <div className="text-lg font-display font-bold text-foreground">
-                {fmt(walletBalance)}
+                <AnimatedBalance value={displayBalance} format={fmt} flash={lastFlash && lastFlash.type === "balance" ? { amount: lastFlash.amount, ts: lastFlash.ts } : null} />
               </div>
               <BalanceSparkline data={balanceHistory} />
             </div>
