@@ -17,9 +17,11 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import BalanceSparkline from "@/components/dashboard/BalanceSparkline";
+import AnimatedBalance from "@/components/dashboard/AnimatedBalance";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useMarketPrices } from "@/hooks/useMarketPrices";
+import { useProfitSimulation } from "@/hooks/useProfitSimulation";
 
 // ─── Investment Categories ───
 const investmentCategories = [
@@ -60,12 +62,12 @@ function useCountdown(targetDate: string) {
   return timeLeft;
 }
 
-function ActiveInvestmentRow({ inv }: { inv: any }) {
+function ActiveInvestmentRow({ inv, getSimulatedValue }: { inv: any; getSimulatedValue?: (inv: any) => number }) {
   const timeLeft = useCountdown(inv.ends_at);
   const startMs = new Date(inv.started_at).getTime();
   const endMs = new Date(inv.ends_at).getTime();
   const elapsed = Math.min(100, Math.max(0, ((Date.now() - startMs) / (endMs - startMs)) * 100));
-  const currentValue = Number(inv.current_value);
+  const currentValue = getSimulatedValue ? getSimulatedValue(inv) : Number(inv.current_value);
   const profit = currentValue - Number(inv.amount);
   const { format } = useCurrency();
   const fmt = (n: number) => format(n);
@@ -234,6 +236,21 @@ const DashboardOverview = () => {
   const activeSignals = (signalSubs ?? []).filter(s => new Date(s.expires_at) > new Date()).length;
   const activeCopyTrades = (copyTrades ?? []).length;
 
+  // Live profit simulation - profits tick up in real-time between admin processing runs
+  const {
+    simulatedBalance,
+    getSimulatedCurrentValue,
+    totalSimulatedProfit,
+    walletBonus,
+    lastFlash,
+    balanceHistory: simBalanceHistory,
+  } = useProfitSimulation(investments ?? [], walletBalance);
+
+  // Display values include live simulation
+  const displayBalance = simulatedBalance;
+  const displayInvestmentProfit = investmentProfit + totalSimulatedProfit;
+  const displayTotalProfit = totalProfit + totalSimulatedProfit;
+
   // Win rate from real closed trades
   const closedTrades = (allTrades ?? []).filter(t => t.status === "closed");
   const winCount = closedTrades.filter(t => Number(t.pnl ?? 0) > 0).length;
@@ -242,8 +259,8 @@ const DashboardOverview = () => {
   const { format } = useCurrency();
   const fmt = (n: number) => format(n);
 
-  // Build real balance history from transactions + profit logs for sparkline
-  const balanceHistory = (() => {
+  // Use simulation balance history for sparkline if available, fall back to DB history
+  const balanceHistory = simBalanceHistory.length > 1 ? simBalanceHistory : (() => {
     const events: { date: number; delta: number }[] = [];
     (transactions ?? []).forEach(t => {
       if (t.type === "deposit" && (t.status === "completed" || t.status === "approved"))
@@ -258,7 +275,6 @@ const DashboardOverview = () => {
     if (events.length === 0) return [walletBalance];
     let running = 0;
     const points = events.map(e => { running += e.delta; return running; });
-    // Ensure last point matches current wallet balance
     points.push(walletBalance);
     return points.slice(-30);
   })();
@@ -324,7 +340,7 @@ const DashboardOverview = () => {
             </div>
             <div className="flex items-center justify-between gap-2">
               <div className="text-lg font-display font-bold text-foreground">
-                {fmt(walletBalance)}
+                <AnimatedBalance value={displayBalance} format={fmt} flash={lastFlash && lastFlash.type === "balance" ? { amount: lastFlash.amount, ts: lastFlash.ts } : null} />
               </div>
               <BalanceSparkline data={balanceHistory} />
             </div>
@@ -354,8 +370,8 @@ const DashboardOverview = () => {
               <span className="text-[11px] text-muted-foreground uppercase tracking-wide">Investment Profit</span>
               <TrendingUp className="h-4 w-4 text-success" />
             </div>
-            <div className={`text-lg font-display font-bold ${investmentProfit >= 0 ? "text-success" : "text-destructive"}`}>
-              {investmentProfit >= 0 ? "+" : ""}{fmt(investmentProfit)}
+            <div className={`text-lg font-display font-bold ${displayInvestmentProfit >= 0 ? "text-success" : "text-destructive"}`}>
+              <AnimatedBalance value={displayInvestmentProfit} format={(n) => `${n >= 0 ? "+" : ""}${fmt(n)}`} flash={lastFlash && lastFlash.type === "profit" ? { amount: lastFlash.amount, ts: lastFlash.ts } : null} />
             </div>
             <p className="text-[10px] text-muted-foreground">{activeInvestments.length} active plans</p>
           </CardContent>
@@ -366,11 +382,11 @@ const DashboardOverview = () => {
               <span className="text-[11px] text-muted-foreground uppercase tracking-wide">P&L</span>
               <TrendingUp className="h-4 w-4 text-success" />
             </div>
-            <div className={`text-lg font-display font-bold ${totalProfit >= 0 ? "text-success" : "text-destructive"}`}>
-              {totalProfit >= 0 ? "+" : ""}{fmt(totalProfit)}
+            <div className={`text-lg font-display font-bold ${displayTotalProfit >= 0 ? "text-success" : "text-destructive"}`}>
+              <AnimatedBalance value={displayTotalProfit} format={(n) => `${n >= 0 ? "+" : ""}${fmt(n)}`} flash={null} />
             </div>
-            <div className={`flex items-center gap-1 text-[10px] ${totalProfit >= 0 ? "text-success" : "text-destructive"}`}>
-              {totalProfit >= 0 ? <ArrowUp className="h-2.5 w-2.5" /> : <ArrowDown className="h-2.5 w-2.5" />}
+            <div className={`flex items-center gap-1 text-[10px] ${displayTotalProfit >= 0 ? "text-success" : "text-destructive"}`}>
+              {displayTotalProfit >= 0 ? <ArrowUp className="h-2.5 w-2.5" /> : <ArrowDown className="h-2.5 w-2.5" />}
               Total P&L
             </div>
           </CardContent>
@@ -452,7 +468,7 @@ const DashboardOverview = () => {
           </CardHeader>
           <CardContent className="space-y-2">
             {activeInvestments.slice(0, 5).map((inv) => (
-              <ActiveInvestmentRow key={inv.id} inv={inv} />
+              <ActiveInvestmentRow key={inv.id} inv={inv} getSimulatedValue={getSimulatedCurrentValue} />
             ))}
             {activeInvestments.length > 5 && (
               <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground" onClick={() => navigate("/dashboard/investments")}>
