@@ -3,45 +3,36 @@ import StaticPageLayout from "@/layouts/StaticPageLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { CheckCircle, Shield, Clock, TrendingUp, Gem, Rocket, Crown, Landmark } from "lucide-react";
+import { CheckCircle, Shield, Clock, TrendingUp, Gem, Rocket, Crown } from "lucide-react";
 
 const plans = [
   {
-    name: "Starter Growth",
+    name: "Starter Plan",
     icon: Gem,
-    minInvestment: "$500",
+    minInvestment: "$200",
     duration: "30 days",
-    dailyRate: "0.17–0.27%",
-    expectedReturn: "5–8%",
-    features: ["Capital protection guarantee", "Daily interest accrual", "Withdraw anytime after maturity", "Email performance reports"],
+    dailyRate: "1% – 2%",
+    expectedReturn: "Variable",
+    features: ["Daily interest accrual", "Withdraw anytime after maturity", "Email performance reports", "Capital monitoring tools"],
   },
   {
-    name: "Balanced Portfolio",
+    name: "Growth Plan",
     icon: Rocket,
-    minInvestment: "$2,500",
-    duration: "90 days",
-    dailyRate: "0.13–0.20%",
-    expectedReturn: "12–18%",
-    features: ["Diversified asset allocation", "AI rebalancing", "Weekly performance reports", "Priority withdrawal processing", "Dedicated account manager"],
+    minInvestment: "$500",
+    duration: "60 days",
+    dailyRate: "1.5% – 2.5%",
+    expectedReturn: "Variable",
+    features: ["Diversified asset allocation", "AI-assisted rebalancing", "Weekly performance reports", "Priority withdrawal processing", "Dedicated account manager"],
     popular: true,
   },
   {
-    name: "Aggressive Growth",
+    name: "Advanced Plan",
     icon: Crown,
-    minInvestment: "$10,000",
-    duration: "180 days",
-    dailyRate: "0.11–0.19%",
-    expectedReturn: "20–35%",
-    features: ["High-yield strategies", "Leveraged positions", "Daily analytics dashboard", "VIP support line", "Custom risk parameters", "Early withdrawal option"],
-  },
-  {
-    name: "Institutional",
-    icon: Landmark,
-    minInvestment: "$50,000",
-    duration: "365 days",
-    dailyRate: "0.07–0.12%",
-    expectedReturn: "25–45%",
-    features: ["Custom portfolio construction", "Direct market access", "Quarterly strategy reviews", "Tax optimization support", "Dedicated trading desk", "API integration"],
+    minInvestment: "$1,000",
+    duration: "90 days",
+    dailyRate: "2% – 3%",
+    expectedReturn: "Variable",
+    features: ["Advanced trading strategies", "Daily analytics dashboard", "VIP support line", "Custom risk parameters", "Early withdrawal option", "Priority processing"],
   },
 ];
 
@@ -66,7 +57,7 @@ const Plans = () => (
         </div>
 
         {/* Plans Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
           {plans.map((plan) => (
             <Card
               key={plan.name}
@@ -82,30 +73,21 @@ const Plans = () => (
                 </span>
               )}
               <CardContent className="flex flex-col flex-1 p-4 md:p-6 pt-6 md:pt-8">
-                {/* Icon */}
                 <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gold/10">
                   <plan.icon className="h-6 w-6 text-gold" />
                 </div>
-
-                {/* Name */}
                 <h3 className="text-sm md:text-lg font-display font-bold text-foreground text-center mb-1">
                   {plan.name}
                 </h3>
-
-                {/* Min investment */}
                 <p className="text-xs text-muted-foreground text-center mb-3">
                   {plan.minInvestment} min
                 </p>
-
-                {/* Daily rate */}
                 <p className="text-xl md:text-2xl font-display font-bold text-center text-success mb-1">
                   {plan.dailyRate}
                 </p>
                 <p className="text-[10px] md:text-xs text-muted-foreground text-center mb-4">
-                  daily · {plan.expectedReturn} total · {plan.duration}
+                  daily (variable) · {plan.duration}
                 </p>
-
-                {/* Features */}
                 <ul className="space-y-1.5 mb-6 flex-1">
                   {plan.features.map((f) => (
                     <li key={f} className="text-[10px] md:text-xs text-muted-foreground flex items-start gap-1.5">
@@ -113,8 +95,6 @@ const Plans = () => (
                     </li>
                   ))}
                 </ul>
-
-                {/* Button pinned to bottom */}
                 <Button
                   className={`w-full mt-auto ${
                     plan.popular
@@ -130,6 +110,10 @@ const Plans = () => (
             </Card>
           ))}
         </div>
+
+        <p className="text-sm text-muted-foreground text-center mb-20 italic">
+          All returns are estimates based on market conditions and are not guaranteed.
+        </p>
 
         {/* Benefits */}
         <h2 className="text-2xl font-display font-bold text-foreground text-center mb-10">Why Invest With Us</h2>
