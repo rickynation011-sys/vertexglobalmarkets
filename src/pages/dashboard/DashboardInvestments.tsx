@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { TrendingUp, Shield, Zap, Crown, Star, Target, Building2, DollarSign, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -33,6 +33,8 @@ const DashboardInvestments = () => {
       return data;
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: investments } = useQuery({
@@ -42,6 +44,8 @@ const DashboardInvestments = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: profitLogs } = useQuery({
@@ -56,6 +60,8 @@ const DashboardInvestments = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   // Fetch dynamic plans from platform_settings (admin-editable)
@@ -226,7 +232,7 @@ const DashboardInvestments = () => {
                 <tbody>
                   {activeInvestments.map((inv) => {
                     const daysLeft = Math.max(0, Math.ceil((new Date(inv.ends_at).getTime() - Date.now()) / 86400000));
-                    const dailyProfit = Number(inv.amount) * (Number(inv.daily_rate ?? 0) / 365);
+                    const dailyProfit = Number(inv.amount) * (Number(inv.daily_rate ?? 0) / 100);
                     return (
                       <tr key={inv.id} className="border-b border-border/50 last:border-0">
                         <td className="py-3 font-medium text-foreground">{inv.plan_name}</td>

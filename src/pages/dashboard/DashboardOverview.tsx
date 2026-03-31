@@ -21,7 +21,6 @@ import AnimatedBalance from "@/components/dashboard/AnimatedBalance";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useMarketPrices } from "@/hooks/useMarketPrices";
-import { useProfitSimulation } from "@/hooks/useProfitSimulation";
 
 // ─── Investment Categories ───
 const investmentCategories = [
@@ -62,12 +61,12 @@ function useCountdown(targetDate: string) {
   return timeLeft;
 }
 
-function ActiveInvestmentRow({ inv, getSimulatedValue }: { inv: any; getSimulatedValue?: (inv: any) => number }) {
+function ActiveInvestmentRow({ inv }: { inv: any }) {
   const timeLeft = useCountdown(inv.ends_at);
   const startMs = new Date(inv.started_at).getTime();
   const endMs = new Date(inv.ends_at).getTime();
   const elapsed = Math.min(100, Math.max(0, ((Date.now() - startMs) / (endMs - startMs)) * 100));
-  const currentValue = getSimulatedValue ? getSimulatedValue(inv) : Number(inv.current_value);
+  const currentValue = Number(inv.current_value);
   const profit = currentValue - Number(inv.amount);
   const { format } = useCurrency();
   const fmt = (n: number) => format(n);
@@ -223,33 +222,18 @@ const DashboardOverview = () => {
   const activeInvestments = (investments ?? []).filter(i => i.status === "active");
   const totalInvested = activeInvestments.reduce((s, i) => s + Number(i.amount), 0);
   const totalCurrentValue = activeInvestments.reduce((s, i) => s + Number(i.current_value), 0);
-  // Investment Profit = sum of all profit_logs (daily payouts from investments)
   const totalProfitFromLogs = (profitLogs ?? []).reduce((s, l) => s + Number(l.amount), 0);
-  const investmentProfit = totalProfitFromLogs;
-  // Trade P&L from closed trades
+  const investmentProfit = totalCurrentValue - totalInvested;
   const tradePnl = (allTrades ?? []).filter(t => t.status === "closed").reduce((s, t) => s + Number(t.pnl ?? 0), 0);
-  // Admin adjustments (credits - debits)
   const adminCredits = (transactions ?? []).filter(t => t.type === "admin_credit" && (t.status === "completed" || t.status === "approved")).reduce((s, t) => s + Number(t.amount), 0);
   const adminDebits = (transactions ?? []).filter(t => t.type === "admin_debit" && (t.status === "completed" || t.status === "approved")).reduce((s, t) => s + Number(t.amount), 0);
-  // Total Profit = investment profits + trade P&L + admin adjustments
-  const totalProfit = investmentProfit + tradePnl + adminCredits - adminDebits;
+  const totalProfit = totalProfitFromLogs + tradePnl + adminCredits - adminDebits;
   const activeSignals = (signalSubs ?? []).filter(s => new Date(s.expires_at) > new Date()).length;
   const activeCopyTrades = (copyTrades ?? []).length;
 
-  // Live profit simulation - profits tick up in real-time between admin processing runs
-  const {
-    simulatedBalance,
-    getSimulatedCurrentValue,
-    totalSimulatedProfit,
-    walletBonus,
-    lastFlash,
-    balanceHistory: simBalanceHistory,
-  } = useProfitSimulation(investments ?? [], walletBalance);
-
-  // Display values include live simulation
-  const displayBalance = simulatedBalance;
-  const displayInvestmentProfit = investmentProfit + totalSimulatedProfit;
-  const displayTotalProfit = totalProfit + totalSimulatedProfit;
+  const displayBalance = walletBalance;
+  const displayInvestmentProfit = investmentProfit;
+  const displayTotalProfit = totalProfit;
 
   // Win rate from real closed trades
   const closedTrades = (allTrades ?? []).filter(t => t.status === "closed");
@@ -259,8 +243,7 @@ const DashboardOverview = () => {
   const { format } = useCurrency();
   const fmt = (n: number) => format(n);
 
-  // Use simulation balance history for sparkline if available, fall back to DB history
-  const balanceHistory = simBalanceHistory.length > 1 ? simBalanceHistory : (() => {
+  const balanceHistory = (() => {
     const events: { date: number; delta: number }[] = [];
     (transactions ?? []).forEach(t => {
       if (t.type === "deposit" && (t.status === "completed" || t.status === "approved"))
@@ -287,13 +270,18 @@ const DashboardOverview = () => {
   const availableBalance = walletBalance;
 
   const portfolioData = (() => {
-    const allTxns = [...(transactions ?? [])].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-    if (allTxns.length === 0) return [{ date: "Now", value: walletBalance }];
+    const allEvents = [
+      ...(transactions ?? []).map(t => ({ kind: "transaction" as const, created_at: t.created_at, type: t.type, status: t.status, amount: Number(t.amount) })),
+      ...(profitLogs ?? []).map(l => ({ kind: "profit" as const, created_at: l.created_at, type: "profit", status: "completed", amount: Number(l.amount) })),
+    ].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+    if (allEvents.length === 0) return [{ date: "Now", value: walletBalance }];
     let running = 0;
-    return allTxns.map(t => {
-      if (t.type === "deposit" && isSuccessful(t.status)) running += Number(t.amount);
-      if (t.type === "withdrawal" && isSuccessful(t.status)) running -= Number(t.amount);
-      return { date: new Date(t.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }), value: running };
+    return allEvents.map(event => {
+      if (event.kind === "profit") running += event.amount;
+      if (event.kind === "transaction" && event.type === "deposit" && isSuccessful(event.status)) running += event.amount;
+      if (event.kind === "transaction" && event.type === "withdrawal" && isSuccessful(event.status)) running -= event.amount;
+      return { date: new Date(event.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }), value: running };
     });
   })();
 
@@ -340,7 +328,7 @@ const DashboardOverview = () => {
             </div>
             <div className="flex items-center justify-between gap-2">
               <div className="text-lg font-display font-bold text-foreground">
-                <AnimatedBalance value={displayBalance} format={fmt} flash={lastFlash && lastFlash.type === "balance" ? { amount: lastFlash.amount, ts: lastFlash.ts } : null} />
+                <AnimatedBalance value={displayBalance} format={fmt} flash={null} />
               </div>
               <BalanceSparkline data={balanceHistory} />
             </div>
@@ -371,7 +359,7 @@ const DashboardOverview = () => {
               <TrendingUp className="h-4 w-4 text-success" />
             </div>
             <div className={`text-lg font-display font-bold ${displayInvestmentProfit >= 0 ? "text-success" : "text-destructive"}`}>
-              <AnimatedBalance value={displayInvestmentProfit} format={(n) => `${n >= 0 ? "+" : ""}${fmt(n)}`} flash={lastFlash && lastFlash.type === "profit" ? { amount: lastFlash.amount, ts: lastFlash.ts } : null} />
+              <AnimatedBalance value={displayInvestmentProfit} format={(n) => `${n >= 0 ? "+" : ""}${fmt(n)}`} flash={null} />
             </div>
             <p className="text-[10px] text-muted-foreground">{activeInvestments.length} active plans</p>
           </CardContent>
@@ -468,7 +456,7 @@ const DashboardOverview = () => {
           </CardHeader>
           <CardContent className="space-y-2">
             {activeInvestments.slice(0, 5).map((inv) => (
-              <ActiveInvestmentRow key={inv.id} inv={inv} getSimulatedValue={getSimulatedCurrentValue} />
+              <ActiveInvestmentRow key={inv.id} inv={inv} />
             ))}
             {activeInvestments.length > 5 && (
               <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground" onClick={() => navigate("/dashboard/investments")}>

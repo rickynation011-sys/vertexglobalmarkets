@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Download, ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 
 const statusColor: Record<string, string> = {
@@ -35,6 +35,8 @@ const DashboardHistory = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: trades } = useQuery({
@@ -44,6 +46,8 @@ const DashboardHistory = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: investments } = useQuery({
@@ -53,6 +57,8 @@ const DashboardHistory = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: profitLogs } = useQuery({
@@ -62,18 +68,43 @@ const DashboardHistory = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const history = useMemo(() => {
     const items: Array<{ id: string; type: string; asset: string; side: string; amount: string; pnl: string; status: string; date: string }> = [];
 
+    const transactionTypeLabel = (type: string) => {
+      switch (type) {
+        case "deposit":
+          return "Deposit";
+        case "withdrawal":
+          return "Withdrawal";
+        case "admin_credit":
+          return "Admin Credit";
+        case "admin_debit":
+          return "Admin Debit";
+        case "profit":
+          return "Profit";
+        default:
+          return type.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+      }
+    };
+
+    const signedAmount = (type: string, amount: number) => {
+      if (["deposit", "admin_credit", "profit"].includes(type)) return `+$${amount.toLocaleString()}`;
+      if (["withdrawal", "admin_debit"].includes(type)) return `-$${amount.toLocaleString()}`;
+      return `$${amount.toLocaleString()}`;
+    };
+
     (transactions ?? []).forEach(t => {
       items.push({
         id: t.id.slice(0, 8).toUpperCase(),
-        type: t.type === "deposit" ? "Deposit" : "Withdrawal",
+        type: transactionTypeLabel(t.type),
         asset: "—",
         side: "—",
-        amount: `$${Number(t.amount).toLocaleString()}`,
+        amount: signedAmount(t.type, Number(t.amount)),
         pnl: "—",
         status: t.status,
         date: new Date(t.created_at).toLocaleString(),
