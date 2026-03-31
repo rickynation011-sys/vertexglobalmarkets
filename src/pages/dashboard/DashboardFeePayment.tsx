@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Copy, Upload, CheckCircle, Loader2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +41,8 @@ const DashboardFeePayment = () => {
       return data;
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: profitLogs } = useQuery({
@@ -53,6 +55,8 @@ const DashboardFeePayment = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: depositMethods } = useQuery({
@@ -75,6 +79,8 @@ const DashboardFeePayment = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   // Real-time subscription for fee_payments updates

@@ -22,8 +22,13 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const toNumber = (value: unknown) => {
+      const parsed = Number(value ?? 0);
+      return Number.isFinite(parsed) ? parsed : 0;
+    };
 
     const nowUtc = new Date();
+    const processedAt = nowUtc.toISOString();
     const todayStr = nowUtc.toISOString().slice(0, 10); // YYYY-MM-DD
 
     // Get all users with active investments
@@ -92,15 +97,22 @@ Deno.serve(async (req) => {
     let totalProfit = 0;
     const processedUserIds = new Set<string>();
 
-    for (const inv of investments ?? []) {
+    for (const inv of (investments ?? []).sort((a, b) => {
+      if (a.user_id === b.user_id) return a.id.localeCompare(b.id);
+      return a.user_id.localeCompare(b.user_id);
+    })) {
+      const amount = toNumber(inv.amount);
+      const currentValue = toNumber(inv.current_value);
+      const dailyRate = toNumber(inv.daily_rate);
+
       // Handle expired investments
       if (new Date(inv.ends_at) < nowUtc) {
         await supabase.from("investments").update({ status: "completed" }).eq("id", inv.id);
 
         const profile = profileMap.get(inv.user_id);
-        const capitalReturn = Number(inv.amount);
+        const capitalReturn = Math.max(0, amount);
         if (profile && capitalReturn > 0) {
-          const newBal = Number(profile.wallet_balance) + capitalReturn;
+          const newBal = Math.max(0, toNumber(profile.wallet_balance) + capitalReturn);
           await supabase.from("profiles").update({ wallet_balance: newBal }).eq("user_id", inv.user_id);
           profile.wallet_balance = newBal;
 
@@ -116,7 +128,7 @@ Deno.serve(async (req) => {
         }
 
         if (profile?.email) {
-          const profit = (Number(inv.current_value) - Number(inv.amount)).toFixed(2);
+          const profit = (currentValue - amount).toFixed(2);
           await supabase.functions.invoke("send-transactional-email", {
             body: {
               templateName: "investment-matured",
@@ -125,9 +137,9 @@ Deno.serve(async (req) => {
               templateData: {
                 name: profile.full_name || undefined,
                 planName: inv.plan_name,
-                amount: Number(inv.amount).toLocaleString(),
+                amount: amount.toLocaleString(),
                 profit,
-                totalValue: Number(inv.current_value).toLocaleString(),
+                totalValue: currentValue.toLocaleString(),
               },
             },
           });
@@ -137,11 +149,11 @@ Deno.serve(async (req) => {
       }
 
       // Calculate daily profit: daily_rate is stored as daily percentage (e.g. 2 = 2%)
-      const dailyProfit = Number(inv.amount) * (Number(inv.daily_rate) / 100);
+      const dailyProfit = amount * (dailyRate / 100);
       if (dailyProfit <= 0) continue;
 
-      const newValue = Number(inv.current_value) + dailyProfit;
-      const returnPct = ((newValue - Number(inv.amount)) / Number(inv.amount)) * 100;
+      const newValue = currentValue + dailyProfit;
+      const returnPct = amount > 0 ? ((newValue - amount) / amount) * 100 : 0;
 
       // Update investment value
       await supabase.from("investments").update({
@@ -152,7 +164,7 @@ Deno.serve(async (req) => {
       // Credit profit to wallet balance
       const profile = profileMap.get(inv.user_id);
       if (profile) {
-        const currentBalance = Number(profile.wallet_balance) + dailyProfit;
+        const currentBalance = Math.max(0, toNumber(profile.wallet_balance) + dailyProfit);
         await supabase.from("profiles").update({
           wallet_balance: currentBalance,
         }).eq("user_id", inv.user_id);
@@ -164,6 +176,7 @@ Deno.serve(async (req) => {
         user_id: inv.user_id,
         investment_id: inv.id,
         amount: dailyProfit,
+        created_at: processedAt,
       });
 
       totalProfit += dailyProfit;

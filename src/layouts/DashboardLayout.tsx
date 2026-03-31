@@ -7,13 +7,15 @@ import { CurrencySelector } from "@/components/dashboard/CurrencySelector";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { Shield, Lock } from "lucide-react";
+import { useEffect } from "react";
 
 const DashboardLayout = () => {
   const { user } = useAuth();
   const { PushPromptDialog } = usePushNotifications();
+  const queryClient = useQueryClient();
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -22,7 +24,45 @@ const DashboardLayout = () => {
       return data;
     },
     enabled: !!user,
+    placeholderData: keepPreviousData,
   });
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const userId = user.id;
+    const channel = supabase
+      .channel(`dashboard-financials-${userId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles", filter: `user_id=eq.${userId}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ["profile", userId] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "investments", filter: `user_id=eq.${userId}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ["investments", userId] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "profit_logs", filter: `user_id=eq.${userId}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ["profit_logs", userId] });
+        queryClient.invalidateQueries({ queryKey: ["profit_logs_history", userId] });
+        queryClient.invalidateQueries({ queryKey: ["total_profit", userId] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "transactions", filter: `user_id=eq.${userId}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ["transactions", userId] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "trades", filter: `user_id=eq.${userId}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ["trades", userId] });
+        queryClient.invalidateQueries({ queryKey: ["trades-open", userId] });
+        queryClient.invalidateQueries({ queryKey: ["all_trades", userId] });
+        queryClient.invalidateQueries({ queryKey: ["copy-trades", userId] });
+        queryClient.invalidateQueries({ queryKey: ["copy-history", userId] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "fee_payments", filter: `user_id=eq.${userId}` }, () => {
+        queryClient.invalidateQueries({ queryKey: ["fee_payments", userId] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient, user?.id]);
 
   return (
     <CurrencyProvider>

@@ -4,7 +4,7 @@ import { ArrowUp, ArrowDown, DollarSign, TrendingUp, Briefcase, PieChart, BarCha
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, Cell, PieChart as RechartsPie, Pie } from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
 const COLORS = ["hsl(var(--primary))", "hsl(145, 60%, 45%)", "hsl(195, 70%, 45%)", "hsl(45, 80%, 50%)", "hsl(280, 60%, 55%)", "hsl(0, 70%, 50%)"];
@@ -19,6 +19,8 @@ const DashboardPortfolio = () => {
       return data;
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: trades } = useQuery({
@@ -28,6 +30,8 @@ const DashboardPortfolio = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: transactions } = useQuery({
@@ -37,6 +41,8 @@ const DashboardPortfolio = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: investments } = useQuery({
@@ -46,6 +52,8 @@ const DashboardPortfolio = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: profitLogs } = useQuery({
@@ -55,6 +63,8 @@ const DashboardPortfolio = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const walletBalance = Number(profile?.wallet_balance ?? 0);
