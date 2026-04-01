@@ -35,14 +35,14 @@ export const SignupEmail = ({
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Confirm your email to get started with Vexter Global Markets</Preview>
+    <Preview>Confirm your email to get started with Vertex Global Markets</Preview>
     <Body style={main}>
       <Container style={wrapper}>
         {/* Header */}
         <Section style={header}>
-          <Img src={LOGO_URL} alt="Vexter Global Markets" width="48" height="48" style={logo} />
+          <Img src={LOGO_URL} alt="Vertex Global Markets" width="48" height="48" style={logo} />
           <Text style={brandName}>
-            <span style={{ color: '#3CB371' }}>Vexter</span>{' '}
+            <span style={{ color: '#3CB371' }}>Vertex</span>{' '}
             <span style={{ color: '#4A90D9' }}>Global</span>{' '}
             <span style={{ color: '#8B5CF6' }}>Markets</span>
           </Text>
@@ -55,7 +55,7 @@ export const SignupEmail = ({
             Hello{recipient ? ` ${recipient}` : ''},
           </Text>
           <Text style={text}>
-            Welcome to Vexter Global Markets.
+            Welcome to Vertex Global Markets.
           </Text>
           <Text style={text}>
             To complete your registration and secure your account, please confirm your email address by clicking the button below:
@@ -76,7 +76,7 @@ export const SignupEmail = ({
           <Text style={text}>
             Thank you,
           </Text>
-          <Text style={footerBrand}>Vexter Global Markets Team</Text>
+          <Text style={footerBrand}>Vertex Global Markets Team</Text>
           <Text style={footerText}>
             Need help? Contact us at{' '}
             <Link href={`mailto:${SUPPORT_EMAIL}`} style={footerLink}>{SUPPORT_EMAIL}</Link>
