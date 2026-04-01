@@ -78,8 +78,8 @@ const DashboardPortfolio = () => {
   const activeInvestments = (investments ?? []).filter(i => i.status === "active");
   const investmentValue = activeInvestments.reduce((s, i) => s + Number(i.current_value), 0);
   const investmentCost = activeInvestments.reduce((s, i) => s + Number(i.amount), 0);
-  // Total profit from profit_logs (investment daily payouts) + closed trade P&L + admin adjustments
-  const totalValue = profitBalance + investmentValue;
+  // Total Value = wallet (available) + active investment value
+  const totalValue = walletBalance + investmentValue;
   const totalProfit = profitBalance;
 
   // Copy trade allocations
