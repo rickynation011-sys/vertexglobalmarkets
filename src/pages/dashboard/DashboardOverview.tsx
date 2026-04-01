@@ -228,7 +228,7 @@ const DashboardOverview = () => {
   const activeSignals = (signalSubs ?? []).filter(s => new Date(s.expires_at) > new Date()).length;
   const activeCopyTrades = (copyTrades ?? []).length;
 
-  const displayBalance = profitBalance;
+  const displayBalance = walletBalance;
   const displayInvestmentProfit = profitBalance;
   const displayTotalProfit = profitBalance;
 
