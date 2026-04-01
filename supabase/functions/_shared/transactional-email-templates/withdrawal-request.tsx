@@ -24,7 +24,7 @@ const WithdrawalRequestEmail = ({ name, amount, method }: Props) => (
           <Heading style={h1}>Withdrawal Request Submitted</Heading>
           <Text style={text}>{name ? `Hello ${name},` : 'Hello,'}</Text>
           <Text style={text}>
-            Your withdrawal request{amount ? ` of <strong>$${amount}</strong>` : ''}{method ? ` via <strong>${method}</strong>` : ''} has been submitted and is pending review by our team.
+            Your withdrawal request{amount ? <> of <span style={bold}>${amount}</span></> : ''}{method ? <> via <span style={bold}>{method}</span></> : ''} has been submitted and is pending review by our team.
           </Text>
           <Section style={infoBox}>
             <Text style={infoText}>We will notify you once the request has been reviewed and processed. Processing times may vary depending on the withdrawal method.</Text>
