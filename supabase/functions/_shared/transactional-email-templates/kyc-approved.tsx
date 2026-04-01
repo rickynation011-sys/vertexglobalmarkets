@@ -25,7 +25,7 @@ const KycApprovedEmail = ({ name }: Props) => (
           <Heading style={h1}>Identity Verified ✅</Heading>
           <Text style={text}>{name ? `Hello ${name},` : 'Hello,'}</Text>
           <Text style={text}>
-            Your identity verification (KYC) has been <strong>approved</strong>. You now have full access to all platform features including deposits, withdrawals, and trading.
+            Your identity verification (KYC) has been <span style={bold}>approved</span>. You now have full access to all platform features including deposits, withdrawals, and trading.
           </Text>
           <Section style={buttonContainer}>
             <Button style={button} href={`${SITE_URL}/dashboard`}>Go to Dashboard</Button>
