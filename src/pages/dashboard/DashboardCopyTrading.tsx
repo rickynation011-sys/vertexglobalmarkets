@@ -12,7 +12,7 @@ import {
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 // Simulated top traders
@@ -92,6 +92,8 @@ const DashboardCopyTrading = () => {
       return data;
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: activeCopyTrades } = useQuery({
@@ -107,6 +109,8 @@ const DashboardCopyTrading = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: copyHistory } = useQuery({
@@ -123,6 +127,8 @@ const DashboardCopyTrading = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const copyMutation = useMutation({
