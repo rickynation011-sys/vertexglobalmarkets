@@ -29,7 +29,7 @@ const KycRejectedEmail = ({ name, reason }: Props) => (
           </Text>
           {reason && (
             <Section style={infoBox}>
-              <Text style={infoText}><strong>Reason:</strong> {reason}</Text>
+              <Text style={infoText}><span style={bold}>Reason:</span> {reason}</Text>
             </Section>
           )}
           <Text style={text}>
