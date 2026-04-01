@@ -92,6 +92,7 @@ import AdminLandingContent from "./pages/admin/AdminLandingContent.tsx";
 import AdminEmailDashboard from "./pages/admin/AdminEmailDashboard.tsx";
 import AdminKYCView from "./pages/admin/AdminKYCView.tsx";
 import AdminProfitLoss from "./pages/admin/AdminProfitLoss.tsx";
+import AdminTrades from "./pages/admin/AdminTrades.tsx";
 
 const queryClient = new QueryClient();
 
@@ -192,6 +193,7 @@ const App = () => (
                   <Route path="notifications" element={<AdminNotifications />} />
                   <Route path="email-dashboard" element={<AdminEmailDashboard />} />
                   <Route path="profit-loss" element={<AdminProfitLoss />} />
+                  <Route path="trades" element={<AdminTrades />} />
                 </Route>
               </Route>
 
