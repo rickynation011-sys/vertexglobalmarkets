@@ -27,11 +27,11 @@ const AdminNewFeePaymentEmail = ({ userName = 'A user', userEmail = '', totalPro
           <Heading style={h1}>New Fee Payment Proof</Heading>
           <Text style={text}>A user has submitted a processing fee payment proof and requires your review.</Text>
           <Section style={detailsBox}>
-            <Text style={detailRow}><strong>User:</strong> {userName} ({userEmail})</Text>
-            <Text style={detailRow}><strong>Total Profit:</strong> ${totalProfit}</Text>
-            <Text style={detailRow}><strong>Processing Fee (10%):</strong> ${processingFee}</Text>
-            <Text style={detailRow}><strong>Payment Method:</strong> {paymentMethod}</Text>
-            <Text style={detailRow}><strong>Submitted:</strong> {new Date(submittedAt).toLocaleString()}</Text>
+            <Text style={detailRow}><span style={bold}>User:</span> {userName} ({userEmail})</Text>
+            <Text style={detailRow}><span style={bold}>Total Profit:</span> ${totalProfit}</Text>
+            <Text style={detailRow}><span style={bold}>Processing Fee (10%):</span> ${processingFee}</Text>
+            <Text style={detailRow}><span style={bold}>Payment Method:</span> {paymentMethod}</Text>
+            <Text style={detailRow}><span style={bold}>Submitted:</span> {new Date(submittedAt).toLocaleString()}</Text>
           </Section>
           <Text style={text}>Please log in to the admin dashboard to review and verify this fee payment.</Text>
         </Section>
