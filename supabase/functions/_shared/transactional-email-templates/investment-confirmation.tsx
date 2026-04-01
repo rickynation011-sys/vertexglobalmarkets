@@ -25,7 +25,7 @@ const InvestmentConfirmationEmail = ({ name, planName, amount }: Props) => (
           <Heading style={h1}>Investment Plan Activated ✓</Heading>
           <Text style={text}>{name ? `Hello ${name},` : 'Hello,'}</Text>
           <Text style={text}>
-            Your investment{planName ? ` in the <strong>${planName}</strong> plan` : ''}{amount ? ` of <strong>$${amount}</strong>` : ''} has been successfully activated. You can track its performance and daily returns from your dashboard.
+            Your investment{planName ? <> in the <span style={bold}>{planName}</span> plan</> : ''}{amount ? <> of <span style={bold}>${amount}</span></> : ''} has been successfully activated. You can track its performance and daily returns from your dashboard.
           </Text>
           <Section style={successBox}>
             <Text style={successText}>Your investment is now active and generating returns. Monitor your progress anytime.</Text>
