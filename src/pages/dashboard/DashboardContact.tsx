@@ -165,7 +165,7 @@ const DashboardContact = () => {
       {/* Contact Info */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { icon: Mail, label: "Email Support", value: "support@vertexglobal.com", sub: "Response within 2 hours", action: null },
+          { icon: Mail, label: "Email Support", value: "support@vertexglobalmarkets.com", sub: "Response within 2 hours", action: null },
           { icon: Phone, label: "Phone Support", value: "+1 (800) 555-VRTX", sub: "Mon-Fri, 9AM-6PM EST", action: null },
           { icon: Clock, label: "Live Chat", value: "Available 24/7", sub: "Click to start a conversation", action: () => setShowForm(true) },
         ].map((item) => (

@@ -67,7 +67,7 @@ const Contact = () => {
 
             <div className="space-y-4">
               {[
-                { icon: Mail, title: "Email", value: "support@vertexglobal.com" },
+                { icon: Mail, title: "Email", value: "support@vertexglobalmarkets.com" },
                 { icon: Phone, title: "Phone", value: "+1 (800) 555-0199" },
                 { icon: MessageSquare, title: "Live Chat", value: "Available 24/7 on platform" },
                 { icon: MapPin, title: "Office", value: "Level 42, One Canada Square, London E14 5AB" },

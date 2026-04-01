@@ -18,7 +18,7 @@ const AdminSettings = () => {
   const { user } = useAuth();
   const [settings, setSettings] = useState<Settings>({
     platform_name: "Vertex Global Markets",
-    support_email: "support@vertexglobal.com",
+    support_email: "support@vertexglobalmarkets.com",
     maintenance_mode: false,
     maintenance_message: "We are currently performing scheduled maintenance. Please check back shortly.",
     min_deposit: 100,
