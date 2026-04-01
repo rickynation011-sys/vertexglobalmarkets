@@ -40,7 +40,7 @@ export const SignupEmail = ({
       <Container style={wrapper}>
         {/* Header */}
         <Section style={header}>
-          <Img src={LOGO_URL} alt="Vexter Global Markets" width="48" height="48" style={logo} />
+          <Img src={LOGO_URL} alt="Vertex Global Markets" width="48" height="48" style={logo} />
           <Text style={brandName}>
             <span style={{ color: '#3CB371' }}>Vexter</span>{' '}
             <span style={{ color: '#4A90D9' }}>Global</span>{' '}
