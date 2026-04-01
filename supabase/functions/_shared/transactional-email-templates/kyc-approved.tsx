@@ -25,7 +25,7 @@ const KycApprovedEmail = ({ name }: Props) => (
           <Heading style={h1}>Identity Verified ✅</Heading>
           <Text style={text}>{name ? `Hello ${name},` : 'Hello,'}</Text>
           <Text style={text}>
-            Your identity verification (KYC) has been <strong>approved</strong>. You now have full access to all platform features including deposits, withdrawals, and trading.
+            Your identity verification (KYC) has been <span style={bold}>approved</span>. You now have full access to all platform features including deposits, withdrawals, and trading.
           </Text>
           <Section style={buttonContainer}>
             <Button style={button} href={`${SITE_URL}/dashboard`}>Go to Dashboard</Button>
@@ -63,3 +63,4 @@ const hr = { borderColor: '#e5e7eb', margin: '0 0 24px' }
 const footerBrand = { fontSize: '14px', fontWeight: '600' as const, color: '#374151', margin: '0 0 4px', textAlign: 'center' as const }
 const footerText = { fontSize: '12px', color: '#9ca3af', margin: '0 0 4px', textAlign: 'center' as const }
 const footerLink = { color: '#3CB371', textDecoration: 'underline' }
+const bold = { fontWeight: '700' as const }

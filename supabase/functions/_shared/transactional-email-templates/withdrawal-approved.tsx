@@ -25,7 +25,7 @@ const WithdrawalApprovedEmail = ({ name, amount }: Props) => (
           <Heading style={h1}>Withdrawal Approved ✓</Heading>
           <Text style={text}>{name ? `Hello ${name},` : 'Hello,'}</Text>
           <Text style={text}>
-            Great news! Your withdrawal request{amount ? ` of <strong>$${amount}</strong>` : ''} has been approved and is being processed. The funds will be sent to your designated wallet address shortly.
+            Great news! Your withdrawal request{amount ? <> of <span style={bold}>${amount}</span></> : ''} has been approved and is being processed. The funds will be sent to your designated wallet address shortly.
           </Text>
           <Section style={successBox}>
             <Text style={successText}>Your withdrawal is on its way. Please allow time for blockchain confirmation.</Text>
@@ -68,3 +68,4 @@ const hr = { borderColor: '#e5e7eb', margin: '0 0 24px' }
 const footerBrand = { fontSize: '14px', fontWeight: '600' as const, color: '#374151', margin: '0 0 4px', textAlign: 'center' as const }
 const footerText = { fontSize: '12px', color: '#9ca3af', margin: '0 0 4px', textAlign: 'center' as const }
 const footerLink = { color: '#3CB371', textDecoration: 'underline' }
+const bold = { fontWeight: '700' as const }

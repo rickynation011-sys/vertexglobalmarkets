@@ -25,7 +25,7 @@ const TicketReplyEmail = ({ name, subject }: Props) => (
           <Heading style={h1}>New Reply to Your Ticket</Heading>
           <Text style={text}>{name ? `Hello ${name},` : 'Hello,'}</Text>
           <Text style={text}>
-            Our support team has responded to your ticket{subject ? `: "<strong>${subject}</strong>"` : ''}. Please check your dashboard for the full details.
+            Our support team has responded to your ticket{subject ? <>: "<span style={bold}>{subject}</span>"</> : ''}. Please check your dashboard for the full details.
           </Text>
           <Section style={infoBox}>
             <Text style={infoText}>Our team is here to help. Feel free to reply if you have further questions.</Text>
@@ -68,3 +68,4 @@ const hr = { borderColor: '#e5e7eb', margin: '0 0 24px' }
 const footerBrand = { fontSize: '14px', fontWeight: '600' as const, color: '#374151', margin: '0 0 4px', textAlign: 'center' as const }
 const footerText = { fontSize: '12px', color: '#9ca3af', margin: '0 0 4px', textAlign: 'center' as const }
 const footerLink = { color: '#3CB371', textDecoration: 'underline' }
+const bold = { fontWeight: '700' as const }

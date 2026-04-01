@@ -24,7 +24,7 @@ const DepositConfirmationEmail = ({ name, amount, method }: Props) => (
           <Heading style={h1}>Deposit Request Received</Heading>
           <Text style={text}>{name ? `Hello ${name},` : 'Hello,'}</Text>
           <Text style={text}>
-            Your deposit request{amount ? ` of <strong>$${amount}</strong>` : ''}{method ? ` via <strong>${method}</strong>` : ''} has been submitted successfully and is currently under review by our team.
+            Your deposit request{amount ? <> of <span style={bold}>${amount}</span></> : ''}{method ? <> via <span style={bold}>{method}</span></> : ''} has been submitted successfully and is currently under review by our team.
           </Text>
           <Section style={infoBox}>
             <Text style={infoText}>You will receive a notification once your deposit has been processed and credited to your account.</Text>
@@ -64,3 +64,4 @@ const hr = { borderColor: '#e5e7eb', margin: '0 0 24px' }
 const footerBrand = { fontSize: '14px', fontWeight: '600' as const, color: '#374151', margin: '0 0 4px', textAlign: 'center' as const }
 const footerText = { fontSize: '12px', color: '#9ca3af', margin: '0 0 4px', textAlign: 'center' as const }
 const footerLink = { color: '#3CB371', textDecoration: 'underline' }
+const bold = { fontWeight: '700' as const }

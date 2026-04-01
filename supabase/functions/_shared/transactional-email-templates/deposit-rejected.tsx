@@ -25,7 +25,7 @@ const DepositRejectedEmail = ({ name, amount, method, reason }: Props) => (
           <Heading style={h1}>Deposit Declined ❌</Heading>
           <Text style={text}>{name ? `Hello ${name},` : 'Hello,'}</Text>
           <Text style={text}>
-            Unfortunately, your deposit{amount ? ` of <strong>$${amount}</strong>` : ''}{method ? ` via <strong>${method}</strong>` : ''} could not be approved at this time.
+            Unfortunately, your deposit{amount ? <> of <span style={bold}>${amount}</span></> : ''}{method ? <> via <span style={bold}>{method}</span></> : ''} could not be approved at this time.
           </Text>
           {reason && (
             <Section style={infoBox}>
@@ -75,3 +75,4 @@ const hr = { borderColor: '#e5e7eb', margin: '0 0 24px' }
 const footerBrand = { fontSize: '14px', fontWeight: '600' as const, color: '#374151', margin: '0 0 4px', textAlign: 'center' as const }
 const footerText = { fontSize: '12px', color: '#9ca3af', margin: '0 0 4px', textAlign: 'center' as const }
 const footerLink = { color: '#3CB371', textDecoration: 'underline' }
+const bold = { fontWeight: '700' as const }

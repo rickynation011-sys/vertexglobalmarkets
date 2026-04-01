@@ -24,7 +24,7 @@ const WithdrawalRequestEmail = ({ name, amount, method }: Props) => (
           <Heading style={h1}>Withdrawal Request Submitted</Heading>
           <Text style={text}>{name ? `Hello ${name},` : 'Hello,'}</Text>
           <Text style={text}>
-            Your withdrawal request{amount ? ` of <strong>$${amount}</strong>` : ''}{method ? ` via <strong>${method}</strong>` : ''} has been submitted and is pending review by our team.
+            Your withdrawal request{amount ? <> of <span style={bold}>${amount}</span></> : ''}{method ? <> via <span style={bold}>{method}</span></> : ''} has been submitted and is pending review by our team.
           </Text>
           <Section style={infoBox}>
             <Text style={infoText}>We will notify you once the request has been reviewed and processed. Processing times may vary depending on the withdrawal method.</Text>
@@ -64,3 +64,4 @@ const hr = { borderColor: '#e5e7eb', margin: '0 0 24px' }
 const footerBrand = { fontSize: '14px', fontWeight: '600' as const, color: '#374151', margin: '0 0 4px', textAlign: 'center' as const }
 const footerText = { fontSize: '12px', color: '#9ca3af', margin: '0 0 4px', textAlign: 'center' as const }
 const footerLink = { color: '#3CB371', textDecoration: 'underline' }
+const bold = { fontWeight: '700' as const }

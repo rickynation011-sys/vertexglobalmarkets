@@ -25,7 +25,7 @@ const DepositApprovedEmail = ({ name, amount, method }: Props) => (
           <Heading style={h1}>Deposit Approved ✅</Heading>
           <Text style={text}>{name ? `Hello ${name},` : 'Hello,'}</Text>
           <Text style={text}>
-            Your deposit{amount ? ` of <strong>$${amount}</strong>` : ''}{method ? ` via <strong>${method}</strong>` : ''} has been approved and credited to your account.
+            Your deposit{amount ? <> of <span style={bold}>${amount}</span></> : ''}{method ? <> via <span style={bold}>{method}</span></> : ''} has been approved and credited to your account.
           </Text>
           <Section style={infoBox}>
             <Text style={infoText}>Your funds are now available in your wallet. You can start investing or trading immediately.</Text>
@@ -68,3 +68,4 @@ const hr = { borderColor: '#e5e7eb', margin: '0 0 24px' }
 const footerBrand = { fontSize: '14px', fontWeight: '600' as const, color: '#374151', margin: '0 0 4px', textAlign: 'center' as const }
 const footerText = { fontSize: '12px', color: '#9ca3af', margin: '0 0 4px', textAlign: 'center' as const }
 const footerLink = { color: '#3CB371', textDecoration: 'underline' }
+const bold = { fontWeight: '700' as const }

@@ -27,11 +27,11 @@ const AdminNewFeePaymentEmail = ({ userName = 'A user', userEmail = '', totalPro
           <Heading style={h1}>New Fee Payment Proof</Heading>
           <Text style={text}>A user has submitted a processing fee payment proof and requires your review.</Text>
           <Section style={detailsBox}>
-            <Text style={detailRow}><strong>User:</strong> {userName} ({userEmail})</Text>
-            <Text style={detailRow}><strong>Total Profit:</strong> ${totalProfit}</Text>
-            <Text style={detailRow}><strong>Processing Fee (10%):</strong> ${processingFee}</Text>
-            <Text style={detailRow}><strong>Payment Method:</strong> {paymentMethod}</Text>
-            <Text style={detailRow}><strong>Submitted:</strong> {new Date(submittedAt).toLocaleString()}</Text>
+            <Text style={detailRow}><span style={bold}>User:</span> {userName} ({userEmail})</Text>
+            <Text style={detailRow}><span style={bold}>Total Profit:</span> ${totalProfit}</Text>
+            <Text style={detailRow}><span style={bold}>Processing Fee (10%):</span> ${processingFee}</Text>
+            <Text style={detailRow}><span style={bold}>Payment Method:</span> {paymentMethod}</Text>
+            <Text style={detailRow}><span style={bold}>Submitted:</span> {new Date(submittedAt).toLocaleString()}</Text>
           </Section>
           <Text style={text}>Please log in to the admin dashboard to review and verify this fee payment.</Text>
         </Section>
@@ -67,3 +67,4 @@ const hr = { borderColor: '#e5e7eb', margin: '0 0 24px' }
 const footerBrand = { fontSize: '14px', fontWeight: '600' as const, color: '#374151', margin: '0 0 4px', textAlign: 'center' as const }
 const footerText = { fontSize: '12px', color: '#9ca3af', margin: '0 0 4px', textAlign: 'center' as const }
 const footerLink = { color: '#3CB371', textDecoration: 'underline' }
+const bold = { fontWeight: '700' as const }

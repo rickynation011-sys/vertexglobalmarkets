@@ -25,7 +25,7 @@ const InvestmentConfirmationEmail = ({ name, planName, amount }: Props) => (
           <Heading style={h1}>Investment Plan Activated ✓</Heading>
           <Text style={text}>{name ? `Hello ${name},` : 'Hello,'}</Text>
           <Text style={text}>
-            Your investment{planName ? ` in the <strong>${planName}</strong> plan` : ''}{amount ? ` of <strong>$${amount}</strong>` : ''} has been successfully activated. You can track its performance and daily returns from your dashboard.
+            Your investment{planName ? <> in the <span style={bold}>{planName}</span> plan</> : ''}{amount ? <> of <span style={bold}>${amount}</span></> : ''} has been successfully activated. You can track its performance and daily returns from your dashboard.
           </Text>
           <Section style={successBox}>
             <Text style={successText}>Your investment is now active and generating returns. Monitor your progress anytime.</Text>
@@ -69,3 +69,4 @@ const hr = { borderColor: '#e5e7eb', margin: '0 0 24px' }
 const footerBrand = { fontSize: '14px', fontWeight: '600' as const, color: '#374151', margin: '0 0 4px', textAlign: 'center' as const }
 const footerText = { fontSize: '12px', color: '#9ca3af', margin: '0 0 4px', textAlign: 'center' as const }
 const footerLink = { color: '#3CB371', textDecoration: 'underline' }
+const bold = { fontWeight: '700' as const }

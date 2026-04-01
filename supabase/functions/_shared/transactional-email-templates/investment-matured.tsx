@@ -25,12 +25,12 @@ const InvestmentMaturedEmail = ({ name, planName, amount, profit, totalValue }: 
           <Heading style={h1}>Investment Matured 🎉</Heading>
           <Text style={text}>{name ? `Hello ${name},` : 'Hello,'}</Text>
           <Text style={text}>
-            Great news! Your{planName ? ` <strong>${planName}</strong>` : ''} investment has successfully matured.
+            Great news! Your{planName ? <> <span style={bold}>{planName}</span></> : ''} investment has successfully matured.
           </Text>
           <Section style={infoBox}>
-            {amount && <Text style={infoText}>💰 Initial Investment: <strong>${amount}</strong></Text>}
-            {profit && <Text style={infoText}>📈 Total Profit: <strong>${profit}</strong></Text>}
-            {totalValue && <Text style={infoText}>🏦 Final Value: <strong>${totalValue}</strong></Text>}
+            {amount && <Text style={infoText}>💰 Initial Investment: <span style={bold}>${amount}</span></Text>}
+            {profit && <Text style={infoText}>📈 Total Profit: <span style={bold}>${profit}</span></Text>}
+            {totalValue && <Text style={infoText}>🏦 Final Value: <span style={bold}>${totalValue}</span></Text>}
           </Section>
           <Text style={text}>
             Your returns have been credited to your wallet. You can reinvest or withdraw your funds at any time.
@@ -73,3 +73,4 @@ const hr = { borderColor: '#e5e7eb', margin: '0 0 24px' }
 const footerBrand = { fontSize: '14px', fontWeight: '600' as const, color: '#374151', margin: '0 0 4px', textAlign: 'center' as const }
 const footerText = { fontSize: '12px', color: '#9ca3af', margin: '0 0 4px', textAlign: 'center' as const }
 const footerLink = { color: '#3CB371', textDecoration: 'underline' }
+const bold = { fontWeight: '700' as const }
