@@ -27,11 +27,11 @@ const AdminNewDepositEmail = ({ userName = 'A user', userEmail = '', amount = '0
           <Heading style={h1}>New Deposit Request</Heading>
           <Text style={text}>A new deposit has been submitted and requires your review.</Text>
           <Section style={detailsBox}>
-            <Text style={detailRow}><strong>User:</strong> {userName} ({userEmail})</Text>
-            <Text style={detailRow}><strong>Amount:</strong> ${amount}</Text>
-            <Text style={detailRow}><strong>Method:</strong> {method}</Text>
-            <Text style={detailRow}><strong>Currency:</strong> {currency}</Text>
-            <Text style={detailRow}><strong>Submitted:</strong> {new Date(submittedAt).toLocaleString()}</Text>
+            <Text style={detailRow}><span style={bold}>User:</span> {userName} ({userEmail})</Text>
+            <Text style={detailRow}><span style={bold}>Amount:</span> ${amount}</Text>
+            <Text style={detailRow}><span style={bold}>Method:</span> {method}</Text>
+            <Text style={detailRow}><span style={bold}>Currency:</span> {currency}</Text>
+            <Text style={detailRow}><span style={bold}>Submitted:</span> {new Date(submittedAt).toLocaleString()}</Text>
           </Section>
           <Text style={text}>Please log in to the admin dashboard to review and process this deposit.</Text>
         </Section>
