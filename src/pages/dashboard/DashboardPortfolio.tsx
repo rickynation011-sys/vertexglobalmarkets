@@ -68,6 +68,8 @@ const DashboardPortfolio = () => {
   });
 
   const walletBalance = Number(profile?.wallet_balance ?? 0);
+  const profitBalance = Number((profile as any)?.profit_balance ?? 0);
+  const hasResolvedBalance = !!profile;
   const isSuccessful = (status: string) => status === "completed" || status === "approved";
   const completedDeposits = (transactions ?? []).filter(t => t.type === "deposit" && isSuccessful(t.status));
   const completedWithdrawals = (transactions ?? []).filter(t => t.type === "withdrawal" && isSuccessful(t.status));
@@ -77,12 +79,8 @@ const DashboardPortfolio = () => {
   const investmentValue = activeInvestments.reduce((s, i) => s + Number(i.current_value), 0);
   const investmentCost = activeInvestments.reduce((s, i) => s + Number(i.amount), 0);
   // Total profit from profit_logs (investment daily payouts) + closed trade P&L + admin adjustments
-  const tradePnl = (trades ?? []).filter(t => t.status === "closed").reduce((s, t) => s + Number(t.pnl ?? 0), 0);
-  const profitEarned = (profitLogs ?? []).reduce((s, l) => s + Number(l.amount), 0);
-  const adminCredits = (transactions ?? []).filter(t => t.type === "admin_credit" && isSuccessful(t.status)).reduce((s, t) => s + Number(t.amount), 0);
-  const adminDebits = (transactions ?? []).filter(t => t.type === "admin_debit" && isSuccessful(t.status)).reduce((s, t) => s + Number(t.amount), 0);
-  const totalValue = walletBalance + investmentValue;
-  const totalProfit = profitEarned + tradePnl + adminCredits - adminDebits;
+  const totalValue = profitBalance + investmentValue;
+  const totalProfit = profitBalance;
 
   // Copy trade allocations
   const copyTrades = (trades ?? []).filter(t => t.status === "open" && t.asset.startsWith("COPY:"));
@@ -91,14 +89,14 @@ const DashboardPortfolio = () => {
   // Asset allocation for pie chart
   const allocationData = useMemo(() => {
     const data = [];
-    if (walletBalance > 0) data.push({ name: "Cash Balance", value: walletBalance });
+    if (profitBalance > 0) data.push({ name: "Balance", value: profitBalance });
     if (investmentValue > 0) data.push({ name: "Investments", value: investmentValue });
     if (copyAllocated > 0) data.push({ name: "Copy Trading", value: copyAllocated });
     const regularTrades = (trades ?? []).filter(t => t.status === "open" && !t.asset.startsWith("COPY:"));
     const tradeValue = regularTrades.reduce((s, t) => s + Number(t.amount), 0);
     if (tradeValue > 0) data.push({ name: "Open Trades", value: tradeValue });
     return data.length > 0 ? data : [{ name: "No Assets", value: 1 }];
-  }, [walletBalance, investmentValue, copyAllocated, trades]);
+  }, [profitBalance, investmentValue, copyAllocated, trades]);
 
   // Profit growth chart
   const profitGrowth = useMemo(() => {
@@ -158,7 +156,7 @@ const DashboardPortfolio = () => {
               <DollarSign className="h-4 w-4 text-primary" />
               <p className="text-xs text-muted-foreground">Total Value</p>
             </div>
-            <p className="text-2xl font-display font-bold text-foreground">{fmt(totalValue)}</p>
+            <p className="text-2xl font-display font-bold text-foreground">{hasResolvedBalance ? fmt(totalValue) : "—"}</p>
           </CardContent>
         </Card>
         <Card className="bg-card border-border">
@@ -168,7 +166,7 @@ const DashboardPortfolio = () => {
               <p className="text-xs text-muted-foreground">Total Profit</p>
             </div>
             <p className={`text-2xl font-display font-bold ${totalProfit >= 0 ? "text-success" : "text-destructive"}`}>
-              {totalProfit >= 0 ? "+" : ""}{fmt(totalProfit)}
+              {hasResolvedBalance ? `${totalProfit >= 0 ? "+" : ""}${fmt(totalProfit)}` : "—"}
             </p>
           </CardContent>
         </Card>

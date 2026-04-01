@@ -151,6 +151,8 @@ const DashboardInvestments = () => {
   const totalCurrentValue = activeInvestments.reduce((s, i) => s + Number(i.current_value), 0);
   const totalProfit = totalCurrentValue - totalInvested;
   const walletBalance = Number(profile?.wallet_balance ?? 0);
+  const profitBalance = Number((profile as any)?.profit_balance ?? 0);
+  const hasResolvedBalance = !!profile;
 
   const fmt = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -169,8 +171,8 @@ const DashboardInvestments = () => {
               <DollarSign className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Wallet Balance</p>
-              <p className="text-xl font-display font-bold text-foreground">{fmt(walletBalance)}</p>
+              <p className="text-xs text-muted-foreground">Balance</p>
+              <p className="text-xl font-display font-bold text-foreground">{hasResolvedBalance ? fmt(profitBalance) : "—"}</p>
             </div>
           </CardContent>
         </Card>
@@ -203,7 +205,7 @@ const DashboardInvestments = () => {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Total Profit</p>
-              <p className={`text-xl font-display font-bold ${totalProfit >= 0 ? "text-success" : "text-destructive"}`}>{fmt(totalProfit)}</p>
+              <p className={`text-xl font-display font-bold ${profitBalance >= 0 ? "text-success" : "text-destructive"}`}>{hasResolvedBalance ? fmt(profitBalance) : "—"}</p>
             </div>
           </CardContent>
         </Card>
