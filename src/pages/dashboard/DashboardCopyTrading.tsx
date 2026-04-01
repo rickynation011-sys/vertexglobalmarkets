@@ -92,6 +92,8 @@ const DashboardCopyTrading = () => {
       return data;
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: activeCopyTrades } = useQuery({
