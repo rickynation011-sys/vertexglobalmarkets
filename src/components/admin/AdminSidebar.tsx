@@ -29,6 +29,7 @@ const mainItems = [
   { title: "Fee Payments", url: "/admin/fee-payments", icon: DollarSign },
   { title: "Referrals", url: "/admin/referrals", icon: Link2 },
   { title: "Profit & Loss", url: "/admin/profit-loss", icon: Scale },
+  { title: "Trade Management", url: "/admin/trades", icon: BarChart3 },
 ];
 
 const systemItems = [
