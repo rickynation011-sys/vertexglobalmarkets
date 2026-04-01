@@ -60,3 +60,4 @@ const infoText = { fontSize: '14px', color: '#6b21a8', margin: '0 0 6px', lineHe
 const footer = { padding: '0 40px 32px' }
 const hr = { borderColor: '#e5e7eb', margin: '0 0 24px' }
 const footerBrand = { fontSize: '14px', fontWeight: '600' as const, color: '#374151', margin: '0 0 4px', textAlign: 'center' as const }
+const bold = { fontWeight: '700' as const }
