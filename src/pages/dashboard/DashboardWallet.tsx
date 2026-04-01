@@ -39,7 +39,7 @@ const DashboardWallet = () => {
   const [uploadingProof, setUploadingProof] = useState(false);
   const navigate = useNavigate();
 
-  const { data: profile } = useQuery({
+  const profileQuery = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("profiles").select("*").eq("user_id", user!.id).single();
@@ -49,6 +49,7 @@ const DashboardWallet = () => {
     staleTime: 30000,
     placeholderData: keepPreviousData,
   });
+  const profile = profileQuery.data;
 
   const { data: transactions } = useQuery({
     queryKey: ["transactions", user?.id],
@@ -121,8 +122,10 @@ const DashboardWallet = () => {
   const totalDeposited = completedDeposits.reduce((s, t) => s + Number(t.amount), 0);
   const totalWithdrawn = completedWithdrawals.reduce((s, t) => s + Number(t.amount), 0);
   const walletBalance = Number(profile?.wallet_balance ?? 0);
+  const profitBalance = Number((profile as any)?.profit_balance ?? 0);
+  const hasResolvedBalance = !!profile;
 
-  const totalProfit = (profitLogsAll ?? []).reduce((s, l) => s + Number(l.amount), 0);
+  const totalProfit = profitBalance;
   const processingFee = totalProfit * 0.10;
   const hasFeeApproved = (feePayments ?? []).some((p: any) => p.status === "approved");
 
@@ -328,8 +331,8 @@ const DashboardWallet = () => {
               <Wallet className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Wallet Balance</p>
-              <p className="text-xl font-display font-bold text-foreground">{fmt(walletBalance)}</p>
+              <p className="text-xs text-muted-foreground">Balance</p>
+              <p className="text-xl font-display font-bold text-foreground">{hasResolvedBalance ? fmt(profitBalance) : "—"}</p>
             </div>
           </CardContent>
         </Card>
