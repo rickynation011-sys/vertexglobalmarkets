@@ -35,7 +35,7 @@ export const SignupEmail = ({
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Confirm your email to get started with Vexter Global Markets</Preview>
+    <Preview>Confirm your email to get started with Vertex Global Markets</Preview>
     <Body style={main}>
       <Container style={wrapper}>
         {/* Header */}
