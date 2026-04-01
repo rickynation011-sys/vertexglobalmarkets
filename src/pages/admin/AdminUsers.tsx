@@ -365,6 +365,19 @@ const AdminUsers = () => {
                             >
                               <ShieldCheck className="h-4 w-4" />
                             </Button>
+                            {/* Resend confirmation */}
+                            {!emailVerification[u.user_id]?.email_confirmed_at && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-primary"
+                                title="Resend confirmation email"
+                                onClick={() => handleResendConfirmation(u)}
+                                disabled={resendingFor === u.user_id}
+                              >
+                                {resendingFor === u.user_id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                              </Button>
+                            )}
                             {/* Suspend / Activate */}
                             {u.status === "suspended" || u.status === "banned" ? (
                               <Button variant="ghost" size="icon" className="h-8 w-8 text-success" onClick={() => updateStatus(u.user_id, "active")} title="Activate">
