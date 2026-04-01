@@ -100,7 +100,7 @@ const DashboardFeePayment = () => {
     return () => { supabase.removeChannel(channel); };
   }, [user, queryClient]);
 
-  const totalProfit = (profitLogs ?? []).reduce((s, l) => s + Number(l.amount), 0);
+  const totalProfit = Number((profile as any)?.profit_balance ?? 0);
   const processingFee = totalProfit * 0.10;
   const selectedMethod = (depositMethods ?? []).find((m) => m.id === selectedMethodId);
 

@@ -240,6 +240,8 @@ const DashboardTrading = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const placeTrade = useMutation({

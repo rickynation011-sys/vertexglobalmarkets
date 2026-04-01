@@ -109,6 +109,8 @@ const DashboardCopyTrading = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const { data: copyHistory } = useQuery({
@@ -125,6 +127,8 @@ const DashboardCopyTrading = () => {
       return data ?? [];
     },
     enabled: !!user,
+    staleTime: 30000,
+    placeholderData: keepPreviousData,
   });
 
   const copyMutation = useMutation({
