@@ -25,11 +25,11 @@ const ReferralBonusEmail = ({ name, bonusAmount, referredUser }: Props) => (
           <Heading style={h1}>Referral Bonus Credited 🎁</Heading>
           <Text style={text}>{name ? `Hello ${name},` : 'Hello,'}</Text>
           <Text style={text}>
-            Congratulations! {referredUser ? `Your referral <strong>${referredUser}</strong> has completed a qualifying action, and y` : 'Y'}our referral bonus has been credited to your wallet.
+            Congratulations! {referredUser ? <>Your referral <span style={bold}>{referredUser}</span> has completed a qualifying action, and y</> : 'Y'}our referral bonus has been credited to your wallet.
           </Text>
           {bonusAmount && (
             <Section style={infoBox}>
-              <Text style={infoText}>💵 Bonus Amount: <strong>${bonusAmount}</strong></Text>
+              <Text style={infoText}>💵 Bonus Amount: <span style={bold}>${bonusAmount}</span></Text>
             </Section>
           )}
           <Text style={text}>
