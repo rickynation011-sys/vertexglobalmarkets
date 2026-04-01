@@ -24,7 +24,7 @@ const DepositConfirmationEmail = ({ name, amount, method }: Props) => (
           <Heading style={h1}>Deposit Request Received</Heading>
           <Text style={text}>{name ? `Hello ${name},` : 'Hello,'}</Text>
           <Text style={text}>
-            Your deposit request{amount ? ` of <strong>$${amount}</strong>` : ''}{method ? ` via <strong>${method}</strong>` : ''} has been submitted successfully and is currently under review by our team.
+            Your deposit request{amount ? <> of <span style={bold}>${amount}</span></> : ''}{method ? <> via <span style={bold}>{method}</span></> : ''} has been submitted successfully and is currently under review by our team.
           </Text>
           <Section style={infoBox}>
             <Text style={infoText}>You will receive a notification once your deposit has been processed and credited to your account.</Text>
