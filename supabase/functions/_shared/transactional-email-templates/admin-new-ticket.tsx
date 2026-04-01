@@ -23,11 +23,11 @@ const AdminNewTicketEmail = ({ userName, userEmail, subject, category, submitted
           <Heading style={h1}>🎫 New Support Ticket</Heading>
           <Text style={text}>A user has submitted a new support ticket.</Text>
           <Section style={infoBox}>
-            <Text style={infoText}><strong>User:</strong> {userName || 'N/A'}</Text>
-            <Text style={infoText}><strong>Email:</strong> {userEmail || 'N/A'}</Text>
-            <Text style={infoText}><strong>Subject:</strong> {subject || 'N/A'}</Text>
-            <Text style={infoText}><strong>Category:</strong> {category || 'N/A'}</Text>
-            <Text style={infoText}><strong>Submitted:</strong> {submittedAt ? new Date(submittedAt).toLocaleString() : 'Just now'}</Text>
+            <Text style={infoText}><span style={bold}>User:</span> {userName || 'N/A'}</Text>
+            <Text style={infoText}><span style={bold}>Email:</span> {userEmail || 'N/A'}</Text>
+            <Text style={infoText}><span style={bold}>Subject:</span> {subject || 'N/A'}</Text>
+            <Text style={infoText}><span style={bold}>Category:</span> {category || 'N/A'}</Text>
+            <Text style={infoText}><span style={bold}>Submitted:</span> {submittedAt ? new Date(submittedAt).toLocaleString() : 'Just now'}</Text>
           </Section>
           <Text style={text}>Please respond in the admin dashboard.</Text>
         </Section>
