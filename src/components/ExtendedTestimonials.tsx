@@ -61,7 +61,7 @@ const fallbackTestimonials = [
 const ITEMS_PER_VIEW = 3;
 
 const ExtendedTestimonials = () => {
-  const { data: dbTestimonials } = useQuery({ queryKey: ["landing-testimonials"], queryFn: fetchTestimonials, staleTime: 60000 });
+  const { data: dbTestimonials } = useQuery({ queryKey: ["landing-testimonials"], queryFn: fetchTestimonials, staleTime: 5000, refetchOnWindowFocus: true });
   const testimonials = dbTestimonials && dbTestimonials.length > 0 ? dbTestimonials : fallbackTestimonials;
   const totalPages = Math.ceil(testimonials.length / ITEMS_PER_VIEW);
   const [page, setPage] = useState(0);

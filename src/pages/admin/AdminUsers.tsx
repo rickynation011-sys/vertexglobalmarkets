@@ -4,10 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Search, Ban, Loader2, CheckCircle, DollarSign, ShieldCheck, Plus, Minus, Trash2, MailCheck, MailX } from "lucide-react";
+import { Search, Ban, Loader2, CheckCircle, DollarSign, ShieldCheck, Plus, Minus, Trash2, MailCheck, MailX, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Tables, Enums } from "@/integrations/supabase/types";
 
@@ -27,6 +28,7 @@ const roleColors: Record<string, string> = {
 };
 
 const AdminUsers = () => {
+  const { user: authUser } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [userRoles, setUserRoles] = useState<Record<string, AppRole[]>>({});
   const [emailVerification, setEmailVerification] = useState<Record<string, { email_confirmed_at: string | null }>>({});
@@ -43,6 +45,9 @@ const AdminUsers = () => {
   const [roleDialog, setRoleDialog] = useState<{ open: boolean; user: Profile | null }>({ open: false, user: null });
   const [newRole, setNewRole] = useState<AppRole>("user");
   const [roleLoading, setRoleLoading] = useState(false);
+
+  // Resend confirmation
+  const [resendingFor, setResendingFor] = useState<string | null>(null);
 
   const fetchProfiles = async () => {
     const [profilesRes, rolesRes] = await Promise.all([
@@ -97,6 +102,26 @@ const AdminUsers = () => {
     fetchProfiles();
   };
 
+  const handleResendConfirmation = async (profile: Profile) => {
+    if (!profile.email) {
+      toast.error("User has no email address");
+      return;
+    }
+    setResendingFor(profile.user_id);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: profile.email,
+      });
+      if (error) throw error;
+      toast.success(`Confirmation email sent to ${profile.email}`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to resend confirmation email");
+    } finally {
+      setResendingFor(null);
+    }
+  };
+
   const handleBalanceUpdate = async () => {
     if (!balanceDialog.user) return;
     const amt = parseFloat(balanceAmount);
@@ -111,21 +136,51 @@ const AdminUsers = () => {
       ? currentBalance + amt
       : Math.max(0, currentBalance - amt);
 
-    const { error } = await supabase
-      .from("profiles")
-      .update({ wallet_balance: newBalance })
-      .eq("user_id", balanceDialog.user.user_id);
+    try {
+      // 1. Update wallet balance
+      const { error } = await supabase
+        .from("profiles")
+        .update({ wallet_balance: newBalance })
+        .eq("user_id", balanceDialog.user.user_id);
+      if (error) throw error;
 
-    setBalanceLoading(false);
-    if (error) {
-      toast.error("Failed to update balance");
-      return;
+      // 2. Record transaction for audit trail
+      const { error: txnErr } = await supabase.from("transactions").insert({
+        user_id: balanceDialog.user.user_id,
+        type: balanceDialog.mode === "credit" ? "admin_credit" : "admin_debit",
+        amount: amt,
+        method: "admin",
+        status: "completed",
+        currency: "USD",
+        reviewed_by: authUser?.id,
+      });
+      if (txnErr) console.error("Transaction log failed:", txnErr);
+
+      // 3. Send in-app notification to user
+      const { data: notif } = await supabase.from("notifications").insert({
+        title: balanceDialog.mode === "credit" ? "Balance Credited" : "Balance Debited",
+        message: `$${amt.toFixed(2)} has been ${balanceDialog.mode === "credit" ? "credited to" : "debited from"} your wallet.`,
+        target: "specific",
+        target_user_id: balanceDialog.user.user_id,
+        sent_by: authUser?.id,
+      }).select("id").single();
+
+      if (notif) {
+        await supabase.from("user_notifications").insert({
+          user_id: balanceDialog.user.user_id,
+          notification_id: notif.id,
+        });
+      }
+
+      toast.success(`${balanceDialog.mode === "credit" ? "Credited" : "Debited"} $${amt.toLocaleString()} — New balance: $${newBalance.toLocaleString()}`);
+      setBalanceDialog({ open: false, user: null, mode: "credit" });
+      setBalanceAmount("");
+      fetchProfiles();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update balance");
+    } finally {
+      setBalanceLoading(false);
     }
-
-    toast.success(`${balanceDialog.mode === "credit" ? "Credited" : "Debited"} $${amt.toLocaleString()} — New balance: $${newBalance.toLocaleString()}`);
-    setBalanceDialog({ open: false, user: null, mode: "credit" });
-    setBalanceAmount("");
-    fetchProfiles();
   };
 
   const handleAddRole = async () => {
@@ -310,6 +365,19 @@ const AdminUsers = () => {
                             >
                               <ShieldCheck className="h-4 w-4" />
                             </Button>
+                            {/* Resend confirmation */}
+                            {!emailVerification[u.user_id]?.email_confirmed_at && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-primary"
+                                title="Resend confirmation email"
+                                onClick={() => handleResendConfirmation(u)}
+                                disabled={resendingFor === u.user_id}
+                              >
+                                {resendingFor === u.user_id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                              </Button>
+                            )}
                             {/* Suspend / Activate */}
                             {u.status === "suspended" || u.status === "banned" ? (
                               <Button variant="ghost" size="icon" className="h-8 w-8 text-success" onClick={() => updateStatus(u.user_id, "active")} title="Activate">

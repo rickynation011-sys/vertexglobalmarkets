@@ -54,6 +54,23 @@ const AdminSettings = () => {
       setLoading(false);
     };
     fetchSettings();
+
+    // Real-time sync: listen for changes from other admin sessions
+    const channel = supabase
+      .channel("platform-settings-sync")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "platform_settings" },
+        (payload) => {
+          if (payload.new && typeof payload.new === "object" && "key" in payload.new) {
+            const row = payload.new as { key: string; value: any };
+            setSettings((prev) => ({ ...prev, [row.key]: row.value }));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const handleSave = async () => {
