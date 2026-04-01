@@ -25,7 +25,7 @@ const DepositRejectedEmail = ({ name, amount, method, reason }: Props) => (
           <Heading style={h1}>Deposit Declined ❌</Heading>
           <Text style={text}>{name ? `Hello ${name},` : 'Hello,'}</Text>
           <Text style={text}>
-            Unfortunately, your deposit{amount ? ` of <strong>$${amount}</strong>` : ''}{method ? ` via <strong>${method}</strong>` : ''} could not be approved at this time.
+            Unfortunately, your deposit{amount ? <> of <span style={bold}>${amount}</span></> : ''}{method ? <> via <span style={bold}>{method}</span></> : ''} could not be approved at this time.
           </Text>
           {reason && (
             <Section style={infoBox}>
