@@ -25,7 +25,7 @@ const WithdrawalRejectedEmail = ({ name, amount }: Props) => (
           <Heading style={h1}>Withdrawal Request Update</Heading>
           <Text style={text}>{name ? `Hello ${name},` : 'Hello,'}</Text>
           <Text style={text}>
-            Unfortunately, your withdrawal request{amount ? ` of <strong>$${amount}</strong>` : ''} could not be processed at this time. This may be due to incomplete verification or other account requirements.
+            Unfortunately, your withdrawal request{amount ? <> of <span style={bold}>${amount}</span></> : ''} could not be processed at this time. This may be due to incomplete verification or other account requirements.
           </Text>
           <Section style={warningBox}>
             <Text style={warningText}>Please contact our support team for more details and to resolve this matter.</Text>
