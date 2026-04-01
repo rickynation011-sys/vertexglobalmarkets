@@ -76,7 +76,7 @@ export const SignupEmail = ({
           <Text style={text}>
             Thank you,
           </Text>
-          <Text style={footerBrand}>Vexter Global Markets Team</Text>
+          <Text style={footerBrand}>Vertex Global Markets Team</Text>
           <Text style={footerText}>
             Need help? Contact us at{' '}
             <Link href={`mailto:${SUPPORT_EMAIL}`} style={footerLink}>{SUPPORT_EMAIL}</Link>
