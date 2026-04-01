@@ -24,10 +24,10 @@ const AdminNewRegistrationEmail = ({ userName, userEmail, country, registeredAt 
           <Heading style={h1}>🆕 New User Registration</Heading>
           <Text style={text}>A new user has registered on the platform.</Text>
           <Section style={infoBox}>
-            <Text style={infoText}><strong>Name:</strong> {userName || 'N/A'}</Text>
-            <Text style={infoText}><strong>Email:</strong> {userEmail || 'N/A'}</Text>
-            {country && <Text style={infoText}><strong>Country:</strong> {country}</Text>}
-            <Text style={infoText}><strong>Registered:</strong> {registeredAt ? new Date(registeredAt).toLocaleString() : 'Just now'}</Text>
+            <Text style={infoText}><span style={bold}>Name:</span> {userName || 'N/A'}</Text>
+            <Text style={infoText}><span style={bold}>Email:</span> {userEmail || 'N/A'}</Text>
+            {country && <Text style={infoText}><span style={bold}>Country:</span> {country}</Text>}
+            <Text style={infoText}><span style={bold}>Registered:</span> {registeredAt ? new Date(registeredAt).toLocaleString() : 'Just now'}</Text>
           </Section>
         </Section>
         <Section style={footer}>
