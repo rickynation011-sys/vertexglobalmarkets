@@ -25,7 +25,7 @@ const WithdrawalApprovedEmail = ({ name, amount }: Props) => (
           <Heading style={h1}>Withdrawal Approved ✓</Heading>
           <Text style={text}>{name ? `Hello ${name},` : 'Hello,'}</Text>
           <Text style={text}>
-            Great news! Your withdrawal request{amount ? ` of <strong>$${amount}</strong>` : ''} has been approved and is being processed. The funds will be sent to your designated wallet address shortly.
+            Great news! Your withdrawal request{amount ? <> of <span style={bold}>${amount}</span></> : ''} has been approved and is being processed. The funds will be sent to your designated wallet address shortly.
           </Text>
           <Section style={successBox}>
             <Text style={successText}>Your withdrawal is on its way. Please allow time for blockchain confirmation.</Text>
