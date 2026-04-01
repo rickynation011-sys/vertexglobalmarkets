@@ -8,7 +8,7 @@ import OrderBook from "@/components/dashboard/OrderBook";
 import PriceAlerts from "@/components/dashboard/PriceAlerts";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useMarketPrices } from "@/hooks/useMarketPrices";
 import { useCurrency } from "@/contexts/CurrencyContext";
