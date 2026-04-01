@@ -105,7 +105,7 @@ const DashboardOverview = () => {
   const marketAssets = useMarketPrices(8000);
   const cryptoAssets = marketAssets.filter(a => a.source === "binance");
 
-  const { data: profile } = useQuery({
+  const profileQuery = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("profiles").select("*").eq("user_id", user!.id).single();
@@ -115,6 +115,7 @@ const DashboardOverview = () => {
     staleTime: 30000,
     placeholderData: keepPreviousData,
   });
+  const profile = profileQuery.data;
 
   const { data: investments } = useQuery({
     queryKey: ["investments", user?.id],
@@ -219,21 +220,17 @@ const DashboardOverview = () => {
   });
 
   const walletBalance = Number(profile?.wallet_balance ?? 0);
+  const profitBalance = Number((profile as any)?.profit_balance ?? 0);
+  const hasResolvedBalance = !!profile;
   const activeInvestments = (investments ?? []).filter(i => i.status === "active");
   const totalInvested = activeInvestments.reduce((s, i) => s + Number(i.amount), 0);
   const totalCurrentValue = activeInvestments.reduce((s, i) => s + Number(i.current_value), 0);
-  const totalProfitFromLogs = (profitLogs ?? []).reduce((s, l) => s + Number(l.amount), 0);
-  const investmentProfit = totalCurrentValue - totalInvested;
-  const tradePnl = (allTrades ?? []).filter(t => t.status === "closed").reduce((s, t) => s + Number(t.pnl ?? 0), 0);
-  const adminCredits = (transactions ?? []).filter(t => t.type === "admin_credit" && (t.status === "completed" || t.status === "approved")).reduce((s, t) => s + Number(t.amount), 0);
-  const adminDebits = (transactions ?? []).filter(t => t.type === "admin_debit" && (t.status === "completed" || t.status === "approved")).reduce((s, t) => s + Number(t.amount), 0);
-  const totalProfit = totalProfitFromLogs + tradePnl + adminCredits - adminDebits;
   const activeSignals = (signalSubs ?? []).filter(s => new Date(s.expires_at) > new Date()).length;
   const activeCopyTrades = (copyTrades ?? []).length;
 
-  const displayBalance = walletBalance;
-  const displayInvestmentProfit = investmentProfit;
-  const displayTotalProfit = totalProfit;
+  const displayBalance = profitBalance;
+  const displayInvestmentProfit = profitBalance;
+  const displayTotalProfit = profitBalance;
 
   // Win rate from real closed trades
   const closedTrades = (allTrades ?? []).filter(t => t.status === "closed");
@@ -242,23 +239,22 @@ const DashboardOverview = () => {
 
   const { format } = useCurrency();
   const fmt = (n: number) => format(n);
+  const fmtSigned = (n: number) => `${n >= 0 ? "+" : ""}${fmt(n)}`;
 
   const balanceHistory = (() => {
-    const events: { date: number; delta: number }[] = [];
-    (transactions ?? []).forEach(t => {
-      if (t.type === "deposit" && (t.status === "completed" || t.status === "approved"))
-        events.push({ date: new Date(t.created_at).getTime(), delta: Number(t.amount) });
-      if (t.type === "withdrawal" && (t.status === "completed" || t.status === "approved"))
-        events.push({ date: new Date(t.created_at).getTime(), delta: -Number(t.amount) });
-    });
-    (profitLogs ?? []).forEach(l => {
-      events.push({ date: new Date(l.created_at).getTime(), delta: Number(l.amount) });
-    });
-    events.sort((a, b) => a.date - b.date);
-    if (events.length === 0) return [walletBalance];
+    const events = [...(profitLogs ?? [])]
+      .map((log) => ({ date: new Date(log.created_at).getTime(), delta: Number(log.amount) }))
+      .sort((a, b) => a.date - b.date);
+
+    if (events.length === 0) return [displayBalance];
+
     let running = 0;
     const points = events.map(e => { running += e.delta; return running; });
-    points.push(walletBalance);
+
+    if (points[points.length - 1] !== displayBalance) {
+      points.push(displayBalance);
+    }
+
     return points.slice(-30);
   })();
 
@@ -266,21 +262,14 @@ const DashboardOverview = () => {
 
   const totalDeposited = (transactions ?? []).filter(t => t.type === "deposit" && isSuccessful(t.status)).reduce((s, t) => s + Number(t.amount), 0);
   const totalWithdrawn = (transactions ?? []).filter(t => t.type === "withdrawal" && isSuccessful(t.status)).reduce((s, t) => s + Number(t.amount), 0);
-  // wallet_balance is already net of invested amounts (deducted at investment time)
-  const availableBalance = walletBalance;
-
   const portfolioData = (() => {
-    const allEvents = [
-      ...(transactions ?? []).map(t => ({ kind: "transaction" as const, created_at: t.created_at, type: t.type, status: t.status, amount: Number(t.amount) })),
-      ...(profitLogs ?? []).map(l => ({ kind: "profit" as const, created_at: l.created_at, type: "profit", status: "completed", amount: Number(l.amount) })),
-    ].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    const allEvents = [...(profitLogs ?? [])].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
-    if (allEvents.length === 0) return [{ date: "Now", value: walletBalance }];
+    if (allEvents.length === 0) return [{ date: "Now", value: displayBalance }];
+
     let running = 0;
     return allEvents.map(event => {
-      if (event.kind === "profit") running += event.amount;
-      if (event.kind === "transaction" && event.type === "deposit" && isSuccessful(event.status)) running += event.amount;
-      if (event.kind === "transaction" && event.type === "withdrawal" && isSuccessful(event.status)) running -= event.amount;
+      running += Number(event.amount);
       return { date: new Date(event.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }), value: running };
     });
   })();
@@ -328,7 +317,7 @@ const DashboardOverview = () => {
             </div>
             <div className="flex items-center justify-between gap-2">
               <div className="text-lg font-display font-bold text-foreground">
-                <AnimatedBalance value={displayBalance} format={fmt} flash={null} />
+                {hasResolvedBalance ? <AnimatedBalance value={displayBalance} format={fmt} flash={null} /> : <span className="text-muted-foreground">—</span>}
               </div>
               <BalanceSparkline data={balanceHistory} />
             </div>
@@ -359,7 +348,7 @@ const DashboardOverview = () => {
               <TrendingUp className="h-4 w-4 text-success" />
             </div>
             <div className={`text-lg font-display font-bold ${displayInvestmentProfit >= 0 ? "text-success" : "text-destructive"}`}>
-              <AnimatedBalance value={displayInvestmentProfit} format={(n) => `${n >= 0 ? "+" : ""}${fmt(n)}`} flash={null} />
+              {hasResolvedBalance ? <AnimatedBalance value={displayInvestmentProfit} format={fmtSigned} flash={null} /> : <span className="text-muted-foreground">—</span>}
             </div>
             <p className="text-[10px] text-muted-foreground">{activeInvestments.length} active plans</p>
           </CardContent>
@@ -371,7 +360,7 @@ const DashboardOverview = () => {
               <TrendingUp className="h-4 w-4 text-success" />
             </div>
             <div className={`text-lg font-display font-bold ${displayTotalProfit >= 0 ? "text-success" : "text-destructive"}`}>
-              <AnimatedBalance value={displayTotalProfit} format={(n) => `${n >= 0 ? "+" : ""}${fmt(n)}`} flash={null} />
+              {hasResolvedBalance ? <AnimatedBalance value={displayTotalProfit} format={fmtSigned} flash={null} /> : <span className="text-muted-foreground">—</span>}
             </div>
             <div className={`flex items-center gap-1 text-[10px] ${displayTotalProfit >= 0 ? "text-success" : "text-destructive"}`}>
               {displayTotalProfit >= 0 ? <ArrowUp className="h-2.5 w-2.5" /> : <ArrowDown className="h-2.5 w-2.5" />}

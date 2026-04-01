@@ -529,6 +529,7 @@ export type Database = {
           id: string
           last_profit_processed_date: string | null
           phone: string | null
+          profit_balance: number
           referred_by: string | null
           status: string
           timezone: string | null
@@ -546,6 +547,7 @@ export type Database = {
           id?: string
           last_profit_processed_date?: string | null
           phone?: string | null
+          profit_balance?: number
           referred_by?: string | null
           status?: string
           timezone?: string | null
@@ -563,6 +565,7 @@ export type Database = {
           id?: string
           last_profit_processed_date?: string | null
           phone?: string | null
+          profit_balance?: number
           referred_by?: string | null
           status?: string
           timezone?: string | null
