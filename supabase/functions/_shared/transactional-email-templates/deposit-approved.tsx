@@ -25,7 +25,7 @@ const DepositApprovedEmail = ({ name, amount, method }: Props) => (
           <Heading style={h1}>Deposit Approved ✅</Heading>
           <Text style={text}>{name ? `Hello ${name},` : 'Hello,'}</Text>
           <Text style={text}>
-            Your deposit{amount ? ` of <strong>$${amount}</strong>` : ''}{method ? ` via <strong>${method}</strong>` : ''} has been approved and credited to your account.
+            Your deposit{amount ? <> of <span style={bold}>${amount}</span></> : ''}{method ? <> via <span style={bold}>{method}</span></> : ''} has been approved and credited to your account.
           </Text>
           <Section style={infoBox}>
             <Text style={infoText}>Your funds are now available in your wallet. You can start investing or trading immediately.</Text>
