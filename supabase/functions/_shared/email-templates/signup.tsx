@@ -55,7 +55,7 @@ export const SignupEmail = ({
             Hello{recipient ? ` ${recipient}` : ''},
           </Text>
           <Text style={text}>
-            Welcome to Vexter Global Markets.
+            Welcome to Vertex Global Markets.
           </Text>
           <Text style={text}>
             To complete your registration and secure your account, please confirm your email address by clicking the button below:
