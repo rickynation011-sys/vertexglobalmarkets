@@ -110,25 +110,26 @@ Deno.serve(async (req) => {
         await supabase.from("investments").update({ status: "completed" }).eq("id", inv.id);
 
         const profile = profileMap.get(inv.user_id);
-        const capitalReturn = Math.max(0, amount);
-        if (profile && capitalReturn > 0) {
-          const newBal = Math.max(0, toNumber(profile.wallet_balance) + capitalReturn);
+        // Return full value: initial capital + accumulated profit
+        const profit = Math.max(0, currentValue - amount);
+        const finalValue = amount + profit;
+        if (profile && finalValue > 0) {
+          const newBal = Math.max(0, toNumber(profile.wallet_balance) + finalValue);
           await supabase.from("profiles").update({ wallet_balance: newBal }).eq("user_id", inv.user_id);
           profile.wallet_balance = newBal;
 
           await supabase.from("transactions").insert({
             user_id: inv.user_id,
             type: "deposit",
-            amount: capitalReturn,
+            amount: finalValue,
             method: "investment_return",
             status: "completed",
             currency: "USD",
-            admin_notes: `Capital returned from matured ${inv.plan_name} plan`,
+            admin_notes: `Matured ${inv.plan_name}: capital $${amount.toFixed(2)} + profit $${profit.toFixed(2)}`,
           });
         }
 
         if (profile?.email) {
-          const profit = (currentValue - amount).toFixed(2);
           await supabase.functions.invoke("send-transactional-email", {
             body: {
               templateName: "investment-matured",
@@ -138,8 +139,8 @@ Deno.serve(async (req) => {
                 name: profile.full_name || undefined,
                 planName: inv.plan_name,
                 amount: amount.toLocaleString(),
-                profit,
-                totalValue: currentValue.toLocaleString(),
+                profit: profit.toFixed(2),
+                totalValue: finalValue.toLocaleString(),
               },
             },
           });
