@@ -228,7 +228,7 @@ const DashboardOverview = () => {
   const activeSignals = (signalSubs ?? []).filter(s => new Date(s.expires_at) > new Date()).length;
   const activeCopyTrades = (copyTrades ?? []).length;
 
-  const displayBalance = profitBalance;
+  const displayBalance = walletBalance;
   const displayInvestmentProfit = profitBalance;
   const displayTotalProfit = profitBalance;
 
@@ -242,17 +242,27 @@ const DashboardOverview = () => {
   const fmtSigned = (n: number) => `${n >= 0 ? "+" : ""}${fmt(n)}`;
 
   const balanceHistory = (() => {
-    const events = [...(profitLogs ?? [])]
-      .map((log) => ({ date: new Date(log.created_at).getTime(), delta: Number(log.amount) }))
-      .sort((a, b) => a.date - b.date);
+    // Sparkline shows wallet balance trend based on all successful transactions
+    const txs = [...(transactions ?? [])]
+      .filter(t => {
+        const s = t.status;
+        return s === "completed" || s === "approved";
+      })
+      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
-    if (events.length === 0) return [displayBalance];
+    if (txs.length === 0) return [walletBalance];
 
     let running = 0;
-    const points = events.map(e => { running += e.delta; return running; });
+    const points = txs.map(t => {
+      const amt = Number(t.amount);
+      if (t.type === "deposit" || t.type === "admin_credit" || t.type === "investment_return") running += amt;
+      else if (t.type === "withdrawal" || t.type === "admin_debit" || t.type === "investment") running -= amt;
+      return running;
+    });
 
-    if (points[points.length - 1] !== displayBalance) {
-      points.push(displayBalance);
+    // Ensure last point matches current wallet balance
+    if (points[points.length - 1] !== walletBalance) {
+      points.push(walletBalance);
     }
 
     return points.slice(-30);
