@@ -92,6 +92,7 @@ import AdminLandingContent from "./pages/admin/AdminLandingContent.tsx";
 import AdminEmailDashboard from "./pages/admin/AdminEmailDashboard.tsx";
 import AdminKYCView from "./pages/admin/AdminKYCView.tsx";
 import AdminProfitLoss from "./pages/admin/AdminProfitLoss.tsx";
+import AdminTrades from "./pages/admin/AdminTrades.tsx";
 
 const queryClient = new QueryClient();
 
