@@ -193,6 +193,7 @@ const App = () => (
                   <Route path="notifications" element={<AdminNotifications />} />
                   <Route path="email-dashboard" element={<AdminEmailDashboard />} />
                   <Route path="profit-loss" element={<AdminProfitLoss />} />
+                  <Route path="trades" element={<AdminTrades />} />
                 </Route>
               </Route>
 
