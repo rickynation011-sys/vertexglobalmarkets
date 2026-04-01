@@ -102,6 +102,26 @@ const AdminUsers = () => {
     fetchProfiles();
   };
 
+  const handleResendConfirmation = async (profile: Profile) => {
+    if (!profile.email) {
+      toast.error("User has no email address");
+      return;
+    }
+    setResendingFor(profile.user_id);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: profile.email,
+      });
+      if (error) throw error;
+      toast.success(`Confirmation email sent to ${profile.email}`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to resend confirmation email");
+    } finally {
+      setResendingFor(null);
+    }
+  };
+
   const handleBalanceUpdate = async () => {
     if (!balanceDialog.user) return;
     const amt = parseFloat(balanceAmount);
@@ -116,21 +136,51 @@ const AdminUsers = () => {
       ? currentBalance + amt
       : Math.max(0, currentBalance - amt);
 
-    const { error } = await supabase
-      .from("profiles")
-      .update({ wallet_balance: newBalance })
-      .eq("user_id", balanceDialog.user.user_id);
+    try {
+      // 1. Update wallet balance
+      const { error } = await supabase
+        .from("profiles")
+        .update({ wallet_balance: newBalance })
+        .eq("user_id", balanceDialog.user.user_id);
+      if (error) throw error;
 
-    setBalanceLoading(false);
-    if (error) {
-      toast.error("Failed to update balance");
-      return;
+      // 2. Record transaction for audit trail
+      const { error: txnErr } = await supabase.from("transactions").insert({
+        user_id: balanceDialog.user.user_id,
+        type: balanceDialog.mode === "credit" ? "admin_credit" : "admin_debit",
+        amount: amt,
+        method: "admin",
+        status: "completed",
+        currency: "USD",
+        reviewed_by: authUser?.id,
+      });
+      if (txnErr) console.error("Transaction log failed:", txnErr);
+
+      // 3. Send in-app notification to user
+      const { data: notif } = await supabase.from("notifications").insert({
+        title: balanceDialog.mode === "credit" ? "Balance Credited" : "Balance Debited",
+        message: `$${amt.toFixed(2)} has been ${balanceDialog.mode === "credit" ? "credited to" : "debited from"} your wallet.`,
+        target: "specific",
+        target_user_id: balanceDialog.user.user_id,
+        sent_by: authUser?.id,
+      }).select("id").single();
+
+      if (notif) {
+        await supabase.from("user_notifications").insert({
+          user_id: balanceDialog.user.user_id,
+          notification_id: notif.id,
+        });
+      }
+
+      toast.success(`${balanceDialog.mode === "credit" ? "Credited" : "Debited"} $${amt.toLocaleString()} — New balance: $${newBalance.toLocaleString()}`);
+      setBalanceDialog({ open: false, user: null, mode: "credit" });
+      setBalanceAmount("");
+      fetchProfiles();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update balance");
+    } finally {
+      setBalanceLoading(false);
     }
-
-    toast.success(`${balanceDialog.mode === "credit" ? "Credited" : "Debited"} $${amt.toLocaleString()} — New balance: $${newBalance.toLocaleString()}`);
-    setBalanceDialog({ open: false, user: null, mode: "credit" });
-    setBalanceAmount("");
-    fetchProfiles();
   };
 
   const handleAddRole = async () => {
