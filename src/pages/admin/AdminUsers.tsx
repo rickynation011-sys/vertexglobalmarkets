@@ -28,6 +28,7 @@ const roleColors: Record<string, string> = {
 };
 
 const AdminUsers = () => {
+  const { user: authUser } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [userRoles, setUserRoles] = useState<Record<string, AppRole[]>>({});
   const [emailVerification, setEmailVerification] = useState<Record<string, { email_confirmed_at: string | null }>>({});
@@ -44,6 +45,9 @@ const AdminUsers = () => {
   const [roleDialog, setRoleDialog] = useState<{ open: boolean; user: Profile | null }>({ open: false, user: null });
   const [newRole, setNewRole] = useState<AppRole>("user");
   const [roleLoading, setRoleLoading] = useState(false);
+
+  // Resend confirmation
+  const [resendingFor, setResendingFor] = useState<string | null>(null);
 
   const fetchProfiles = async () => {
     const [profilesRes, rolesRes] = await Promise.all([
