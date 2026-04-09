@@ -121,7 +121,8 @@ export const TicketChatThread = ({ ticket, senderType, onBack, onStatusChange }:
       if (error) throw error;
 
       // Update last_message_at and auto-update status
-      const statusUpdate: Record<string, any> = {
+      // Update ticket status
+      const statusUpdate: { last_message_at: string; status?: string } = {
         last_message_at: new Date().toISOString(),
       };
       if (senderType === "user" && ticket.status !== "open") {
@@ -129,7 +130,7 @@ export const TicketChatThread = ({ ticket, senderType, onBack, onStatusChange }:
       } else if (senderType === "admin" && ticket.status === "open") {
         statusUpdate.status = "in_progress";
       }
-      await supabase.from("support_tickets").update(statusUpdate).eq("id", ticket.id);
+      await supabase.from("support_tickets").update(statusUpdate as any).eq("id", ticket.id);
       if (statusUpdate.status && onStatusChange) {
         onStatusChange(statusUpdate.status);
       }
