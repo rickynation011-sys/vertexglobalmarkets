@@ -1,5 +1,7 @@
 import SEO from "@/components/SEO";
 import Navbar from "@/components/Navbar";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
+import FloatingChatButtons from "@/components/FloatingChatButtons";
 import HeroSection from "@/components/HeroSection";
 import MarketTicker from "@/components/MarketTicker";
 import StatsSection from "@/components/StatsSection";
@@ -35,8 +37,10 @@ const Index = () => {
           description: "Multi-asset trading and investment platform for forex, crypto, stocks, and commodities.",
         }}
       />
+      <AnnouncementBanner />
       <Navbar />
       <HeroSection />
+      <FloatingChatButtons />
       <MarketTicker />
       <TrustIndicators />
       <StatsSection />

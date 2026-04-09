@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Mail, MessageSquare, Phone, Clock, Paperclip, Send, Ticket, Plus } from "lucide-react";
+import { Mail, MessageSquare, Phone, Clock, Paperclip, Send, Ticket, Plus, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
